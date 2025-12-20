@@ -1,0 +1,37 @@
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
+
+namespace Examination_System.Models
+{
+    [Index(nameof(StudentId), nameof(ExamId))]
+    public class ExamAttempt : BaseModel
+    {
+        [ForeignKey("Exam")]
+        public int ExamId { get; set; }
+        [Required]
+        public Exam Exam { get; set; } = null!;
+
+        [ForeignKey("Student")]
+        public int StudentId { get; set; }
+        [Required]
+        public Student Student { get; set; } = null!;
+
+        public DateTime StartedAt { get; set; } = DateTime.UtcNow;
+
+        public DateTime? SubmittedAt { get; set; }
+
+        [Range(0, int.MaxValue)]
+        public int? Score { get; set; }
+
+        [Range(0, int.MaxValue)]
+        public int? MaxScore { get; set; }
+
+        public bool IsCompleted { get; set; } = false;
+
+        [NotMapped]
+        public double? Percentage => MaxScore > 0 && Score.HasValue ? (double)Score.Value / MaxScore.Value * 100 : null;
+
+        public ICollection<StudentAnswer> StudentAnswers { get; set; } = new List<StudentAnswer>();
+    }
+}
