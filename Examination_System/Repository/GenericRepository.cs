@@ -76,7 +76,7 @@ namespace Examination_System.Repository
         {
             return _dbSet.Where(predicate);
         }
-        public async Task DeleteAsync(Tkey id)
+  /*      public async Task DeleteAsync(Tkey id)
         {
             var entity = await GetByIdAsync(id);
             if (entity != null)
@@ -84,7 +84,7 @@ namespace Examination_System.Repository
                 entity.IsDeleted = true;
                 await UpdatePartialAsync(entity);
             }
-        }
+        }*/
         public async Task<bool> IsExistsAsync(Tkey id)
         {
             return  await _dbSet.FirstOrDefaultAsync(e => e.Id.Equals(id) && !e.IsDeleted) is not null? true : false;
@@ -110,7 +110,14 @@ namespace Examination_System.Repository
 
         public async Task AddCollectionAsync(ICollection<T> eq)
         {
+
           await  _dbSet.AddRangeAsync(eq);
+        }
+
+        public async Task<bool> DeleteAsync (Tkey id)
+        {
+           var result = await ExecuteUpdateAsync(id , T=>T.IsDeleted , true );
+            return result > 0;
         }
 
         /*  public async Task<int> ExecuteUpdateAsync<TProperty>(
