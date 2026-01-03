@@ -145,8 +145,9 @@ namespace Examination_System.Services.QuestionServices
                 if (question == null)
                     throw new KeyNotFoundException($"Question with ID {questionId} not found or you don't have permission to delete it.");
 
+                // GetAll() automatically filters soft-deleted records
                 var examQuestions = await _unitOfWork.Repository<ExamQuestion, int>().GetAll()
-                    .Where(eq => eq.QuestionId == questionId && !eq.IsDeleted)
+                    .Where(eq => eq.QuestionId == questionId)
                     .ToListAsync();
 
                 if (examQuestions.Any())
