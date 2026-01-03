@@ -1,17 +1,19 @@
-﻿namespace Examination_System.DTOs.Exam
+namespace Examination_System.DTOs.Exam
 {
-    public class ExamDto
+    public class ExamDtoToReturn
     {
-        public int Id { get; set; }
-        public string Title { get; set; } = string.Empty;
-        public string? Description { get; set; }
+        public int ID { get; set; }
+        public string Title { get; set; }
+        public DateTime Date { get; set; }
         public int DurationInMinutes { get; set; }
-        public int TotalMarks { get; set; }
-        public int PassingMarks { get; set; }
-        public DateTime StartDate { get; set; }
-        public DateTime? EndDate { get; set; }
-        public bool IsActive { get; set; }
+        public int Fullmark { get; set; }
+        public int PassingPercentage { get; set; }
+        public string ExamType { get; set; } // "Quiz" or "Final"
+        public int QuestionsCount { get; set; }
+        public int CourseId { get; set; }
+        public string CourseName { get; set; }
+        public int InstructorId { get; set; }
+        public string InstructorName { get; set; }
         public DateTime CreatedAt { get; set; }
-      
     }
 }

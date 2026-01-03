@@ -13,7 +13,7 @@ namespace Examination_System.Models
         public Exam Exam { get; set; } = null!;
 
         [ForeignKey("Student")]
-        public int StudentId { get; set; }
+        public string StudentId { get; set; }
         [Required]
         public Student Student { get; set; } = null!;
 
@@ -29,9 +29,10 @@ namespace Examination_System.Models
 
         public bool IsCompleted { get; set; } = false;
 
-        [NotMapped]
-        public double? Percentage => MaxScore > 0 && Score.HasValue ? (double)Score.Value / MaxScore.Value * 100 : null;
+       
+        public double? Percentage { get; set; }
 
+        public bool IsSucceed { get; set; }
         public ICollection<StudentAnswer> StudentAnswers { get; set; } = new List<StudentAnswer>();
     }
 }

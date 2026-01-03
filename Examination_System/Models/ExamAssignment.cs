@@ -1,36 +1,21 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Examination_System.Models
 {
+    [Index(nameof(StudentId), nameof(ExamId))]
+
     public class ExamAssignment : BaseModel
     {
-        [Required]
-        [ForeignKey(nameof(Student))]
-        public int StudentId { get; set; }
-        public Student Student { get; set; }
-
-        [Required]
-        [ForeignKey(nameof(Exam))]
         public int ExamId { get; set; }
         public Exam Exam { get; set; }
-
-        [Required]
+        
+        public string StudentId { get; set; }  // Changed from StudentId
+        public Student Student { get; set; }
+        
         public DateTime AssignedDate { get; set; }
-
-        public DateTime? SubmittedDate { get; set; }
-
-        [Range(0, 100)]
-        public decimal? Score { get; set; }
-
-        public ExamStatus Status { get; set; } = ExamStatus.Pending;
-    }
-
-    public enum ExamStatus
-    {
-        Pending,
-        InProgress,
-        Submitted,
-        Graded
+        public DateTime? SubmittedDate { get; set; } = null;
+        public double? Score { get; set; } = null;
     }
 }

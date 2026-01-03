@@ -19,8 +19,13 @@ namespace Examination_System.Data.Configurations
                 .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(q => q.Instructor)
-                .WithMany(i => i.Questions)
+                .WithMany()
                 .HasForeignKey(q => q.InstructorId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne(q => q.Course)
+                .WithMany()
+                .HasForeignKey(q => q.CourseId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

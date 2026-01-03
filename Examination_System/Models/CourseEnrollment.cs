@@ -8,13 +8,12 @@ namespace Examination_System.Models
    
         [Required]
 
-        public int StudentId { get; set; }
+        public string StudentId { get; set; }
         [Required]
         public Student Student { get; set; }
         [Required]
         public int CourseId { get; set; }
         public Course Course { get; set; }
-        public DateTime EnrollmentAt { get; set; } = DateTime.UtcNow; 
-
+        public DateTime EnrollmentDate { get; set; } = DateTime.UtcNow;
     }
 }

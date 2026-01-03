@@ -8,16 +8,22 @@ namespace Examination_System.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<Student> builder)
         {
-            builder.HasMany(s => s.Exams)
+            builder.HasMany(s => s.ExamAssignments)
                 .WithOne(eg => eg.Student)
                 .HasForeignKey(eg => eg.StudentId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasMany(s => s.Courses)
+            builder.HasMany(s => s.ExamAttempt)
+             .WithOne(eg => eg.Student)
+             .HasForeignKey(eg => eg.StudentId)
+             .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasMany(s => s.CourseEnrollments)
                 .WithOne(ce => ce.Student)
                 .HasForeignKey(ce => ce.StudentId)
                 .OnDelete(DeleteBehavior.Cascade);
-            builder.HasIndex(s => s.UserId)
+
+            builder.HasIndex(s => s.Id)
                     .IsUnique()
                     .HasFilter("[IsDeleted] = 0");
         }

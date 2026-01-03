@@ -16,8 +16,8 @@ namespace Examination_System.DTOs.Course
         [RegularExpression(@"^\d+$", ErrorMessage = "Hours must be a valid number")]
         public string Hours { get; set; }
 
-        [Required(ErrorMessage = "Instructor ID is required")]
-        [Range(1, int.MaxValue, ErrorMessage = "Invalid instructor ID")]
-        public int InstructorId { get; set; }
+        //[Required(ErrorMessage = "Instructor ID is required")]
+        //[Range(1, int.MaxValue, ErrorMessage = "Invalid instructor ID")]
+        public string? InstructorId { get; set; }
     }
 }

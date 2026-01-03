@@ -1,14 +1,20 @@
 ﻿using Examination_System.Models;
+using System.Linq.Expressions;
 
 namespace Examination_System.Specifications.SpecsForEntity
 {
-    public class ExamSpecifications : BaseSpecification<Exam>
+    public class ExamSpecifications : BaseSpecification<Exam, int>
     {
-        public ExamSpecifications() : base(null)
+        public ExamSpecifications(Expression<Func<Exam, bool>> Criteria) : base(Criteria)
         {
-            AddInclude(e => e.Questions);
+            // Basic includes
             AddInclude(e => e.Course);
             AddInclude(e => e.Instructor);
+            
+            // Nested includes using string-based navigation
+            AddInclude("ExamQuestions.Question.Choices");
+            AddInclude("Instructor.User");
+           
         }
     }
 }

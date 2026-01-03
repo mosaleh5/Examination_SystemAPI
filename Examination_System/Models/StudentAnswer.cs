@@ -22,6 +22,6 @@ namespace Examination_System.Models
 
         public bool IsCorrect { get; set; }
 
-        public DateTime AnsweredAt { get; set; } = DateTime.UtcNow;
+      
     }
 }

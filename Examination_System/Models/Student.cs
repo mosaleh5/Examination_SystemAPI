@@ -1,21 +1,22 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Examination_System.Models
 {
-    public class Student : BaseModel
+    public class Student : BaseModelString
     {
-      
-        public User User { get; set; }
+        [Key]
         [ForeignKey(nameof(User))]
-        public int UserId { get; set; }
-
+        public new string Id { get; set; }  // Override to be PK and FK
+        
+        public User User { get; set; }
+        
         public string Major { get; set; }
         public DateTime EnrollmentDate { get; set; }
-        public ICollection<ExamAssignment> Exams { get; set; }
-        public ICollection<CourseEnrollment> Courses { get; set; }
+        
+        public ICollection<ExamAssignment> ExamAssignments { get; set; }
+        public ICollection<CourseEnrollment> CourseEnrollments { get; set; }
+        public ICollection<ExamAttempt> ExamAttempt { get; set; }
 
-        public int ExamId { get; set; }
-
-       
     }
 }

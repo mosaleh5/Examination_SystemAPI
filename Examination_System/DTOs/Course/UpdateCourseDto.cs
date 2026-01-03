@@ -17,6 +17,6 @@ namespace Examination_System.DTOs.Course
         public string Hours { get; set; }
 
         [Range(1, int.MaxValue, ErrorMessage = "Invalid instructor ID")]
-        public int? InstructorId { get; set; }
+        public string? InstructorId { get; set; }
     }
 }

@@ -9,7 +9,7 @@ namespace Examination_System.Data.Configurations
         public void Configure(EntityTypeBuilder<ExamQuestion> builder)
         {
             builder.HasOne(eq => eq.Exam)
-                .WithMany(e => e.Questions)
+                .WithMany(e => e.ExamQuestions)
                 .HasForeignKey(eq => eq.ExamId)
                 .OnDelete(DeleteBehavior.Cascade);
 
@@ -17,6 +17,13 @@ namespace Examination_System.Data.Configurations
                 .WithMany(q => q.ExamQuestions)
                 .HasForeignKey(eq => eq.QuestionId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // Add composite index for common query patterns
+            builder.HasIndex(eq => new { eq.ExamId, eq.QuestionId })
+                .IsUnique(); // Prevents duplicate question assignments to same exam
+
+            // Optional: Individual index if you frequently query by QuestionId alone
+            builder.HasIndex(eq => eq.ExamId);
         }
     }
 }
