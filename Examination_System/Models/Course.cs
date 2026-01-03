@@ -13,10 +13,11 @@ namespace Examination_System.Models
         public string Description { get; set; }
 
         public Instructor? Instructor { get; set; }
-        public int InstructorId { get; set; }
+        public string InstructorId { get; set; }
 
         public ICollection<Exam>? Exams { get; set; }
         public ICollection<CourseEnrollment>? CourseEnrollments { get; set; }
-        
+        public ICollection<Question>? Questions { get; set; }
+
     }
 }

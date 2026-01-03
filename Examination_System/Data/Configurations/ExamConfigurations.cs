@@ -8,7 +8,7 @@ namespace Examination_System.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<Exam> builder)
         {
-            builder.Property(e => e.DurationMinutes)
+            builder.Property(e => e.DurationInMinutes)
                 .HasDefaultValue(0)
                 .IsRequired();
 
@@ -24,7 +24,7 @@ namespace Examination_System.Data.Configurations
                 .HasMaxLength(150)
                 .IsRequired();
 
-            builder.HasMany(c => c.Questions)
+            builder.HasMany(c => c.ExamQuestions)
                 .WithOne()
                 .HasForeignKey(sc => sc.ExamId)
                 .OnDelete(DeleteBehavior.Cascade);

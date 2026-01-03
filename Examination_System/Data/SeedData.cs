@@ -3,9 +3,9 @@ using static Examination_System.Models.Question;
 
 namespace Examination_System.Data
 {
-    public static class SeedData
+    public static class SeedingData
     {
-        public static List<User> GetUsers()
+      /*  public static List<User> GetUsers()
         {
             return
             [
@@ -274,24 +274,24 @@ namespace Examination_System.Data
                 }
             ];
         }
-
-        public static List<Question> GetQuestions(List<Instructor> instructors)
+*/
+        public static List<Question> GetQuestions()
         {
-            return
-            [
-                new Question { Title = "What is a variable in programming?", mark = 5, Level = QuestionLevel.Simple, Instructor = instructors[0], IsDeleted = false, CreatedAt = DateTime.UtcNow },
-                new Question { Title = "Explain the difference between value types and reference types in C#.", mark = 10, Level = QuestionLevel.Medium, Instructor = instructors[0], IsDeleted = false, CreatedAt = DateTime.UtcNow },
-                new Question { Title = "What is polymorphism and how is it implemented?", mark = 15, Level = QuestionLevel.Hard, Instructor = instructors[0], IsDeleted = false, CreatedAt = DateTime.UtcNow },
-                new Question { Title = "What is normalization in databases?", mark = 5, Level = QuestionLevel.Simple, Instructor = instructors[1], IsDeleted = false, CreatedAt = DateTime.UtcNow },
-                new Question { Title = "Write a SQL query to perform an INNER JOIN between two tables.", mark = 15, Level = QuestionLevel.Hard, Instructor = instructors[1], IsDeleted = false, CreatedAt = DateTime.UtcNow },
-                new Question { Title = "Explain ACID properties in database transactions.", mark = 10, Level = QuestionLevel.Medium, Instructor = instructors[1], IsDeleted = false, CreatedAt = DateTime.UtcNow },
-                new Question { Title = "What is the MVC pattern?", mark = 5, Level = QuestionLevel.Simple, Instructor = instructors[2], IsDeleted = false, CreatedAt = DateTime.UtcNow },
-                new Question { Title = "Explain RESTful API design principles.", mark = 10, Level = QuestionLevel.Medium, Instructor = instructors[2], IsDeleted = false, CreatedAt = DateTime.UtcNow },
-                new Question { Title = "What is the difference between authentication and authorization?", mark = 10, Level = QuestionLevel.Medium, Instructor = instructors[2], IsDeleted = false, CreatedAt = DateTime.UtcNow },
-                new Question { Title = "Implement a binary search algorithm.", mark = 15, Level = QuestionLevel.Hard, Instructor = instructors[0], IsDeleted = false, CreatedAt = DateTime.UtcNow },
-                new Question { Title = "Explain the concept of inheritance in OOP.", mark = 10, Level = QuestionLevel.Medium, Instructor = instructors[0], IsDeleted = false, CreatedAt = DateTime.UtcNow },
-                new Question { Title = "What is a foreign key?", mark = 5, Level = QuestionLevel.Simple, Instructor = instructors[1], IsDeleted = false, CreatedAt = DateTime.UtcNow }
-            ];
+            return new List<Question>
+{
+    new Question { Title = "What is a variable in programming?", mark = 5, Level = QuestionLevel.Simple, InstructorId = "f6ccfb9f-aee9-4151-91b0-f25daccd2831", CourseId = 9, IsDeleted = false, CreatedAt = DateTime.UtcNow },
+    new Question { Title = "Explain the difference between value types and reference types in C#.", mark = 10, Level = QuestionLevel.Medium, InstructorId = "f6ccfb9f-aee9-4151-91b0-f25daccd2831", CourseId = 9, IsDeleted = false, CreatedAt = DateTime.UtcNow },
+    new Question { Title = "What is polymorphism and how is it implemented?", mark = 15, Level = QuestionLevel.Hard, InstructorId = "f6ccfb9f-aee9-4151-91b0-f25daccd2831", CourseId = 9, IsDeleted = false, CreatedAt = DateTime.UtcNow },
+    new Question { Title = "What is normalization in databases?", mark = 5, Level = QuestionLevel.Simple, InstructorId = "f6ccfb9f-aee9-4151-91b0-f25daccd2831", CourseId = 9, IsDeleted = false, CreatedAt = DateTime.UtcNow },
+    new Question { Title = "Write a SQL query to perform an INNER JOIN between two tables.", mark = 15, Level = QuestionLevel.Hard, InstructorId = "f6ccfb9f-aee9-4151-91b0-f25daccd2831", CourseId = 9, IsDeleted = false, CreatedAt = DateTime.UtcNow },
+    new Question { Title = "Explain ACID properties in database transactions.", mark = 10, Level = QuestionLevel.Medium, InstructorId = "f6ccfb9f-aee9-4151-91b0-f25daccd2831", CourseId = 9, IsDeleted = false, CreatedAt = DateTime.UtcNow },
+    new Question { Title = "What is the MVC pattern?", mark = 5, Level = QuestionLevel.Simple, InstructorId = "f6ccfb9f-aee9-4151-91b0-f25daccd2831", CourseId = 9, IsDeleted = false, CreatedAt = DateTime.UtcNow },
+    new Question { Title = "Explain RESTful API design principles.", mark = 10, Level = QuestionLevel.Medium, InstructorId = "f6ccfb9f-aee9-4151-91b0-f25daccd2831", CourseId = 9, IsDeleted = false, CreatedAt = DateTime.UtcNow },
+    new Question { Title = "What is the difference between authentication and authorization?", mark = 10, Level = QuestionLevel.Medium, InstructorId = "f6ccfb9f-aee9-4151-91b0-f25daccd2831", CourseId = 9, IsDeleted = false, CreatedAt = DateTime.UtcNow },
+    new Question { Title = "Implement a binary search algorithm.", mark = 15, Level = QuestionLevel.Hard, InstructorId = "f6ccfb9f-aee9-4151-91b0-f25daccd2831", CourseId = 9, IsDeleted = false, CreatedAt = DateTime.UtcNow },
+    new Question { Title = "Explain the concept of inheritance in OOP.", mark = 10, Level = QuestionLevel.Medium, InstructorId = "f6ccfb9f-aee9-4151-91b0-f25daccd2831", CourseId = 9, IsDeleted = false, CreatedAt = DateTime.UtcNow },
+    new Question { Title = "What is a foreign key?", mark = 5, Level = QuestionLevel.Simple, InstructorId = "f6ccfb9f-aee9-4151-91b0-f25daccd2831", CourseId = 9, IsDeleted = false, CreatedAt = DateTime.UtcNow }
+};
         }
 
         public static List<Choice> GetChoices(List<Question> questions)
@@ -342,7 +342,7 @@ namespace Examination_System.Data
             ];
         }
 
-        public static List<ExamQuestion> GetExamQuestions(List<Exam> exams, List<Question> questions)
+     /*   public static List<ExamQuestion> GetExamQuestions(List<Exam> exams, List<Question> questions)
         {
             return
             [
@@ -377,9 +377,9 @@ namespace Examination_System.Data
                 new ExamQuestion { Exam = exams[5], Question = questions[9], IsDeleted = false, CreatedAt = DateTime.UtcNow },
                 new ExamQuestion { Exam = exams[5], Question = questions[10], IsDeleted = false, CreatedAt = DateTime.UtcNow }
             ];
-        }
+        }*/
 
-        public static List<CourseEnrollment> GetCourseEnrollments(List<Student> students, List<Course> courses)
+      /*  public static List<CourseEnrollment> GetCourseEnrollments(List<Student> students, List<Course> courses)
         {
             return
             [
@@ -405,9 +405,9 @@ namespace Examination_System.Data
                 new CourseEnrollment { Student = students[3], Course = courses[2], EnrollmentAt = new DateTime(2024, 9, 4, 0, 0, 0, DateTimeKind.Utc), IsDeleted = false, CreatedAt = DateTime.UtcNow },
                 new CourseEnrollment { Student = students[3], Course = courses[3], EnrollmentAt = new DateTime(2024, 9, 4, 0, 0, 0, DateTimeKind.Utc), IsDeleted = false, CreatedAt = DateTime.UtcNow }
             ];
-        }
+        }*/
 
-        public static List<ExamAssignment> GetExamAssignments(List<Student> students, List<Exam> exams)
+      /*  public static List<ExamAssignment> GetExamAssignments(List<Student> students, List<Exam> exams)
         {
             return
             [
@@ -430,6 +430,6 @@ namespace Examination_System.Data
                 new ExamAssignment { Student = students[3], Exam = exams[2], SubmissionDate = new DateTime(2024, 12, 21, 16, 30, 0, DateTimeKind.Utc), IsDeleted = false, CreatedAt = DateTime.UtcNow },
                 new ExamAssignment { Student = students[3], Exam = exams[5], SubmissionDate = new DateTime(2024, 12, 24, 10, 10, 0, DateTimeKind.Utc), IsDeleted = false, CreatedAt = DateTime.UtcNow }
             ];
-        }
+        }*/
     }
 }

@@ -11,14 +11,12 @@ namespace Examination_System.Models
         [Required]
 
         public bool IsCorrect { get; set; }
-        [ForeignKey("Question")]
-        public int QuestionId { get; set; }
+        [ForeignKey(nameof(QuestionId))]
         public Question Question { get; set; }
+        public int QuestionId { get; set; }
+      
 
-        public ICollection<StudentAnswer> StudentAnswers { get; set; }
-        public int StudentAnswerId
-        {
-            get; set;
-        }
+        public ICollection<StudentAnswer>? StudentAnswers { get; set; }
+     
     }
 }

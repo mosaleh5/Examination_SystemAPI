@@ -1,74 +1,79 @@
-﻿using Examination_System.DTOs.Course;
+﻿using AutoMapper;
+using Examination_System.DTOs.Course;
 using Examination_System.Models;
-using Examination_System.Services;
+using Examination_System.Services.CourseServices;
+using Examination_System.Services.CurrentUserServices;
+using Examination_System.Services.StudentService;
 using Examination_System.Specifications.SpecsForEntity;
+using Examination_System.ViewModels.Course;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
 
 namespace Examination_System.Controllers
 {
 
     public class CourseController : BaseController
     {
-        private readonly CourseServices _courseServices;
+        private readonly ICourseServices _courseServices;
+        private readonly IStudentServices _studentServices;
 
-        public CourseController(CourseServices courseServices)
+        private readonly ICurrentUserServices _currentUserServices;
+        private readonly IMapper _mapper;
+
+        public CourseController(ICourseServices courseServices,
+            ICurrentUserServices CurrentUserServices,
+            IMapper Mapper)
         {
             _courseServices = courseServices;
+            _currentUserServices = CurrentUserServices;
+            _mapper = Mapper;
         }
 
-        /// <summary>
-        /// Get all courses
-        /// </summary>
+
         [HttpGet]
-        [ProducesResponseType(typeof(IEnumerable<CourseDto>), StatusCodes.Status200OK)]
-        public async Task<ActionResult<IEnumerable<CourseDto>>> GetAll()
+        [Authorize(Roles = "Instructor")]
+        [ProducesResponseType(typeof(IEnumerable<CourseResponseViewModel>), StatusCodes.Status200OK)]
+        public async Task<ActionResult<IEnumerable<CourseResponseViewModel>>> GetAllForInstructor()
         {
-            var courses = await _courseServices.GetAllAsync();
+            var userId = _currentUserServices.UserId;
+            if (userId == null)
+            {
+                return Unauthorized(new { message = "User is not authenticated." });
+            }
+
+
+            var coursesResult = await _courseServices.GetAllForInstructorAsync(userId);
+            var courses = _mapper.Map<IEnumerable<CourseResponseViewModel>>(coursesResult);
+
             return Ok(courses);
         }
-
-        /// <summary>
-        /// Get course by ID with full details
-        /// </summary>
-        [HttpGet("{id}")]
-        [ProducesResponseType(typeof(CourseDetailsDto), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<CourseDetailsDto>> GetById(int id)
-        {
-            var course = await _courseServices.GetByIdAsync(id);
-            
-            if (course == null)
-                return NotFound(new { message = $"Course with ID {id} not found" });
-
-            return Ok(course);
-        }
-
-        /// <summary>
-        /// Get courses by instructor ID
-        /// </summary>
-        [HttpGet("instructor/{instructorId}")]
-        [ProducesResponseType(typeof(IEnumerable<CourseDto>), StatusCodes.Status200OK)]
-        public async Task<ActionResult<IEnumerable<CourseDto>>> GetByInstructor(int instructorId)
-        {
-            var courses = await _courseServices.GetCoursesByInstructorAsync(instructorId);
-            return Ok(courses);
-        }
-
-        /// <summary>
-        /// Create a new course
-        /// </summary>
         [HttpPost]
-        [ProducesResponseType(typeof(CourseDto), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(CourseResponseViewModel), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<CourseDto>> Create([FromBody] CreateCourseDto createDto)
+        [Authorize(Roles = "Instructor")]
+
+        public async Task<ActionResult<CourseResponseViewModel>> Create([FromBody] CreateCourseViewModel createCourseViewModel)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
+            var userId = _currentUserServices.UserId;
+            if (userId == null)
+            {
+                return Unauthorized(new { message = "User is not authenticated." });
+            }
+
+            var CreateCourseDto = _mapper.Map<CreateCourseViewModel, CreateCourseDto>(createCourseViewModel);
+
+            CreateCourseDto.InstructorId = userId;
+            //createDto.InstructorName = userName;
             try
             {
-                var course = await _courseServices.CreateAsync(createDto);
-                return CreatedAtAction(nameof(GetById), new { id = course.ID }, course);
+                var coursesResult = await _courseServices.CreateAsync(CreateCourseDto);
+                var courses = _mapper.Map<CourseResponseViewModel>(coursesResult);
+                return courses;
             }
             catch (InvalidOperationException ex)
             {
@@ -76,30 +81,39 @@ namespace Examination_System.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, 
+                return StatusCode(StatusCodes.Status500InternalServerError,
                     new { message = "An error occurred while creating the course", details = ex.Message });
             }
         }
-
-        /// <summary>
-        /// Update an existing course
-        /// </summary>
-        [HttpPut("{id}")]
-        [ProducesResponseType(typeof(CourseDto), StatusCodes.Status200OK)]
+        [HttpPatch("{courseId}/students")]
+        [Authorize(Roles = "Instructor,Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<CourseDto>> Update(int id, [FromBody] UpdateCourseDto updateDto)
+        public async Task<ActionResult> EnrollStudentInCourse(int courseId, string studentId)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            if (id != updateDto.ID)
-                return BadRequest(new { message = "ID in URL does not match ID in body" });
-
+            var userId = _currentUserServices.UserId;
+            if (userId == null || !_currentUserServices.IsAuthenticated)
+            {
+                return Unauthorized(new { message = "User is not authenticated." });
+            }
+            if(!await _courseServices.IsInstructorOfCourseAsync(courseId, userId))
+            {
+                return Unauthorized(new { Message = "You are not Allowed to assign student to this course" });
+            }
+            if (string.IsNullOrEmpty(studentId))
+            {
+                return BadRequest(new { message = "StudentId cannot be null or empty." });
+            }
+            if(courseId <= 0)
+            {
+                return BadRequest(new { message = "Invalid courseId." });
+            }
+          
             try
             {
-                var updatedCourse = await _courseServices.UpdateAsync(id, updateDto);
-                return Ok(updatedCourse);
+                await _courseServices.EnrollStudentInCourseAsync(courseId, studentId);
+                return Ok(new { message = $"Student with ID {studentId} enrolled in course {courseId} successfully." });
             }
             catch (InvalidOperationException ex)
             {
@@ -112,52 +126,19 @@ namespace Examination_System.Controllers
             catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError,
-                    new { message = "An error occurred while updating the course", details = ex.Message });
+                    new { message = "An error occurred while enrolling the student in the course", details = ex.Message });
             }
         }
 
-        /// <summary>
-        /// Delete a course (soft delete)
-        /// </summary>
-        [HttpDelete("{id}")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> Delete(int id)
-        {
-            var result = await _courseServices.DeleteAsync(id);
-            
-            if (!result)
-                return NotFound(new { message = $"Course with ID {id} not found" });
 
-            return NoContent();
-        }
 
-        /// <summary>
-        /// Check if course exists
-        /// </summary>
-        [HttpHead("{id}")]
-        [HttpGet("{id}/exists")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> Exists(int id)
-        {
-            var exists = await _courseServices.ExistsAsync(id);
-            
-            if (!exists)
-                return NotFound();
 
-            return Ok(new { exists = true });
-        }
 
-        /// <summary>
-        /// Get enrolled students count for a course
-        /// </summary>
-        [HttpGet("{id}/students/count")]
-        [ProducesResponseType(typeof(int), StatusCodes.Status200OK)]
-        public async Task<ActionResult<int>> GetEnrolledStudentsCount(int id)
-        {
-            var count = await _courseServices.GetEnrolledStudentsCountAsync(id);
-            return Ok(new { courseId = id, enrolledStudentsCount = count });
-        }
+
+
+
+
+       
+
     }
 }

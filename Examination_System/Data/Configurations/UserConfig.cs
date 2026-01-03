@@ -9,8 +9,7 @@ namespace Examination_System.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<User> builder)
         {
-            builder
-                .HasKey(u => u.ID);
+          
 
             builder
                 .HasIndex(u => u.UserName)
@@ -24,14 +23,14 @@ namespace Examination_System.Data.Configurations
             builder
                 .HasOne(u => u.Instructor)
                 .WithOne(i => i.User)
-                .HasForeignKey<Instructor>(i => i.UserId)
+                .HasForeignKey<Instructor>(i => i.Id)
                 .OnDelete(DeleteBehavior.Cascade);
 
          
             builder
                 .HasOne(u => u.Student)
                 .WithOne(s => s.User)
-                .HasForeignKey<Student>(s => s.UserId)
+                .HasForeignKey<Student>(s => s.Id)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }

@@ -10,13 +10,8 @@ namespace Examination_System.Data.Configurations
         {
           
 
-            builder.Property(seg => seg.SubmissionDate)
-                .IsRequired();
+     
 
-            builder.HasOne(seg => seg.Student)
-                .WithMany(s => s.Exams)
-                .HasForeignKey(seg => seg.StudentId)
-                .OnDelete(DeleteBehavior.Cascade);
 
             builder.HasOne(seg => seg.Exam)
                 .WithMany(e => e.StudentExams)

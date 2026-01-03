@@ -3,18 +3,18 @@ using Examination_System.Models;
 
 namespace Examination_System.Specifications
 {
-    public class BaseSpecification<T> : ISpecification<T> where T : BaseModel
+    public class BaseSpecification<T, Tkey> : ISpecification<T, Tkey> where T : class, IBaseModel<Tkey>
     {
         public Expression<Func<T, bool>> Criteria { get; set; }
-        //public Expression<Func<T, object>> OrderBy { get; set; } 
-        // Ireplac it with this
-        //public Func<IQueryable<T>, IOrderedQueryable<T>> OrderBy { get; set; }
-
-        //public Expression<Func<T, object>> OrderByDescending { get; set; }
         public List<Expression<Func<T, object>>> IncludeExpressions { get; set; } = new List<Expression<Func<T, object>>>();
+        public List<string> IncludeStrings { get; set; } = new List<string>();
         public Func<IQueryable<T>, IOrderedQueryable<T>> AdvancedOrderBy { get; private set; }
 
-        public BaseSpecification(Expression<Func<T, bool>> ?criteriaExpression)
+        public BaseSpecification()
+        {
+        }
+
+        public BaseSpecification(Expression<Func<T, bool>>? criteriaExpression): this() 
         {
             Criteria = criteriaExpression;
         }
@@ -24,8 +24,12 @@ namespace Examination_System.Specifications
             IncludeExpressions.Add(includeExpression);
         }
 
+        // Add this method for nested includes
+        protected void AddInclude(string includeString)
+        {
+            IncludeStrings.Add(includeString);
+        }
 
-      
         protected void ApplyAdvancedOrderBy(Func<IQueryable<T>, IOrderedQueryable<T>> orderByFunc)
         {
             AdvancedOrderBy = orderByFunc;

@@ -9,7 +9,7 @@ namespace Examination_System.Data.Configurations
         public void Configure(EntityTypeBuilder<CourseEnrollment> builder)
         {
             builder.HasOne(ce => ce.Student)
-                .WithMany(s => s.Courses)
+                .WithMany(s => s.CourseEnrollments)
                 .HasForeignKey(ce => ce.StudentId)
                 .OnDelete(DeleteBehavior.Cascade);
 

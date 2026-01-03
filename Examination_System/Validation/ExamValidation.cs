@@ -20,7 +20,7 @@ namespace Examination_System.Validation
             }
         }
 
-
+/*
         [AttributeUsage(AttributeTargets.Property)]
         public class PassingScoreAttribute : ValidationAttribute
         {
@@ -46,5 +46,6 @@ namespace Examination_System.Validation
                 }
                 return ValidationResult.Success;
             }
-        }
+        }*/
+    }
 }

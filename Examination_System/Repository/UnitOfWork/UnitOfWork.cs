@@ -1,37 +1,51 @@
 ﻿using Examination_System.Data;
 using Examination_System.Models;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using System.Collections;
 
 namespace Examination_System.Repository.UnitOfWork
 {
     public class UnitOfWork : IUnitOfWork
     {
-        public UnitOfWork(Hashtable Repositories, Context context )
+        public UnitOfWork( Context context )
         {
-            this._repositories = Repositories;
+            this._repositories = new Hashtable();
             _context = context;
         }
 
         public Hashtable _repositories { get; }
         public Context _context { get; }
 
+        public Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken ct = default)
+        {
+            return _context.Database.BeginTransactionAsync(ct);
+        }
 
-        public Task CommitAsync() 
-            => _context.SaveChangesAsync();
+       
 
-        public void Rollback()
-            =>_context.Dispose();
+        public async Task<int?> CompleteAsync() 
+            =>await _context.SaveChangesAsync();
+
+      
         
 
-        public GenericRepository<T> Repository<T>() where T : BaseModel
+        public GenericRepository<T , Tkey> Repository<T,Tkey>() where T :class , IBaseModel<Tkey>
         {
           if(!_repositories.ContainsKey(typeof(T).Name))
           {
-            var repository = new GenericRepository<T>(_context);
+            var repository = new GenericRepository<T,Tkey>(_context);
             _repositories.Add(typeof(T).Name, repository);
           }
-            return _repositories as GenericRepository<T>; 
+            return (_repositories[typeof(T).Name] as GenericRepository<T,Tkey>)!; 
         }
 
+        public async Task<int> SaveChangesAsync(CancellationToken ct = default)
+        {
+           return await _context.SaveChangesAsync(ct);
+        }
+
+        ValueTask IAsyncDisposable.DisposeAsync()
+      => _context.DisposeAsync();
     }
 }

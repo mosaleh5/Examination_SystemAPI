@@ -2,14 +2,14 @@ namespace Examination_System.DTOs.Course
 {
     public class CourseDetailsDto
     {
-        public int ID { get; set; }
+        public int Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
         public string Hours { get; set; }
         public DateTime CreatedAt { get; set; }
 
         // Instructor information
-        public int InstructorId { get; set; }
+        public string InstructorId { get; set; }
         public string InstructorName { get; set; }
         public string InstructorEmail { get; set; }
 
@@ -33,7 +33,7 @@ namespace Examination_System.DTOs.Course
 
     public class EnrolledStudentDto
     {
-        public int StudentId { get; set; }
+        public string StudentId { get; set; }
         public string StudentName { get; set; }
         public string Major { get; set; }
         public DateTime EnrollmentDate { get; set; }

@@ -1,5 +1,6 @@
 using Examination_System.DTOs.Course;
 using Examination_System.Models;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Examination_System.Mappers
 {
@@ -11,13 +12,13 @@ namespace Examination_System.Mappers
 
             return new CourseDto
             {
-                ID = course.ID,
+                ID = course.Id,
                 Name = course.Name,
                 Description = course.Description,
                 Hours = course.Hours,
                 InstructorId = course.InstructorId,
-                InstructorName = course.Instructor != null 
-                    ? $"{course.Instructor.User.FirstName} {course.Instructor.User.LastName}" 
+                InstructorName = course.Instructor != null
+                    ? $"{course.Instructor.User.FirstName} {course.Instructor.User.LastName}"
                     : string.Empty,
                 CreatedAt = course.CreatedAt
             };
@@ -29,21 +30,21 @@ namespace Examination_System.Mappers
 
             return new CourseDetailsDto
             {
-                ID = course.ID,
+                //ID = course.Id,
                 Name = course.Name,
                 Description = course.Description,
                 Hours = course.Hours,
                 CreatedAt = course.CreatedAt,
                 InstructorId = course.InstructorId,
-                InstructorName = course.Instructor != null 
-                    ? $"{course.Instructor.User.FirstName} {course.Instructor.User.LastName}" 
+                InstructorName = course.Instructor != null
+                    ? $"{course.Instructor.User.FirstName} {course.Instructor.User.LastName}"
                     : string.Empty,
                 InstructorEmail = course.Instructor?.User?.Email ?? string.Empty,
                 EnrolledStudentsCount = course.CourseEnrollments?.Count ?? 0,
                 ExamsCount = course.Exams?.Count ?? 0,
                 Exams = course.Exams?.Select(e => new CourseExamDto
                 {
-                    ID = e.ID,
+                    ID = e.Id,
                     Title = e.Title,
                     Date = e.Date,
                     DurationMinutes = e.DurationInMinutes,
@@ -52,11 +53,11 @@ namespace Examination_System.Mappers
                 EnrolledStudents = course.CourseEnrollments?.Select(ce => new EnrolledStudentDto
                 {
                     StudentId = ce.StudentId,
-                    StudentName = ce.Student?.User != null 
-                        ? $"{ce.Student.User.FirstName} {ce.Student.User.LastName}" 
+                    StudentName = ce.Student?.User != null
+                        ? $"{ce.Student.User.FirstName} {ce.Student.User.LastName}"
                         : string.Empty,
                     Major = ce.Student?.Major ?? string.Empty,
-                    EnrollmentDate = ce.EnrollmentAt
+                    EnrollmentDate = ce.EnrollmentDate
                 }).ToList() ?? new List<EnrolledStudentDto>()
             };
         }
@@ -89,8 +90,8 @@ namespace Examination_System.Mappers
             if (!string.IsNullOrWhiteSpace(dto.Hours))
                 course.Hours = dto.Hours;
 
-            if (dto.InstructorId.HasValue && dto.InstructorId.Value > 0)
-                course.InstructorId = dto.InstructorId.Value;
+            if (dto.InstructorId.IsNullOrEmpty())
+                course.InstructorId = dto.InstructorId;
         }
 
         public static IEnumerable<CourseDto> ToDtoList(IEnumerable<Course> courses)

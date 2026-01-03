@@ -1,13 +1,17 @@
 ﻿using Examination_System.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore; // Add this using directive
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 
 namespace Examination_System.Data
 {
-    public class Context : DbContext
+    public class Context : IdentityDbContext<User>
     {
+        public Context(DbContextOptions<Context> options) : base(options)
+        {
+        }
         public DbSet<Course> Courses { get; set; }
         public DbSet<CourseEnrollment> CourseEnrollments { get; set; }
 
@@ -22,20 +26,33 @@ namespace Examination_System.Data
         public DbSet<StudentAnswer> StudentAnswers { get; set; }
         public DbSet<ExamAttempt> ExamAttempts { get; set; }
 
-        
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlServer("Server=.;Database=ExaminationSystemDB;Trusted_Connection=True;TrustServerCertificate=True;")
+            optionsBuilder
                 .LogTo(Log => Debug.WriteLine(Log), LogLevel.Information)
-                .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
-                
+                .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTrackingWithIdentityResolution);
         }
+
+        // Add helper methods to ensure entities are tracked before saving
+        public void AttachAndUpdate<T>(T entity) where T : class 
+        {
+            Entry(entity).State = EntityState.Modified;
+        }
+
+        public void AttachAndAdd<T>(T entity) where T : class
+        {
+            Entry(entity).State = EntityState.Added;
+        }
+
+        public void AttachAndDelete<T>(T entity) where T : class
+        {
+            Entry(entity).State = EntityState.Deleted;
+        }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
             base.OnModelCreating(modelBuilder);
-            
-            
         }
     }
 }
