@@ -102,11 +102,11 @@ namespace Examination_System.Controllers
             }
         }
         [Authorize(Roles = "Instructor")]
-        [HttpGet("studentattempts")]
-        [ProducesResponseType(typeof(ExamAttemptResponseForStudentViewModel), 200)]
+        [HttpGet("instructor/studentattempts")]
+        [ProducesResponseType(typeof(IEnumerable<ExamAttemptResponseForStudentViewModel>), 200)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<ActionResult> GetStudentAttempts()
+        public async Task<ActionResult> GetAllStudentAttempts()
         {
             var userId = _currentUserServices.UserId;
             if (userId == null || !_currentUserServices.IsAuthenticated)
@@ -127,11 +127,11 @@ namespace Examination_System.Controllers
         }
 
         [Authorize(Roles = "Instructor")]
-        [HttpGet("studentattempts")]
-        [ProducesResponseType(typeof(ExamAttemptResponseForStudentViewModel), 200)]
+        [HttpGet("instructor/studentattempts/{studentId}")]
+        [ProducesResponseType(typeof(IEnumerable<ExamAttemptResponseForStudentViewModel>), 200)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<ActionResult> GetStudentAttempts(string studentId)
+        public async Task<ActionResult> GetSpecificStudentAttempts(string studentId)
         {
             var userId = _currentUserServices.UserId;
             if (userId == null || !_currentUserServices.IsAuthenticated)
@@ -141,7 +141,7 @@ namespace Examination_System.Controllers
 
             try
             {
-                var attempts = await _examAttemptServices.GetStudentAttemptsAsync(userId ,studentId);
+                var attempts = await _examAttemptServices.GetStudentAttemptsAsync(userId, studentId);
                 return Ok(attempts);
             }
             catch (Exception ex)
@@ -152,11 +152,11 @@ namespace Examination_System.Controllers
         }
 
         [Authorize(Roles = "Student")]
-        [HttpGet("studentattempts")]
-        [ProducesResponseType(typeof(ExamAttemptResponseForStudentViewModel), 200)]
+        [HttpGet("student/myattempts")]
+        [ProducesResponseType(typeof(IEnumerable<ExamAttemptResponseForStudentViewModel>), 200)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<ActionResult> GetStudentForStudentAttempts()
+        public async Task<ActionResult> GetMyAttempts()
         {
             var userId = _currentUserServices.UserId;
             if (userId == null || !_currentUserServices.IsAuthenticated)

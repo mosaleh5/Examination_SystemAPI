@@ -9,6 +9,6 @@ namespace Examination_System.Services.ExamAttemptServices
         Task<ExamAttemptDto> GetAttemptByIdAsync(int attemptId);
         Task<IEnumerable<ExamAttemptDto>> GetStudentAttemptsForInstructorAsync(string instructorId);
         Task<IEnumerable<ExamAttemptDto>> GetStudentAttemptsAsync(string instructorId, string studentId);
-        Task GetStudentAttemptsForStudentAsync(string userId);
+        Task<IEnumerable<ExamAttemptDto>> GetStudentAttemptsForStudentAsync(string userId);
     }
 }
