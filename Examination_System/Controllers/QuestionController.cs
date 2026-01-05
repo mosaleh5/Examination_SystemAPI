@@ -88,5 +88,109 @@ namespace Examination_System.Controllers
             return Ok(questions);
         }
 
+        [HttpGet("question/{questionId}")]
+        [ProducesResponseType(typeof(QuestionToReturnDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [Authorize(Roles = "Instructor")]
+        public async Task<ActionResult<QuestionToReturnDto>> GetQuestionById(int questionId)
+        {
+            var instructorId = _currentUser.UserId;
+            if (!_currentUser.IsAuthenticated || instructorId.IsNullOrEmpty()) 
+                return Unauthorized(new { message = "User is not authenticated." });
+
+            try
+            {
+                var question = await _questionServices.GetQuestionByIdAsync(questionId, instructorId);
+                return Ok(question);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, 
+                    new { message = "An error occurred while retrieving the question", details = ex.Message });
+            }
+        }
+
+        [HttpPut("{questionId}")]
+        [ProducesResponseType(typeof(QuestionToReturnDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [Authorize(Roles = "Instructor")]
+        public async Task<ActionResult<QuestionToReturnDto>> UpdateQuestion(int questionId, [FromBody] UpdateQuestionViewModel updateQuestionViewModel)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var instructorId = _currentUser.UserId;
+            if (!_currentUser.IsAuthenticated || instructorId.IsNullOrEmpty()) 
+                return Unauthorized(new { message = "User is not authenticated." });
+
+            if (questionId != updateQuestionViewModel.Id)
+            {
+                return BadRequest(new { message = "Question ID mismatch." });
+            }
+
+            try
+            {
+                var updateQuestionDto = _mapper.Map<UpdateQuestionViewModel, UpdateQuestionDto>(updateQuestionViewModel);
+                updateQuestionDto.InstructorId = instructorId;
+
+                var updatedQuestion = await _questionServices.UpdateQuestionAsync(updateQuestionDto);
+                return Ok(updatedQuestion);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, 
+                    new { message = "An error occurred while updating the question", details = ex.Message });
+            }
+        }
+
+        [HttpDelete("{questionId}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [Authorize(Roles = "Instructor")]
+        public async Task<ActionResult> DeleteQuestion(int questionId)
+        {
+            var instructorId = _currentUser.UserId;
+            if (!_currentUser.IsAuthenticated || instructorId.IsNullOrEmpty()) 
+                return Unauthorized(new { message = "User is not authenticated." });
+
+            if (questionId <= 0)
+            {
+                return BadRequest(new { message = "Invalid question ID." });
+            }
+
+            try
+            {
+                var result = await _questionServices.DeleteQuestionAsync(questionId, instructorId);
+                return Ok(new { message = "Question deleted successfully.", questionId = questionId });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, 
+                    new { message = "An error occurred while deleting the question", details = ex.Message });
+            }
+        }
     }
 }

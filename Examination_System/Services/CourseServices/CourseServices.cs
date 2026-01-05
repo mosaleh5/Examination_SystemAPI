@@ -100,99 +100,31 @@ namespace Examination_System.Services.CourseServices
             return await _unitOfWork.Repository<CourseEnrollment, int>().GetAll()
                 .AnyAsync(e => e.CourseId == courseId && e.StudentId == studentId);
         }
-        /*
 
+        public async Task<CourseDtoToReturn> UpdateAsync(UpdateCourseDto updateCourseDto, string userId)
+        {
+            if (updateCourseDto == null)
+                throw new ArgumentNullException(nameof(updateCourseDto));
+            if(!await IsInstructorOfCourseAsync(updateCourseDto.ID , userId))
+                throw new UnauthorizedAccessException("You are not authorized to update this course.");
+            var course = _mapper.Map< Course>(updateCourseDto);
+            await _unitOfWork.Repository<Course, int>().UpdatePartialAsync(course);
+            await _unitOfWork.SaveChangesAsync();
 
-public async Task<CourseDto> GetByIdWithSpecificationAsync(CourseSpecifications courseSpec)
-{
-var course = await _unitOfWork.Repository<Course>().GetByIdWithSpecification(courseSpec);
-return CourseMapper.ToDto(course);
-}
+            var courseToReturn = _mapper.Map<Course, CourseDtoToReturn>(course);
 
-public async Task<CourseDto> CreateAsync(CreateCourseDto createDto)
-{
-if (createDto == null)
-throw new ArgumentNullException(nameof(createDto));
+            return courseToReturn;
+        }
+        public async Task DeleteAsync(int courseId)
+        {
+            var course = await IsExistsAsync(courseId);
+            if (course == null)
+            {
+                throw new KeyNotFoundException($"Course with ID {courseId} not found.");
+            }
+            await _unitOfWork.Repository<Course, int>().DeleteAsync(courseId);
+            await _unitOfWork.CompleteAsync();
+        }
 
-// Validate instructor exists
-var instructor = await _unitOfWork.Repository<Instructor>().GetById(createDto.InstructorId);
-if (instructor == null)
-throw new InvalidOperationException($"Instructor with ID {createDto.InstructorId} not found");
-
-var course = CourseMapper.ToEntity(createDto);
-await _unitOfWork.Repository<Course>().Add(course);
-
-// Reload with instructor data
-var spec = new CourseSpecifications(course.ID);
-var courseWithDetails = await _unitOfWork.Repository<Course>().GetByIdWithSpecification(spec);
-
-return CourseMapper.ToDto(courseWithDetails);
-}
-
-public async Task<CourseDto> UpdateAsync(int id, UpdateCourseDto updateDto)
-{
-if (updateDto == null)
-throw new ArgumentNullException(nameof(updateDto));
-
-if (id != updateDto.ID)
-throw new ArgumentException("ID mismatch");
-
-var course = await _unitOfWork.Repository<Course>().GetById(id);
-if (course == null)
-throw new InvalidOperationException($"Course with ID {id} not found");
-
-// Validate instructor exists if being updated
-if (updateDto.InstructorId.HasValue && updateDto.InstructorId.Value > 0)
-{
-var instructor = await _unitOfWork.Repository<Instructor>().GetById(updateDto.InstructorId.Value);
-if (instructor == null)
-throw new InvalidOperationException($"Instructor with ID {updateDto.InstructorId.Value} not found");
-}
-
-CourseMapper.UpdateEntity(course, updateDto);
-var updatedCourse = await _unitOfWork.Repository<Course>().UpdateAsync(course);
-
-// Reload with instructor data
-var spec = new CourseSpecifications(updatedCourse.ID);
-var courseWithDetails = await _unitOfWork.Repository<Course>().GetByIdWithSpecification(spec);
-
-return CourseMapper.ToDto(courseWithDetails);
-}
-
-public async Task<bool> DeleteAsync(int id)
-{
-var course = await _unitOfWork.Repository<Course>().GetById(id);
-if (course == null)
-return false;
-
-// Soft delete
-course.IsDeleted = true;
-await _unitOfWork.Repository<Course>().UpdateAsync(course);
-
-return true;
-}
-
-public async Task<bool> ExistsAsync(int id)
-{
-var course = await _unitOfWork.Repository<Course>().GetById(id);
-return course != null && !course.IsDeleted;
-}
-
-public async Task<IEnumerable<CourseDto>> GetCoursesByInstructorAsync(int instructorId)
-{
-var spec = new CourseSpecifications();
-var courses = await _unitOfWork.Repository<Course>().GetAllWithSpecificationAsync(spec);
-
-// Filter by instructor in memory
-var filteredCourses = courses.Where(c => c.InstructorId == instructorId);
-return CourseMapper.ToDtoList(filteredCourses);
-}
-
-public async Task<int> GetEnrolledStudentsCountAsync(int courseId)
-{
-var spec = new CourseSpecifications(courseId);
-var course = await _unitOfWork.Repository<Course>().GetByIdWithSpecification(spec);
-return course?.CourseEnrollments?.Count ?? 0;
-}*/
     }
 }

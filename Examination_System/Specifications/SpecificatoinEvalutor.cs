@@ -30,7 +30,7 @@ namespace Examination_System.Specifications
                     .Aggregate(Query, (current, include) => current.Include(include));
             }
 
-            return Query;
+            return Query.Where(s=>s.IsDeleted == false);
         }
     }
 }

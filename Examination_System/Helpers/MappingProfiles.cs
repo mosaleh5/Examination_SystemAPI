@@ -21,6 +21,12 @@ namespace Examination_System.Helpers
             CreateMap<Course, CourseDtoToReturn>();
             CreateMap<CreateCourseDto, Course>();
             CreateMap<CourseDtoToReturn, CourseResponseViewModel>();
+            CreateMap<UpdateCourseViewModel, UpdateCourseDto>();
+            CreateMap<UpdateCourseDto, Course>()
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
+                .ForMember(dest => dest.Instructor, opt => opt.Ignore())
+                .ForMember(dest => dest.Exams, opt => opt.Ignore());
+
             // Choice mappings - CRITICAL ORDER!
             CreateMap<ChoiceViewModel, ChoiceDto>(); // ViewModel → DTO
             CreateMap<ChoiceDto, Choice>()           // DTO → Entity
@@ -40,7 +46,15 @@ namespace Examination_System.Helpers
                 .ForMember(dest => dest.Course, opt => opt.Ignore())
                 .ForMember(dest => dest.ExamQuestions, opt => opt.Ignore());
 
-            // Return DTOs
+            CreateMap<UpdateQuestionViewModel, UpdateQuestionDto>()
+                .ForMember(dest => dest.Choices, opt => opt.MapFrom(src => src.Choices));
+
+            CreateMap<UpdateQuestionDto, Question>()
+                .ForMember(dest => dest.Choices, opt => opt.Ignore())
+                .ForMember(dest => dest.Instructor, opt => opt.Ignore())
+                .ForMember(dest => dest.Course, opt => opt.Ignore())
+                .ForMember(dest => dest.ExamQuestions, opt => opt.Ignore());
+
             CreateMap<Choice, ChoiceToReturnForInstructorDto>();
             CreateMap<Question, QuestionToReturnDto>();
             CreateMap<Choice, ChoiceToReturnForStudentDto>();
@@ -48,7 +62,6 @@ namespace Examination_System.Helpers
             CreateMap<ChoiceToReturnForInstructorDto , ChoiceToReturnViewModel>();
             CreateMap< QuestionToReturnDto , QuestionToReturnViewModel>();
 
-            // Student DTOs to ViewModels mappings
             CreateMap<ChoiceToReturnForStudentDto, ChoiceToReturnViewModel>();
             CreateMap<QuestionToReturnForStudentDto, QuestionToReturnViewModel>();
 
@@ -71,7 +84,7 @@ namespace Examination_System.Helpers
                     opt => opt.MapFrom(src => src.ExamQuestions.Select(eq => eq.Question)))
                 .ForMember(dest => dest.InstructorName , 
                     opt=>opt.MapFrom(src=>src.Instructor.User.FirstName +" " + src.Instructor.User.LastName));
-
+            //ExamAttempt mappings
             CreateMap<ExamToAttemptDto, ExamToAttemptDetailedResponseForStudentViewModel>();
 
             CreateMap<ExamAttempt, ExamAttemptDto>();
@@ -86,6 +99,7 @@ namespace Examination_System.Helpers
             CreateMap<SubmitAnswerForStudentViewModel, SubmitAnswerDto>()
                 .ForMember(dest => dest.QuestionId, opt => opt.MapFrom(src => src.QuestionId))
                 .ForMember(dest => dest.choiceId, opt => opt.MapFrom(src => src.AnswerId));
+          
 
         }
     }

@@ -4,22 +4,38 @@ using System.Linq.Expressions;
 
 namespace Examination_System.Repository
 {
-    // For entities with int IDs
-    public interface IGenericRepository<T , Tkey> where T : IBaseModel<Tkey>
+    /// <summary>
+    /// Generic repository interface for data access operations.
+    /// All methods automatically filter soft-deleted records (IsDeleted = true).
+    /// </summary>
+    public interface IGenericRepository<T, Tkey> where T : class, IBaseModel<Tkey>
     {
-        Task<T> GetByIdAsync(Tkey Tkey);
+        Task<T> GetByIdAsync(Tkey id);
+
         IQueryable<T> GetAll();
+
         Task AddAsync(T entity);
+
+
         Task<T> UpdatePartialAsync(T entity);
 
+      
         Task<T> GetById(Tkey id);
-        
-        // ExecuteUpdate method for efficient single-field updates
+
+       
+        IQueryable<T> GetByCriteria(Expression<Func<T, bool>> predicate);
+
+        IQueryable<T> GetAllWithSpecificationAsync(ISpecification<T, Tkey> specifications);
+
+        Task<T> GetByIdWithSpecification(ISpecification<T, Tkey> specification);
+
+        Task<bool> IsExistsAsync(Tkey id);
+
+        Task<bool> DeleteAsync(Tkey id);
+
         Task<int> ExecuteUpdateAsync<TProperty>(
-            Tkey id, 
-            Func<T, TProperty> propertySelector, 
+            Tkey id,
+            Func<T, TProperty> propertySelector,
             TProperty newValue);
     }
-    
-  
 }

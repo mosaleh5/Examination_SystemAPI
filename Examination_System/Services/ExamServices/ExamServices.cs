@@ -51,7 +51,7 @@ namespace Examination_System.Services.ExamServices
             var (simpleCount, mediumCount, hardCount) = GetBalancedCounts(createExamDto.QuestionsCount);
 
             var availableQuestions = _unitOfWork.Repository<Question, int>()
-                .GetByCiteria(q => q.CourseId == createExamDto.CourseId)
+                .GetByCriteria(q => q.CourseId == createExamDto.CourseId)
                 .ToList();
 
             if (!HasSufficientQuestions(availableQuestions, simpleCount, mediumCount, hardCount))

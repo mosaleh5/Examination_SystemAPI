@@ -130,15 +130,62 @@ namespace Examination_System.Controllers
             }
         }
 
+        [Authorize(Roles = "Instructor")]
+        [HttpPatch]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<ActionResult<CourseResponseViewModel>> UpdateCourse([FromBody] UpdateCourseViewModel updateCourseViewModel)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+            var userId = _currentUserServices.UserId;
+            if (userId == null)
+            {
+                return Unauthorized(new { message = "User is not authenticated." });
+            }
+            var updateCourseDto = _mapper.Map<UpdateCourseDto>(updateCourseViewModel);
+            try
+            {
+                var courseExists = await _courseServices.IsInstructorOfCourseAsync(updateCourseDto.ID, userId);
+                var courseResult = await _courseServices.UpdateAsync(updateCourseDto, userId);
+                var course = _mapper.Map<CourseResponseViewModel>(courseResult);
+                return Ok(course);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    new { message = "An error occurred while updating the course", details = ex.Message });
+            }
+        }
 
-
-
-
-
-
-
-
-       
-
+        [HttpDelete]
+        [Authorize(Roles = "Instructor")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<ActionResult> DeleteCourse(int courseId)
+        {
+            var userId = _currentUserServices.UserId;
+            if (userId == null)
+            {
+                return Unauthorized(new { message = "User is not authenticated." });
+            }
+            try
+            {
+                var course = await _courseServices.IsInstructorOfCourseAsync(courseId , userId);
+                if (!course)
+                {
+                    return NotFound(new { message = $"Course with ID {courseId} not found or you are not authorized to delete it." });
+                }
+                await _courseServices.DeleteAsync(courseId);
+                return Ok(new { message = $"Course with ID {courseId} deleted successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    new { message = "An error occurred while deleting the course", details = ex.Message });
+            }
+        }
     }
 }
