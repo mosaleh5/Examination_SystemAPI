@@ -20,11 +20,11 @@ namespace Examination_System.DTOs.Question
         public QuestionLevel Level { get; set; }
 
         [Required]
-        public int CourseId { get; set; } // User selects from dropdown
+        public int CourseId { get; set; }
 
         [Required]
         [MinLength(2, ErrorMessage = "At least two choices are required")]
-        [ValidateOneChoiceIsCorrectAttribute(ErrorMessage = "At least one choice must be marked as correct")]
+        [ValidateOneChoiceIsCorrect(ErrorMessage = "At least one choice must be marked as correct")]
         public ICollection<ChoiceToReturnForInstructorDto> Choices { get; set; } 
     }
 }

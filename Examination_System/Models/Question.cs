@@ -14,10 +14,10 @@ namespace Examination_System.Models
         [Required]
         public int mark { get; set; }
         [Required]
-        [ValidateEnumAttribute]
+        [ValidateEnum]
         public QuestionLevel Level { get; set; }
 
-        [ValidateOneChoiceIsCorrectAttribute]
+        [ValidateOneChoiceIsCorrect]
         public ICollection<Choice> Choices { get; set; } = new List<Choice>();
         public ICollection<ExamQuestion> ExamQuestions { get; set; } = new List<ExamQuestion>();
         [ForeignKey(nameof(InstructorId))]

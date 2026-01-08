@@ -25,7 +25,7 @@ namespace Examination_System.ViewModels.Question
 
         [Required]
         [MinLength(2, ErrorMessage = "At least two choices are required")]
-        [ValidateOneChoiceIsCorrectAttribute(ErrorMessage = "At least one choice must be marked as correct")]
+        [ValidateOneChoiceIsCorrect(ErrorMessage = "At least one choice must be marked as correct")]
         public ICollection<ChoiceToReturnViewModel> Choices { get; set; }
     }
 }

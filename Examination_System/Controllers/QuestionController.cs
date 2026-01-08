@@ -1,10 +1,14 @@
 ﻿using AutoMapper;
+using Examination_System.Common;
 using Examination_System.DTOs.Course;
 using Examination_System.DTOs.Question;
 using Examination_System.Models;
+using Examination_System.Models.Enums;
 using Examination_System.Services;
 using Examination_System.Services.CurrentUserServices;
 using Examination_System.Services.QuestionServices;
+using Examination_System.Validation;
+using Examination_System.ViewModels;
 using Examination_System.ViewModels.Question;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -13,184 +17,119 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace Examination_System.Controllers
 {
-
+    [Authorize(Roles= "Instructor , Admin")]
+    [ValidateUserAuthentication]
     public class QuestionController : BaseController
     {
         private readonly IQuestionServices _questionServices;
         private readonly IMapper _mapper;
         private readonly ICurrentUserServices _currentUser;
 
-        public QuestionController(IQuestionServices questionServices,
+        public QuestionController(
+            IQuestionServices questionServices,
             IMapper mapper,
             ICurrentUserServices currentUser)
         {
             _questionServices = questionServices;
             _mapper = mapper;
-            this._currentUser = currentUser;
+            _currentUser = currentUser;
         }
 
-
-      
-
-        [HttpPost]
-        [ProducesResponseType(typeof(QuestionToReturnDto), StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [Authorize(Roles = "Instructor")]
-        public async Task<ActionResult<QuestionToReturnDto>> CreateQuestion([FromBody] CreateQuestionViewModel createQuestionViewModel)
+        [HttpGet("{questionId}")]
+        [ProducesResponseType(typeof(ResponseViewModel<QuestionToReturnDto>), 200)]
+        [ProducesResponseType(typeof(ResponseViewModel<object>), 404)]
+        [ProducesResponseType(typeof(ResponseViewModel<object>), 401)]
+        public async Task<ActionResult<ResponseViewModel<QuestionToReturnDto>>> GetQuestionById(int questionId)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-            var instructorId = _currentUser.UserId;
-            if (!_currentUser.IsAuthenticated || instructorId.IsNullOrEmpty()) return Unauthorized();
-            var createQuestionDto = _mapper.Map<CreateQuestionViewModel, CreateQuestionDto>(createQuestionViewModel);
+            if (string.IsNullOrEmpty(_currentUser.UserId))
+                return Unauthorized(ResponseViewModel<QuestionToReturnDto>.Failure(
+                    Models.Enums.ErrorCode.Unauthorized,
+                    "User not authenticated"));
 
-            createQuestionDto.InstructorId = instructorId;
-
-            var createdQuestion = await _questionServices.CreateQuestionAsync(createQuestionDto);
-
-            //   return CreatedAtAction(nameof(CreateQuestion), new { id = createdQuestion.Id }, createdQuestion);
-
-            return Ok(createdQuestion);
+            var result = await _questionServices.GetQuestionByIdAsync(
+                questionId, 
+                _currentUser.UserId);
+            
+            return result.IsSuccess ? Ok(ResponseViewModel<QuestionToReturnDto>.Success(result.Data)):
+                BadRequest(ResponseViewModel<QuestionToReturnDto>.Failure(result.Error,result.ErrorMessage));
         }
 
         [HttpGet]
-        [ProducesResponseType(typeof(IEnumerable<QuestionToReturnDto>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [Authorize(Roles = "Instructor")]
-        public async Task<ActionResult<IEnumerable<QuestionToReturnDto>>> GetQuestionsByInstructor()
+       
+        public async Task<ActionResult<ResponseViewModel<IEnumerable<QuestionToReturnDto>>>> GetQuestionsByInstructor()
         {
-            var instructorId = _currentUser.UserId;
-            if (!_currentUser.IsAuthenticated || instructorId.IsNullOrEmpty()) return Unauthorized();
-            var questions = await _questionServices.GetQuestionsByInstructorAsync(instructorId);
-            if (questions == null || !questions.Any())
-            {
-                return NotFound("No questions found for the instructor.");
-            }
-            return Ok(questions);
+            var result = await _questionServices.GetQuestionsByInstructorAsync(_currentUser.UserId);
+
+            return result.IsSuccess? Ok(ResponseViewModel<IEnumerable<QuestionToReturnDto>>.Success(result.Data)):
+                BadRequest(ResponseViewModel<QuestionToReturnDto>.Failure(result.Error , result.ErrorMessage));
         }
 
-
-        [HttpGet("{CourseId}")]
-        [ProducesResponseType(typeof(IEnumerable<QuestionToReturnDto>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [Authorize(Roles = "Instructor")]
-        public async Task<ActionResult<IEnumerable<QuestionToReturnDto>>> GetQuestionsByInstructorForCourse(int CourseId)
+        [HttpPost]
+      
+        public async Task<ActionResult<ResponseViewModel<QuestionToReturnDto>>> CreateQuestion(
+            [FromBody] CreateQuestionViewModel model)
         {
-            var instructorId = _currentUser.UserId;
-            if (!_currentUser.IsAuthenticated || instructorId.IsNullOrEmpty()) return Unauthorized();
-            var questions = await _questionServices.GetQuestionsByInstructorAndCourseAsync(instructorId, CourseId);
-            if (questions == null || !questions.Any())
-            {
-                return NotFound("No questions found for the instructor.");
-            }
-            return Ok(questions);
-        }
+         
+            if (!ModelState.IsValid)
+                return BadRequest(ResponseViewModel<QuestionToReturnDto>.Failure(
+                    Models.Enums.ErrorCode.ValidationError,
+                    GetValidationErrors()));
 
-        [HttpGet("question/{questionId}")]
-        [ProducesResponseType(typeof(QuestionToReturnDto), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [Authorize(Roles = "Instructor")]
-        public async Task<ActionResult<QuestionToReturnDto>> GetQuestionById(int questionId)
-        {
-            var instructorId = _currentUser.UserId;
-            if (!_currentUser.IsAuthenticated || instructorId.IsNullOrEmpty()) 
-                return Unauthorized(new { message = "User is not authenticated." });
 
-            try
-            {
-                var question = await _questionServices.GetQuestionByIdAsync(questionId, instructorId);
-                return Ok(question);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, 
-                    new { message = "An error occurred while retrieving the question", details = ex.Message });
-            }
+
+            var dto = _mapper.Map<CreateQuestionDto>(model);
+            dto.InstructorId = _currentUser.UserId;
+            
+            var result = await _questionServices.CreateQuestionAsync(dto);
+            return result.IsSuccess ? CreatedAtAction(
+                nameof(GetQuestionById), 
+                new { questionId = result.Data.Id}, 
+                ResponseViewModel<QuestionToReturnDto>.Success(result.Data, "Question created successfully")):
+                BadRequest(ResponseViewModel<QuestionToReturnDto>.Failure(result.Error ,"An Error Aqure When Create Course \n  " + result.ErrorMessage ));
         }
 
         [HttpPut("{questionId}")]
-        [ProducesResponseType(typeof(QuestionToReturnDto), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [Authorize(Roles = "Instructor")]
-        public async Task<ActionResult<QuestionToReturnDto>> UpdateQuestion(int questionId, [FromBody] UpdateQuestionViewModel updateQuestionViewModel)
+        [ProducesResponseType(typeof(ResponseViewModel<QuestionToReturnDto>), 200)]
+        [ProducesResponseType(typeof(ResponseViewModel<QuestionToReturnDto>), 422)]
+        [ProducesResponseType(typeof(ResponseViewModel<QuestionToReturnDto>), 404)]
+        public async Task<ActionResult<ResponseViewModel<QuestionToReturnDto>>> UpdateQuestion(
+            int questionId, 
+            [FromBody] UpdateQuestionViewModel model)
         {
             if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+                return BadRequest(ResponseViewModel<QuestionToReturnDto>.Failure(
+                    Models.Enums.ErrorCode.ValidationError,
+                    GetValidationErrors()));
 
-            var instructorId = _currentUser.UserId;
-            if (!_currentUser.IsAuthenticated || instructorId.IsNullOrEmpty()) 
-                return Unauthorized(new { message = "User is not authenticated." });
+            if (questionId != model.Id)
+                return BadRequest(ResponseViewModel<QuestionToReturnDto>.Failure(
+                    Models.Enums.ErrorCode.BadRequest,
+                    "Question ID mismatch"));
 
-            if (questionId != updateQuestionViewModel.Id)
-            {
-                return BadRequest(new { message = "Question ID mismatch." });
-            }
+          
 
-            try
-            {
-                var updateQuestionDto = _mapper.Map<UpdateQuestionViewModel, UpdateQuestionDto>(updateQuestionViewModel);
-                updateQuestionDto.InstructorId = instructorId;
+            var dto = _mapper.Map<UpdateQuestionDto>(model);
+            dto.InstructorId = _currentUser.UserId;
+            
+            var result = await _questionServices.UpdateQuestionAsync(dto);
 
-                var updatedQuestion = await _questionServices.UpdateQuestionAsync(updateQuestionDto);
-                return Ok(updatedQuestion);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, 
-                    new { message = "An error occurred while updating the question", details = ex.Message });
-            }
+            return result.IsSuccess ? Ok(ResponseViewModel<QuestionToReturnDto>.Success(result.Data, "Question updated successfully")):
+                BadRequest(ResponseViewModel<QuestionToReturnDto>.Failure(result.Error, result.ErrorMessage));
         }
 
         [HttpDelete("{questionId}")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [Authorize(Roles = "Instructor")]
-        public async Task<ActionResult> DeleteQuestion(int questionId)
+        [ProducesResponseType(typeof(ResponseViewModel<Result>), 200)]
+        [ProducesResponseType(typeof(ResponseViewModel<Result>), 404)]
+        public async Task<ActionResult<ResponseViewModel<Result>>> DeleteQuestion(int questionId)
         {
-            var instructorId = _currentUser.UserId;
-            if (!_currentUser.IsAuthenticated || instructorId.IsNullOrEmpty()) 
-                return Unauthorized(new { message = "User is not authenticated." });
 
-            if (questionId <= 0)
-            {
-                return BadRequest(new { message = "Invalid question ID." });
-            }
 
-            try
-            {
-                var result = await _questionServices.DeleteQuestionAsync(questionId, instructorId);
-                return Ok(new { message = "Question deleted successfully.", questionId = questionId });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, 
-                    new { message = "An error occurred while deleting the question", details = ex.Message });
-            }
+            var result = await _questionServices.DeleteQuestionAsync(
+                questionId, 
+                _currentUser.UserId);
+            
+            return result.IsSuccess? Ok(ResponseViewModel<Result>.Success(result, "Question deleted successfully")):
+                BadRequest(ResponseViewModel<Result>.Failure(result.Error, " An Error Happen When Delete Question\n" + result.ErrorMessage));
         }
     }
 }

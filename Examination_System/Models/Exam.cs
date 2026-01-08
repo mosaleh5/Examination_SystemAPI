@@ -2,7 +2,6 @@
 using Examination_System.Validation;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using static Examination_System.Validation.ExamValidation;
 
 namespace Examination_System.Models
 {
@@ -25,7 +24,7 @@ namespace Examination_System.Models
         public int Fullmark { get; set; }
 
         [Required]
-        [ValidateEnumAttribute]
+        [ValidateEnum]
         public ExamType ExamType { get; set; } // Quiz / Final
 
         [Required]

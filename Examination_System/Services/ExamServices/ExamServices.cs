@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using Examination_System.Common;
 using Examination_System.DTOs.Exam;
 using Examination_System.Models;
 using Examination_System.Models.Enums;
@@ -130,19 +131,24 @@ namespace Examination_System.Services.ExamServices
             return selected;
         }
 
-        public async Task<ActionResult<ExamToReturnDto>> CreateExam(CreateExamDto createExamDto)
+        public async Task<Result<ExamToReturnDto>> CreateExam(CreateExamDto createExamDto)
         {
-            var courseExists = await _unitOfWork.Repository<Course, int>().IsExistsAsync(createExamDto.CourseId);
-            if (!courseExists)
+        
+            if (!await IscourseExists(createExamDto.CourseId))
             {
-                throw new ArgumentNullException($"Course with Id {createExamDto.CourseId} does not exist");
+                return Result<ExamToReturnDto>.Failure(
+                    ErrorCode.CourseIsNotFound,
+                    "Course with Id {createExamDto.CourseId} does not exist"
+                    );  
             }
 
-            var isInstructorOfCourse = await _unitOfWork.Repository<Course, int>().GetAll()
-                .AnyAsync(ic => ic.Id == createExamDto.CourseId && ic.InstructorId == createExamDto.InstructorId);
-            if (!isInstructorOfCourse)
+           
+            if (! await IsInstructorOfCourse(createExamDto.CourseId , createExamDto.InstructorId))
             {
-                throw new ArgumentNullException($"Course with Id {createExamDto.CourseId} does not exist");
+                return Result<ExamToReturnDto>.Failure(
+                     ErrorCode.CourseIsNotFound,
+                     "Course with Id {createExamDto.CourseId} does not exist"
+                     );
             }
 
             var exam = _mapper.Map<Exam>(createExamDto);
@@ -150,9 +156,21 @@ namespace Examination_System.Services.ExamServices
             await _unitOfWork.CompleteAsync();
 
             var examToReturn = _mapper.Map<ExamToReturnDto>(exam);
-            return examToReturn;
+            return Result<ExamToReturnDto>.Success(examToReturn);
         }
 
+        private async Task<bool> IscourseExists(int courseId)
+        {
+            return await _unitOfWork.Repository<Course, int>()
+                .IsExistsAsync(courseId);
+        }
+
+        private async Task<bool> IsInstructorOfCourse(int courseId, string instructorId)
+        {
+            return await _unitOfWork.Repository<Course, int>()
+                .IsExistsByCriteriaAsync(c => c.Id == courseId && c.InstructorId == instructorId);
+                   
+        }
         public async Task<IEnumerable<ExamToReturnDto>> GetAllExamsForInstructor(string? instructorId)
         {
             if (instructorId.IsNullOrEmpty())

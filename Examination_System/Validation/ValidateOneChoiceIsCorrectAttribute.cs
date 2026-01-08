@@ -5,7 +5,7 @@ namespace Examination_System.Validation
     [AttributeUsage(AttributeTargets.Property)]
     public class ValidateOneChoiceIsCorrectAttribute : ValidationAttribute
     {
-        override public bool IsValid(object? value)
+        public override bool IsValid(object? value)
         {
             var choices = value as IEnumerable<object>;
             if (choices != null)

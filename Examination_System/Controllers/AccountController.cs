@@ -12,7 +12,7 @@ namespace Examination_System.Controllers
             _userService = userService;
         }
         // Action methods for account management (e.g., Login, Register, Logout) would go here
-        [HttpPost("login")]
+        [HttpPost]
         public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
         {
             var userDto = await _userService.LoginAsync(loginDto);
@@ -23,7 +23,7 @@ namespace Examination_System.Controllers
             return Ok(userDto);
         }
 
-        [HttpPost("register/student")]
+        [HttpPost]
         public async Task<IActionResult> RegisterStudent([FromBody] StudentRegisterDto registerDto)
         {
             var userDto = await _userService.RegisterStudentAsync(registerDto);
@@ -33,7 +33,7 @@ namespace Examination_System.Controllers
             }
             return Ok(userDto);
         }
-        [HttpPost("register/instructor")]
+        [HttpPost]
         public async Task<IActionResult> RegisterInstructor([FromBody] InstructorRegisterDto registerDto)
         {
             var userDto = await _userService.RegisterInstructorAsync(registerDto);

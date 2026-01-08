@@ -1,7 +1,6 @@
 ﻿using Examination_System.Models.Enums;
 using Examination_System.Validation;
 using System.ComponentModel.DataAnnotations;
-using static Examination_System.Validation.ExamValidation;
 
 namespace Examination_System.ViewModels.Exam
 {
@@ -24,8 +23,8 @@ namespace Examination_System.ViewModels.Exam
         public int Fullmark { get; set; }
 
         [Required(ErrorMessage = "Exam type is required")]
-        [ValidateEnumAttribute]
-        public ExamType ExamType { get; set; } // Quiz / Final
+        [ValidateEnum]
+        public ExamType ExamType { get; set; }
 
 
 

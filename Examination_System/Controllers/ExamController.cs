@@ -6,10 +6,10 @@ using Examination_System.Services.ExamServices;
 using Examination_System.ViewModels.Exam;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Examination_System.Controllers
 {
+    [Authorize(Roles = "Instructor")]
     public class ExamController : BaseController
     {
         public readonly Services.ExamServices.IExamServices _examServices ;
@@ -30,30 +30,24 @@ namespace Examination_System.Controllers
 
         [HttpPost("manual")]
         [ProducesResponseType(typeof(ExamResponseViewModel), 200)]
-        [Authorize(Roles = "Instructor")]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<ExamResponseViewModel>> CreateExam([FromBody] CreateExamViewModel createExamViewModel)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
          
             var instructorId = _currentUserServices.UserId;
-            if (_currentUserServices.UserId.IsNullOrEmpty() || !_currentUserServices.IsAuthenticated)
-            { 
-                return Unauthorized("User is not authenticated");
-            }
-          
+         
             var createExamDto = _mapper.Map<CreateExamDto>(createExamViewModel);
             createExamDto.InstructorId = instructorId;
             createExamDto.CreatedAt = DateTime.UtcNow;
             var createdExam = await _examServices.CreateExam(createExamDto);
             var examViewModel = _mapper.Map<ExamResponseViewModel>(createdExam);
             return Ok(examViewModel);
-           
         }
 
         [HttpPost("automatic")]
         [ProducesResponseType(typeof(ExamDetailedResponseViewModel), 201)]
-        [Authorize(Roles = "Instructor")]
         public async Task<ActionResult<ExamDetailedResponseViewModel>> CreateAutomaticExam([FromBody] CreateAutomaticExamViewModel createAutomaticExamViewModel)
         {
             if (!ModelState.IsValid)
@@ -65,10 +59,7 @@ namespace Examination_System.Controllers
                 return NotFound($"Course with Id {createAutomaticExamViewModel.CourseId} does not exist");
             }
             var instructorId = _currentUserServices.UserId;
-            if (_currentUserServices.UserId.IsNullOrEmpty() || !_currentUserServices.IsAuthenticated)
-            {
-                return Unauthorized("User is not authenticated");
-            }
+           
             var isInstructorOfCourse = await _courseServices.IsInstructorOfCourseAsync(createAutomaticExamViewModel.CourseId, instructorId);
             if (!isInstructorOfCourse)
             {
@@ -80,39 +71,24 @@ namespace Examination_System.Controllers
             var createdExam = await _examServices.CreateAutomaticExam(createAutomaticExamDto);
             var createdExamViewModel = _mapper.Map<ExamDetailedResponseViewModel>(createdExam);
             return Ok(createdExamViewModel);
-
         }
 
         [HttpGet]
-        [Authorize(Roles = "Instructor")]
         [ProducesResponseType(typeof(IEnumerable<ExamResponseViewModel>), 200)]
         public async Task<ActionResult<IEnumerable<ExamResponseViewModel>>> GetAllExamsForInstructor()
         {
             var instructorId = _currentUserServices.UserId;
-            if (_currentUserServices.UserId.IsNullOrEmpty() || !_currentUserServices.IsAuthenticated)
-            {
-                return Unauthorized("User is not authenticated");
-            }
-        
             var exams = await _examServices.GetAllExamsForInstructor(instructorId);
             var examViewModels = _mapper.Map<IEnumerable<ExamResponseViewModel>>(exams);
             return Ok(examViewModels);
-
         }
 
         [HttpPost("manual/{examId}/questions")]
-        [Authorize(Roles = "Instructor")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult> AddQuestionsToExam(int examId, [FromBody] List<int> questionIds)
         {
-            var userId = _currentUserServices.UserId;
-            if (userId == null || !_currentUserServices.IsAuthenticated)
-            {
-                return Unauthorized(new { message = "User is not authenticated." });
-            }
-
             if (examId <= 0)
             {
                 return BadRequest(new { message = "Invalid exam Id." });
@@ -125,6 +101,7 @@ namespace Examination_System.Controllers
 
             try
             {
+                var userId = _currentUserServices.UserId;
                 if (!await _examServices.IsInstructorOfExamAsync(examId, userId))
                 {
                     return Unauthorized(new { message = "You are not allowed to add questions to this exam." });
@@ -152,20 +129,12 @@ namespace Examination_System.Controllers
             }
         }
 
-  
         [HttpPut("manual/{examId}/questions")]
-        [Authorize(Roles = "Instructor")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult> ReplaceExamQuestions(int examId, [FromBody] List<int> questionIds)
         {
-            var userId = _currentUserServices.UserId;
-            if (userId == null || !_currentUserServices.IsAuthenticated)
-            {
-                return Unauthorized(new { message = "User is not authenticated." });
-            }
-
             if (examId <= 0)
             {
                 return BadRequest(new { message = "Invalid exam Id." });
@@ -178,6 +147,7 @@ namespace Examination_System.Controllers
 
             try
             {
+                var userId = _currentUserServices.UserId;
                 if (!await _examServices.IsInstructorOfExamAsync(examId, userId))
                 {
                     return Unauthorized(new { message = "You are not allowed to modify questions in this exam." });
@@ -205,20 +175,12 @@ namespace Examination_System.Controllers
             }
         }
 
-    
         [HttpDelete("manual/{examId}/questions/{questionId}")]
-        [Authorize(Roles = "Instructor")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult> RemoveQuestionFromExam(int examId, int questionId)
         {
-            var userId = _currentUserServices.UserId;
-            if (userId == null || !_currentUserServices.IsAuthenticated)
-            {
-                return Unauthorized(new { message = "User is not authenticated." });
-            }
-
             if (examId <= 0)
             {
                 return BadRequest(new { message = "Invalid exam Id." });
@@ -231,6 +193,7 @@ namespace Examination_System.Controllers
 
             try
             {
+                var userId = _currentUserServices.UserId;
                 if (!await _examServices.IsInstructorOfExamAsync(examId, userId))
                 {
                     return Unauthorized(new { message = "You are not allowed to remove questions from this exam." });
@@ -254,21 +217,12 @@ namespace Examination_System.Controllers
             }
         }
 
-
-
         [HttpPut("Activate/{examId}")]
-        [Authorize(Roles = "Instructor")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult> ActivateExam(int examId)
         {
-            var userId = _currentUserServices.UserId;
-            if (userId == null || !_currentUserServices.IsAuthenticated)
-            {
-                return Unauthorized(new { message = "User is not authenticated." });
-            }
-            
             if (examId <= 0)
             {
                 return BadRequest(new { message = "Invalid exam Id." });
@@ -276,6 +230,7 @@ namespace Examination_System.Controllers
             
             try
             {
+                var userId = _currentUserServices.UserId;
                 await _examServices.ActivateExamAsync(examId, userId);
                 return Ok(new { message = $"Exam {examId} activated successfully." });
             }
@@ -298,22 +253,12 @@ namespace Examination_System.Controllers
             }
         }
 
-
-
-
         [HttpPost("{examId}/students")]
-        [Authorize(Roles = "Instructor")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult> AssignStudentToExam(int examId, string studentId)
         {
-            var userId = _currentUserServices.UserId;
-            if (userId == null || !_currentUserServices.IsAuthenticated)
-            {
-                return Unauthorized(new { message = "User is not authenticated." });
-            }
-
             if (string.IsNullOrEmpty(studentId))
             {
                 return BadRequest(new { message = "StudentId cannot be null or empty." });
@@ -326,6 +271,7 @@ namespace Examination_System.Controllers
 
             try
             {
+                var userId = _currentUserServices.UserId;
                 if (!await _examServices.IsInstructorOfExamAsync(examId, userId))
                 {
                     return Unauthorized(new { message = "You are not allowed to assign students to this exam." });
@@ -348,9 +294,5 @@ namespace Examination_System.Controllers
                     new { message = "An error occurred while enrolling the student in the Exam", details = ex.Message });
             }
         }
-
-       
-
-
     }
 }

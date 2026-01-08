@@ -13,7 +13,7 @@ namespace Examination_System.Repository
     {
         private readonly Context _context;
         private readonly DbSet<T> _dbSet;
-
+     
         public GenericRepository(Context context)
         {
             _context = context;
@@ -91,7 +91,10 @@ namespace Examination_System.Repository
 
         }
 
-
+        public async Task<bool> IsExistsByCriteriaAsync(Expression<Func<T, bool>> predicate)
+        {
+            return await _dbSet.Where(e => !e.IsDeleted).FirstOrDefaultAsync(predicate) is not null ? true : false;
+        }
         public async Task<int> ExecuteUpdateAsync<TProperty>(
            Tkey id,
            Func<T, TProperty> propertySelector,

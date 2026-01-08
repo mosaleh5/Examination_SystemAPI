@@ -1,7 +1,6 @@
 ﻿using Examination_System.Models.Enums;
 using Examination_System.Validation;
 using System.ComponentModel.DataAnnotations;
-using static Examination_System.Validation.ExamValidation;
 
 namespace Examination_System.ViewModels.Exam
 {

@@ -8,6 +8,8 @@ using Examination_System.Services.ExamServices;
 using Examination_System.Services.QuestionServices;
 using Examination_System.Services.StudentService;
 using Microsoft.EntityFrameworkCore;
+using FluentValidation.AspNetCore;
+using FluentValidation;
 
 namespace Examination_System.Extensions
 {
@@ -22,12 +24,15 @@ namespace Examination_System.Extensions
             services.AddScoped<IStudentServices , StudentServices>();
             services.AddScoped<IExamAttemptServices , ExamAttemptServices>();
 
+          
+            services.AddValidatorsFromAssemblyContaining<Program>();
+
             services.AddAutoMapper(typeof(MappingProfiles));
             services.AddDbContext<Context>(option =>
             {
                 option.UseSqlServer(configuration.GetConnectionString("DefaultConnection"));
             }
-);
+            );
         /*    Services.AddScoped<DatabaseSeeder>();
             Services.AddControllers()
                 .AddJsonOptions(options =>

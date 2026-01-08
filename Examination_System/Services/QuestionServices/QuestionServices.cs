@@ -1,169 +1,292 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using Examination_System.Common;
 using Examination_System.DTOs.Question;
 using Examination_System.Models;
+using Examination_System.Models.Enums;
 using Examination_System.Repository.UnitOfWork;
 using Examination_System.Services.CourseServices;
 using Examination_System.Specifications.SpecsForEntity;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 
 namespace Examination_System.Services.QuestionServices
 {
     public class QuestionServices : IQuestionServices
     {
-        readonly IUnitOfWork _unitOfWork;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly ICourseServices _courseServices;
         private readonly IMapper _mapper;
+        private readonly IValidator<CreateQuestionDto> _createQuestionValidator;
+        private readonly IValidator<UpdateQuestionDto> _updateQuestionValidator;
 
-        public QuestionServices(IUnitOfWork unitOFWork,
+        public QuestionServices(
+            IUnitOfWork unitOfWork,
             ICourseServices courseServices,
-            IMapper Mapper)
+            IMapper mapper,
+            IValidator<CreateQuestionDto> createQuestionValidator,
+            IValidator<UpdateQuestionDto> updateQuestionValidator)
         {
-            _unitOfWork = unitOFWork;
+            _unitOfWork = unitOfWork;
             _courseServices = courseServices;
-            _mapper = Mapper;
+            _mapper = mapper;
+            _createQuestionValidator = createQuestionValidator;
+            _updateQuestionValidator = updateQuestionValidator;
         }
 
-      
-
-        public async Task<QuestionToReturnDto> CreateQuestionAsync (CreateQuestionDto createQuestionDto)
+        public async Task<Result<QuestionToReturnDto>> CreateQuestionAsync(CreateQuestionDto createQuestionDto)
         {
-           // var transaction = await _unitOfWork.BeginTransactionAsync();
-            try
-            {
-                if (!await _courseServices.IsExistsAsync(createQuestionDto.CourseId))
-                    throw new KeyNotFoundException($"Course with ID {createQuestionDto.CourseId} not found");
-                var question = _mapper.Map<CreateQuestionDto, Question>(createQuestionDto);
-                await _unitOfWork.Repository<Question, int>().AddAsync(question);
-                await _unitOfWork.CompleteAsync();
-               /* var Choices = _unitOfWork.Repository<Choice, int>();
-                foreach (var choice in question.Choices)
-                {
-                    choice.QuestionId = question.Id;
-                    await Choices.AddAsync(choice);
-                }*/
-                //await _unitOfWork.CompleteAsync();
-                //await transaction.CommitAsync();
-                var questionToReturnDto = _mapper.Map<Question, QuestionToReturnDto>(question);
-                return questionToReturnDto;
+           
+            var validationResult = await _createQuestionValidator.ValidateAsync(createQuestionDto);
+            if (!validationResult.IsValid) {
+                return Result<QuestionToReturnDto>.ValidaitonFailure(validationResult);
             }
-            catch (Exception e)
+           
+            if (!await _courseServices.IsExistsAsync(createQuestionDto.CourseId))
             {
-               // await transaction.RollbackAsync();
-                throw new Exception("can not add new Question" ,e );
+                return Result<QuestionToReturnDto>.Failure(
+                    ErrorCode.NotFound,
+                    $"Course with ID {createQuestionDto.CourseId} not found");
             }
-       
 
+            var question = _mapper.Map<CreateQuestionDto, Question>(createQuestionDto);
+            await _unitOfWork.Repository<Question, int>().AddAsync(question);
+            
+          
+            var rowsAffected = await _unitOfWork.CompleteAsync();
+            var RowEffected = await _unitOfWork.CompleteAsync();
+            if (RowEffected != null || RowEffected < 1)
+            {
+                return Result<QuestionToReturnDto>.Failure(
+                ErrorCode.DatabaseError,
+                $"Error Happened  in Database");
+
+            }
+
+            var questionToReturnDto = _mapper.Map<Question, QuestionToReturnDto>(question);
+            return Result<QuestionToReturnDto>.Success(questionToReturnDto);
         }
 
-        public async Task<IEnumerable<QuestionToReturnDto>> GetQuestionsByInstructorAndCourseAsync(string? instructorId, int? CourseId)
+        public async Task<Result<IEnumerable<QuestionToReturnDto>>> GetQuestionsByInstructorAndCourseAsync(
+            string? instructorId, 
+            int? courseId)
         {
-            var QuestionsSpecs = new QuestionSpecifications(c=>c.InstructorId ==  instructorId &&  c.CourseId == CourseId);
-            var questions = _unitOfWork.Repository<Question, int>().GetAllWithSpecificationAsync(QuestionsSpecs);
-      
-            var questionToReturnDto =await  questions.ProjectTo<QuestionToReturnDto>(_mapper.ConfigurationProvider).ToListAsync();
-            if (questionToReturnDto == null || !questions.Any())
-                throw new KeyNotFoundException("No questions found for the given instructor for this course");
-            return questionToReturnDto;
+            if (string.IsNullOrWhiteSpace(instructorId))
+            {
+                return Result<IEnumerable<QuestionToReturnDto>>.Failure(
+                    ErrorCode.ValidationError,
+                    "Instructor ID is required");
+            }
+
+            if (!courseId.HasValue || courseId.Value <= 0)
+            {
+                return Result<IEnumerable<QuestionToReturnDto>>.Failure(
+                    ErrorCode.ValidationError,
+                    "Valid course ID is required");
+            }
+
+            var questionsSpec = new QuestionSpecifications(
+                q => q.InstructorId == instructorId && q.CourseId == courseId);
+            
+            var questions = _unitOfWork.Repository<Question, int>()
+                .GetAllWithSpecificationAsync(questionsSpec);
+
+            var questionToReturnDto = await questions
+                .ProjectTo<QuestionToReturnDto>(_mapper.ConfigurationProvider)
+                .ToListAsync();
+
+            if (!questionToReturnDto.Any())
+            {
+                return Result<IEnumerable<QuestionToReturnDto>>.Failure(
+                    ErrorCode.NotFound,
+                    $"No questions found for instructor {instructorId} in course {courseId}");
+            }
+
+            var result = Result<IEnumerable<QuestionToReturnDto>>.Success(questionToReturnDto);
+            return result;
         }
 
-        public async Task<IEnumerable<QuestionToReturnDto>> GetQuestionsByInstructorAsync(string? instructorId)
+        public async Task<Result<IEnumerable<QuestionToReturnDto>>> GetQuestionsByInstructorAsync(string? instructorId)
         {
-            var QuestionsSpecs = new QuestionSpecifications(c=>c.InstructorId == instructorId);
-            var questions = _unitOfWork.Repository<Question, int>().GetAllWithSpecificationAsync(QuestionsSpecs);
+            if (string.IsNullOrWhiteSpace(instructorId))
+            {
+                return Result<IEnumerable<QuestionToReturnDto>>.Failure(
+                    ErrorCode.ValidationError,
+                    "Instructor ID is required");
+            }
 
-            var questionToReturnDto = await questions.ProjectTo<QuestionToReturnDto>(_mapper.ConfigurationProvider).ToListAsync();
-            if (questionToReturnDto == null || !questions.Any())
-                throw new KeyNotFoundException("No questions found for the given instructor for this course");
-            return questionToReturnDto;
+            var questionsSpec = new QuestionSpecifications(q => q.InstructorId == instructorId);
+            var questions = _unitOfWork.Repository<Question, int>()
+                .GetAllWithSpecificationAsync(questionsSpec);
+
+            var questionToReturnDto = await questions
+                .ProjectTo<QuestionToReturnDto>(_mapper.ConfigurationProvider)
+                .ToListAsync();
+
+            if (!questionToReturnDto.Any())
+            {
+                return Result<IEnumerable<QuestionToReturnDto>>.Failure(
+                    ErrorCode.NotFound,
+                    $"No questions found for instructor {instructorId}");
+            }
+
+            var result = Result<IEnumerable<QuestionToReturnDto>>.Success(questionToReturnDto);
+            return result;
         }
 
-        public async Task<QuestionToReturnDto> GetQuestionByIdAsync(int questionId, string instructorId)
+        public async Task<Result<QuestionToReturnDto>> GetQuestionByIdAsync(int questionId, string instructorId)
         {
-            var questionSpec = new QuestionSpecifications(q => q.Id == questionId && q.InstructorId == instructorId);
-            var question = await _unitOfWork.Repository<Question, int>().GetByIdWithSpecification(questionSpec);
+            if (questionId <= 0)
+            {
+                return Result<QuestionToReturnDto>.Failure(
+                    ErrorCode.ValidationError,
+                    "Valid question ID is required");
+            }
+
+            if (string.IsNullOrWhiteSpace(instructorId))
+            {
+                return Result<QuestionToReturnDto>.Failure(
+                    ErrorCode.ValidationError,
+                    "Instructor ID is required");
+            }
+
+            var questionSpec = new QuestionSpecifications(
+                q => q.Id == questionId && q.InstructorId == instructorId);
+            
+            var question = await _unitOfWork.Repository<Question, int>()
+                .GetByIdWithSpecification(questionSpec);
 
             if (question == null)
-                throw new KeyNotFoundException($"Question with ID {questionId} not found or you don't have permission to access it.");
+            {
+                return Result<QuestionToReturnDto>.Failure(
+                    ErrorCode.NotFound,
+                    $"Question with ID {questionId} not found or you don't have permission to access it");
+            }
 
-            return _mapper.Map<Question, QuestionToReturnDto>(question);
+            var questionToReturnDto = _mapper.Map<Question, QuestionToReturnDto>(question);
+            var result = Result<QuestionToReturnDto>.Success(questionToReturnDto);
+            return result;
         }
 
-        public async Task<QuestionToReturnDto> UpdateQuestionAsync(UpdateQuestionDto updateQuestionDto)
+        public async Task<Result<QuestionToReturnDto>> UpdateQuestionAsync(UpdateQuestionDto updateQuestionDto)
         {
-            try
+            // Validate input
+            var validationResult = await _updateQuestionValidator.ValidateAsync(updateQuestionDto);
+            if (!validationResult.IsValid)
             {
-                var questionSpec = new QuestionSpecifications(q => q.Id == updateQuestionDto.Id && q.InstructorId == updateQuestionDto.InstructorId);
-                var existingQuestion = await _unitOfWork.Repository<Question, int>().GetByIdWithSpecification(questionSpec);
-
-                if (existingQuestion == null)
-                    throw new KeyNotFoundException($"Question with ID {updateQuestionDto.Id} not found or you don't have permission to update it.");
-
-                if (!await _courseServices.IsExistsAsync(updateQuestionDto.CourseId))
-                    throw new KeyNotFoundException($"Course with ID {updateQuestionDto.CourseId} not found");
-
-                _mapper.Map(updateQuestionDto, existingQuestion);
-
-                var existingChoiceIds = existingQuestion.Choices.Select(c => c.Id).ToList();
-                var choiceRepo = _unitOfWork.Repository<Choice, int>();
-
-                foreach (var existingChoiceId in existingChoiceIds)
-                {
-                    await choiceRepo.DeleteAsync(existingChoiceId);
-                }
-
-                existingQuestion.Choices.Clear();
-
-                foreach (var choiceDto in updateQuestionDto.Choices)
-                {
-                    var choice = _mapper.Map<ChoiceDto, Choice>(choiceDto);
-                    choice.QuestionId = existingQuestion.Id;
-                    existingQuestion.Choices.Add(choice);
-                }
-
-                await _unitOfWork.Repository<Question, int>().UpdatePartialAsync(existingQuestion);
-                await _unitOfWork.CompleteAsync();
-
-                var updatedQuestionSpec = new QuestionSpecifications(q => q.Id == existingQuestion.Id);
-                var updatedQuestion = await _unitOfWork.Repository<Question, int>().GetByIdWithSpecification(updatedQuestionSpec);
-
-                return _mapper.Map<Question, QuestionToReturnDto>(updatedQuestion);
+                return Result<QuestionToReturnDto>.ValidaitonFailure(validationResult);
             }
-            catch (Exception e)
+
+
+            var questionSpec = new QuestionSpecifications(
+                q => q.Id == updateQuestionDto.Id && q.InstructorId == updateQuestionDto.InstructorId);
+            
+            var existingQuestion = await _unitOfWork.Repository<Question, int>()
+                .GetByIdWithSpecification(questionSpec);
+
+            if (existingQuestion == null)
             {
-                throw new Exception("Cannot update question", e);
+                return Result<QuestionToReturnDto>.Failure(
+                    ErrorCode.NotFound,
+                    $"Question with ID {updateQuestionDto.Id} not found or you don't have permission to update it");
             }
+            
+            _mapper.Map(updateQuestionDto, existingQuestion);
+
+           
+            var existingChoiceIds = existingQuestion.Choices.Select(c => c.Id).ToList();
+            var choiceRepo = _unitOfWork.Repository<Choice, int>();
+
+            foreach (var existingChoiceId in existingChoiceIds)
+            {
+                await choiceRepo.DeleteAsync(existingChoiceId);
+            }
+
+            existingQuestion.Choices.Clear();
+
+            
+            foreach (var choiceDto in updateQuestionDto.Choices)
+            {
+                var choice = _mapper.Map<Choice>(choiceDto);
+                choice.QuestionId = existingQuestion.Id;
+                existingQuestion.Choices.Add(choice);
+            }
+
+            await _unitOfWork.Repository<Question, int>().UpdatePartialAsync(existingQuestion);
+            var RowEffected =   await _unitOfWork.CompleteAsync();
+            if (RowEffected != null || RowEffected < 1) 
+            {
+                return Result<QuestionToReturnDto>.Failure(
+                ErrorCode.DatabaseError,
+                $"Error Happened  in Database");
+
+            }
+            // Retrieve updated question
+            var updatedQuestionSpec = new QuestionSpecifications(q => q.Id == existingQuestion.Id);
+            var updatedQuestion = await _unitOfWork.Repository<Question, int>()
+                .GetByIdWithSpecification(updatedQuestionSpec);
+
+            var questionToReturnDto = _mapper.Map<Question, QuestionToReturnDto>(updatedQuestion);
+            var result = Result<QuestionToReturnDto>.Success(questionToReturnDto);
+            return result;  
         }
 
-        public async Task<bool> DeleteQuestionAsync(int questionId, string instructorId)
+        public async Task<Result> DeleteQuestionAsync(int questionId, string instructorId)
         {
-            try
+            if (questionId <= 0)
             {
-                var questionSpec = new QuestionSpecifications(q => q.Id == questionId && q.InstructorId == instructorId);
-                var question = await _unitOfWork.Repository<Question, int>().GetByIdWithSpecification(questionSpec);
-
-                if (question == null)
-                    throw new KeyNotFoundException($"Question with ID {questionId} not found or you don't have permission to delete it.");
-
-                // GetAll() automatically filters soft-deleted records
-                var examQuestions = await _unitOfWork.Repository<ExamQuestion, int>().GetAll()
-                    .Where(eq => eq.QuestionId == questionId)
-                    .ToListAsync();
-
-                if (examQuestions.Any())
-                {
-                    throw new InvalidOperationException($"Cannot delete question with ID {questionId} because it is used in one or more exams.");
-                }
-
-                await _unitOfWork.Repository<Question, int>().DeleteAsync(questionId);
-                await _unitOfWork.CompleteAsync();
-
-                return true;
+                return Result.Failure(
+                    ErrorCode.ValidationError,
+                    "Valid question ID is required");
             }
-            catch (Exception e)
+
+            if (string.IsNullOrWhiteSpace(instructorId))
             {
-                throw new Exception("Cannot delete question", e);
+                return Result.Failure(
+                    ErrorCode.ValidationError,
+                    "Instructor ID is required");
             }
+
+      
+            var questionSpec = new QuestionSpecifications(
+                q => q.Id == questionId && q.InstructorId == instructorId);
+            
+            var question = await _unitOfWork.Repository<Question, int>()
+                .GetByIdWithSpecification(questionSpec);
+
+            if (question == null)
+            {
+                return Result.Failure(
+                    ErrorCode.NotFound,
+                    $"Question with ID {questionId} not found or you don't have permission to delete it");
+            }
+
+          
+            var examQuestions = await _unitOfWork.Repository<ExamQuestion, int>()
+                .GetAll()
+                .Where(eq => eq.QuestionId == questionId)
+                .ToListAsync();
+
+            if (examQuestions.Any())
+            {
+                return Result.Failure(
+                    ErrorCode.Conflict,
+                    $"Cannot delete question with ID {questionId} because it is used in {examQuestions.Count} exam(s)");
+            }
+
+            // Delete - let middleware handle database exceptions
+            await _unitOfWork.Repository<Question, int>().DeleteAsync(questionId);
+            var RowEffected = await _unitOfWork.CompleteAsync();
+            if (RowEffected != null || RowEffected < 1)
+            {
+                return Result<QuestionToReturnDto>.Failure(
+                ErrorCode.DatabaseError,
+                $"Error Happened  in Database");
+
+            }
+
+            var result = Result.Success();
+            return result;
         }
     }
 }

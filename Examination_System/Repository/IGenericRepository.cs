@@ -30,6 +30,7 @@ namespace Examination_System.Repository
         Task<T> GetByIdWithSpecification(ISpecification<T, Tkey> specification);
 
         Task<bool> IsExistsAsync(Tkey id);
+        Task<bool> IsExistsbyCriteriaAsync(Expression<Func<T, bool>> predicate);
 
         Task<bool> DeleteAsync(Tkey id);
 

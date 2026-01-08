@@ -1,7 +1,7 @@
 ﻿using Examination_System.DTOs.Question;
 using Examination_System.Models;
 using System.ComponentModel.DataAnnotations;
-using static Examination_System.Validation.ExamValidation;
+
 
 namespace Examination_System.DTOs.Exam
 {
