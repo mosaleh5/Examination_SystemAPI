@@ -2,7 +2,7 @@
 
 namespace Examination_System.Models
 {
-    public class Course : BaseModel
+    public class Course : BaseModelGuid
     {
        
         [Required]
@@ -13,7 +13,7 @@ namespace Examination_System.Models
         public string Description { get; set; }
 
         public Instructor? Instructor { get; set; }
-        public string InstructorId { get; set; }
+        public Guid InstructorId { get; set; }
 
         public ICollection<Exam>? Exams { get; set; }
         public ICollection<CourseEnrollment>? CourseEnrollments { get; set; }

@@ -6,22 +6,15 @@ namespace Examination_System.ViewModels.Exam
 {
     public class ExamResponseViewModel
     {
-        public int Id { get; set; }
-        public string Title { get; set; }
-        public DateTime Date { get; set; }
+        public Guid Id { get; set; }  // Changed from int
+        public string Title { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public Guid CourseId { get; set; }  // Changed from int
+        public string CourseName { get; set; } = string.Empty;
         public int DurationInMinutes { get; set; }
-        public int Fullmark { get; set; }
-        public string ExamType { get; set; } // "Quiz" or "Final"
-        public int PassingScore { get; set; }
         public int QuestionsCount { get; set; }
-
-        public string CourseName { get; set; }
-        public string InstructorId { get; set; }
-        public string InstructorName { get; set; }
-        public bool IsAutomatic { get; set; }
-        public bool isActive { get; set; }
+        public int Fullmark { get; set; }
+        public bool IsActive { get; set; }
         public DateTime CreatedAt { get; set; }
-        
-      
     }
 }

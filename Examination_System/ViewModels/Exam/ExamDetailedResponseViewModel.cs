@@ -5,6 +5,6 @@ namespace Examination_System.ViewModels.Exam
 {
     public class ExamDetailedResponseViewModel : ExamResponseViewModel
     {
-        public ICollection<QuestionToReturnViewModel> ExamQuestions { get; set; } = new List<QuestionToReturnViewModel>();
+        public ICollection<QuestionToReturnViewModel> Questions { get; set; } = new List<QuestionToReturnViewModel>();
     }
 }

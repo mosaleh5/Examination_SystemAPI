@@ -2,7 +2,7 @@
 {
     public class InstructorRegisterDto : RegisterDto
     {
-        public string Department { get; set; }
-        public string Specialization { get; set; }
+        public string Department { get; set; } = string.Empty;
+        public string Specialization { get; set; } = string.Empty;
     }
 }

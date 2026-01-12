@@ -2,8 +2,8 @@
 
 namespace Examination_System.Services
 {
-    public interface IGenericServices<T , Tkey> where T : class , IBaseModel<Tkey>
+    public interface IGenericServices<T> where T : BaseModelGuid
     {
-        Task<bool> IsExistsAsync(Tkey Id);
+        Task<bool> IsExistsAsync(Guid Id);
     }
 }

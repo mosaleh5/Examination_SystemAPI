@@ -6,12 +6,12 @@ namespace Examination_System.Models
 {
     [Index(nameof(StudentId), nameof(ExamId))]
 
-    public class ExamAssignment : BaseModel
+    public class ExamAssignment : BaseModelGuid
     {
-        public int ExamId { get; set; }
+        public Guid ExamId { get; set; }
         public Exam Exam { get; set; }
         
-        public string StudentId { get; set; }  // Changed from StudentId
+        public Guid StudentId { get; set; }  // Changed from StudentId
         public Student Student { get; set; }
         
         public DateTime AssignedDate { get; set; }

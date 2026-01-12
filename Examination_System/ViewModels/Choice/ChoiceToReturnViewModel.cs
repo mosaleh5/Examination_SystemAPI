@@ -2,10 +2,11 @@
 {
     public class ChoiceToReturnViewModel
     {
+        public Guid Id {get; set; }
         public string Text { get; set; }
 
         public bool IsCorrect { get; set; }
 
-        public int? QuestionId { get; set; }
+        public Guid QuestionId { get; set; }
     }
 }

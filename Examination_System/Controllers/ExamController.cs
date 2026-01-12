@@ -1,8 +1,12 @@
 ﻿using AutoMapper;
+using Examination_System.Common;
 using Examination_System.DTOs.Exam;
+using Examination_System.Models.Enums;
 using Examination_System.Services.CourseServices;
 using Examination_System.Services.CurrentUserServices;
 using Examination_System.Services.ExamServices;
+using Examination_System.ViewModels;
+using Examination_System.ViewModels.AttemptExam;
 using Examination_System.ViewModels.Exam;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,287 +16,250 @@ namespace Examination_System.Controllers
     [Authorize(Roles = "Instructor")]
     public class ExamController : BaseController
     {
-        public readonly Services.ExamServices.IExamServices _examServices ;
+        private readonly IExamServices _examServices;
         private readonly ICourseServices _courseServices;
         private readonly ICurrentUserServices _currentUserServices;
         private readonly IMapper _mapper;
 
-        public ExamController(Services.ExamServices.IExamServices ExamServices,
+        public ExamController(
+            IExamServices examServices,
             ICourseServices courseServices,
-            ICurrentUserServices currentUser,
+            ICurrentUserServices currentUserServices,
             IMapper mapper)
         {
-            _examServices = ExamServices;
-            this._courseServices = courseServices;
-            this._currentUserServices = currentUser;
-            this._mapper = mapper;
+            _examServices = examServices;
+            _courseServices = courseServices;
+            _currentUserServices = currentUserServices;
+            _mapper = mapper;
         }
 
         [HttpPost("manual")]
-        [ProducesResponseType(typeof(ExamResponseViewModel), 200)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<ExamResponseViewModel>> CreateExam([FromBody] CreateExamViewModel createExamViewModel)
+        [ProducesResponseType(typeof(ResponseViewModel<ExamResponseViewModel>), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ResponseViewModel<object>), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<ResponseViewModel<ExamResponseViewModel>>> CreateExam(
+            [FromBody] CreateExamViewModel createExamViewModel)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-         
-            var instructorId = _currentUserServices.UserId;
-         
+                return BadRequest(ResponseViewModel<ExamResponseViewModel>.Failure(
+                    ErrorCode.ValidationError,
+                    GetValidationErrors()));
+
             var createExamDto = _mapper.Map<CreateExamDto>(createExamViewModel);
-            createExamDto.InstructorId = instructorId;
+            createExamDto.InstructorId = _currentUserServices.UserId;
             createExamDto.CreatedAt = DateTime.UtcNow;
-            var createdExam = await _examServices.CreateExam(createExamDto);
-            var examViewModel = _mapper.Map<ExamResponseViewModel>(createdExam);
-            return Ok(examViewModel);
+
+            var result = await _examServices.CreateExam(createExamDto);
+
+            if (!result.IsSuccess)
+                return BadRequest(ResponseViewModel<ExamResponseViewModel>.Failure(
+                    result.Error,
+                    "An error occurred when creating exam\n" + result.ErrorMessage));
+
+            var examViewModel = _mapper.Map<ExamResponseViewModel>(result.Data);
+            return CreatedAtAction(
+                nameof(GetAllExamsForInstructor),
+                ResponseViewModel<ExamResponseViewModel>.Success(examViewModel, "Exam created successfully"));
         }
 
         [HttpPost("automatic")]
-        [ProducesResponseType(typeof(ExamDetailedResponseViewModel), 201)]
-        public async Task<ActionResult<ExamDetailedResponseViewModel>> CreateAutomaticExam([FromBody] CreateAutomaticExamViewModel createAutomaticExamViewModel)
+        [ProducesResponseType(typeof(ResponseViewModel<ExamDetailedResponseViewModel>), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ResponseViewModel<object>), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<ResponseViewModel<ExamDetailedResponseViewModel>>> CreateAutomaticExam(
+            [FromBody] CreateAutomaticExamViewModel createAutomaticExamViewModel)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-            
-            var courseExists = await _courseServices.IsExistsAsync(createAutomaticExamViewModel.CourseId);
-            if (!courseExists)
-            {
-                return NotFound($"Course with Id {createAutomaticExamViewModel.CourseId} does not exist");
-            }
-            var instructorId = _currentUserServices.UserId;
-           
-            var isInstructorOfCourse = await _courseServices.IsInstructorOfCourseAsync(createAutomaticExamViewModel.CourseId, instructorId);
-            if (!isInstructorOfCourse)
-            {
-                return BadRequest("You are not allowed to sign exam to this course");
-            }
+                return BadRequest(ResponseViewModel<ExamDetailedResponseViewModel>.Failure(
+                    ErrorCode.ValidationError,
+                    GetValidationErrors()));
+
             var createAutomaticExamDto = _mapper.Map<CreateAutomaticExamDto>(createAutomaticExamViewModel);
-            createAutomaticExamDto.InstructorId = instructorId;
+            createAutomaticExamDto.InstructorId = _currentUserServices.UserId;
             createAutomaticExamDto.CreatedAt = DateTime.UtcNow;
-            var createdExam = await _examServices.CreateAutomaticExam(createAutomaticExamDto);
-            var createdExamViewModel = _mapper.Map<ExamDetailedResponseViewModel>(createdExam);
-            return Ok(createdExamViewModel);
+
+            var result = await _examServices.CreateAutomaticExam(createAutomaticExamDto);
+
+            if (!result.IsSuccess)
+                return BadRequest(ResponseViewModel<ExamDetailedResponseViewModel>.Failure(
+                    result.Error,
+                    "An error occurred when creating automatic exam\n" + result.ErrorMessage));
+
+            var createdExamViewModel = _mapper.Map<ExamDetailedResponseViewModel>(result.Data);
+            return CreatedAtAction(
+                nameof(GetAllExamsForInstructor),
+                ResponseViewModel<ExamDetailedResponseViewModel>.Success(createdExamViewModel, "Automatic exam created successfully"));
         }
 
         [HttpGet]
-        [ProducesResponseType(typeof(IEnumerable<ExamResponseViewModel>), 200)]
-        public async Task<ActionResult<IEnumerable<ExamResponseViewModel>>> GetAllExamsForInstructor()
+        [ProducesResponseType(typeof(ResponseViewModel<IEnumerable<ExamResponseViewModel>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResponseViewModel<object>), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<ResponseViewModel<IEnumerable<ExamResponseViewModel>>>> GetAllExamsForInstructor()
         {
-            var instructorId = _currentUserServices.UserId;
-            var exams = await _examServices.GetAllExamsForInstructor(instructorId);
-            var examViewModels = _mapper.Map<IEnumerable<ExamResponseViewModel>>(exams);
-            return Ok(examViewModels);
+            if (_currentUserServices.UserId == null)
+                return Unauthorized(ResponseViewModel<IEnumerable<ExamResponseViewModel>>.Failure(
+                    ErrorCode.Unauthorized,
+                    "User not authenticated"));
+
+            var result = await _examServices.GetAllExamsForInstructor(_currentUserServices.UserId);
+
+            if (!result.IsSuccess)
+                return BadRequest(ResponseViewModel<IEnumerable<ExamResponseViewModel>>.Failure(
+                    result.Error,
+                    result.ErrorMessage));
+
+            var examViewModels = _mapper.Map<IEnumerable<ExamResponseViewModel>>(result.Data);
+            return Ok(ResponseViewModel<IEnumerable<ExamResponseViewModel>>.Success(examViewModels));
+        }
+
+        [HttpGet("{examId}")]
+        [ProducesResponseType(typeof(ResponseViewModel<IEnumerable<ExamResponseViewModel>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResponseViewModel<object>), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<ResponseViewModel<ExamDetailedResponseViewModel>>> GetExamsForInstructorById(Guid examId)
+        {
+            if (_currentUserServices.UserId == null)
+                return Unauthorized(ResponseViewModel<ExamDetailedResponseViewModel>.Failure(
+                    ErrorCode.Unauthorized,
+                    "User not authenticated"));
+            var GetExamByIdDto = new GetExamByIdDto
+            {
+                ExamId = examId,
+                InstructorId = _currentUserServices.UserId
+            };
+            var result = await _examServices.GetExamsForInstructorById(GetExamByIdDto);
+
+            if (!result.IsSuccess)
+                return BadRequest(ResponseViewModel<ExamDetailedResponseViewModel>.Failure(
+                    result.Error,
+                    result.ErrorMessage));
+
+            var examViewModels = _mapper.Map<ExamDetailedResponseViewModel>(result.Data);
+            return Ok(ResponseViewModel<ExamDetailedResponseViewModel>.Success(examViewModels));
+        }
+        [HttpPut("Activate/{examId}")]
+        [ProducesResponseType(typeof(ResponseViewModel<Result>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResponseViewModel<object>), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<ResponseViewModel<Result>>> ActivateExam(Guid examId)
+        {
+            var activateExamDto = new ActivateExamDto
+            {
+                ExamId = examId,
+                InstructorId = _currentUserServices.UserId
+            };
+
+            var result = await _examServices.ActivateExamAsync(activateExamDto);
+
+            return result.IsSuccess
+                ? Ok(ResponseViewModel<Result>.Success(result, "Exam activated successfully"))
+                : BadRequest(ResponseViewModel<Result>.Failure(
+                    result.Error,
+                    "An error occurred when activating exam\n" + result.ErrorMessage));
         }
 
         [HttpPost("manual/{examId}/questions")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult> AddQuestionsToExam(int examId, [FromBody] List<int> questionIds)
+        [ProducesResponseType(typeof(ResponseViewModel<Result>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResponseViewModel<object>), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<ResponseViewModel<Result>>> AddQuestionsToExam(
+            Guid examId,
+            [FromBody] List<Guid> questionIds)
         {
-            if (examId <= 0)
-            {
-                return BadRequest(new { message = "Invalid exam Id." });
-            }
+            if (!ModelState.IsValid)
+                return BadRequest(ResponseViewModel<Result>.Failure(
+                    ErrorCode.ValidationError,
+                    GetValidationErrors()));        
 
-            if (questionIds == null || questionIds.Count == 0)
+            var addQuestionsDto = new AddQuestionsToExamDto
             {
-                return BadRequest(new { message = "Question IDs cannot be null or empty." });
-            }
+                ExamId = examId,
+                QuestionIds = questionIds,
+                InstructorId = _currentUserServices.UserId
+            };
 
-            try
-            {
-                var userId = _currentUserServices.UserId;
-                if (!await _examServices.IsInstructorOfExamAsync(examId, userId))
-                {
-                    return Unauthorized(new { message = "You are not allowed to add questions to this exam." });
-                }
+            var result = await _examServices.AddQuestionsToExamAsync(addQuestionsDto);
 
-                await _examServices.AddQuestionsToExamAsync(examId, questionIds);
-                return Ok(new { message = $"{questionIds.Count} question(s) added to Exam {examId} successfully." });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    new { message = "An error occurred while adding questions to the exam", details = ex.Message });
-            }
+            return result.IsSuccess
+                ? Ok(ResponseViewModel<Result>.Success(result, $"{questionIds.Count} question(s) added to exam successfully"))
+                : BadRequest(ResponseViewModel<Result>.Failure(
+                    result.Error,
+                    "An error occurred when adding questions to exam\n" + result.ErrorMessage));
         }
 
         [HttpPut("manual/{examId}/questions")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult> ReplaceExamQuestions(int examId, [FromBody] List<int> questionIds)
+        [ProducesResponseType(typeof(ResponseViewModel<Result>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResponseViewModel<object>), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<ResponseViewModel<Result>>> ReplaceExamQuestions(
+            Guid examId,
+            [FromBody] List<Guid> questionIds)
         {
-            if (examId <= 0)
-            {
-                return BadRequest(new { message = "Invalid exam Id." });
-            }
+            if (!ModelState.IsValid)
+                return BadRequest(ResponseViewModel<Result>.Failure(
+                    ErrorCode.ValidationError,
+                    GetValidationErrors()));
 
-            if (questionIds == null || questionIds.Count == 0)
+            var replaceQuestionsDto = new ReplaceExamQuestionsDto
             {
-                return BadRequest(new { message = "Question IDs cannot be null or empty." });
-            }
+                ExamId = examId,
+                QuestionIds = questionIds,
+                InstructorId = _currentUserServices.UserId
+            };
 
-            try
-            {
-                var userId = _currentUserServices.UserId;
-                if (!await _examServices.IsInstructorOfExamAsync(examId, userId))
-                {
-                    return Unauthorized(new { message = "You are not allowed to modify questions in this exam." });
-                }
+            var result = await _examServices.ReplaceExamQuestionsAsync(replaceQuestionsDto);
 
-                await _examServices.ReplaceExamQuestionsAsync(examId, questionIds);
-                return Ok(new { message = $"Exam {examId} questions replaced successfully with {questionIds.Count} question(s)." });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    new { message = "An error occurred while replacing questions in the exam", details = ex.Message });
-            }
+            return result.IsSuccess
+                ? Ok(ResponseViewModel<Result>.Success(result, $"Exam questions replaced successfully with {questionIds.Count} question(s)"))
+                : BadRequest(ResponseViewModel<Result>.Failure(
+                    result.Error,
+                    "An error occurred when replacing exam questions\n" + result.ErrorMessage));
         }
 
         [HttpDelete("manual/{examId}/questions/{questionId}")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult> RemoveQuestionFromExam(int examId, int questionId)
+        [ProducesResponseType(typeof(ResponseViewModel<Result>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResponseViewModel<object>), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<ResponseViewModel<Result>>> RemoveQuestionFromExam(
+            Guid examId,
+            Guid questionId)
         {
-            if (examId <= 0)
+            var removeQuestionDto = new RemoveQuestionFromExamDto
             {
-                return BadRequest(new { message = "Invalid exam Id." });
-            }
+                ExamId = examId,
+                QuestionId = questionId,
+                InstructorId = _currentUserServices.UserId
+            };
 
-            if (questionId <= 0)
-            {
-                return BadRequest(new { message = "Invalid question Id." });
-            }
+            var result = await _examServices.RemoveQuestionFromExamAsync(removeQuestionDto);
 
-            try
-            {
-                var userId = _currentUserServices.UserId;
-                if (!await _examServices.IsInstructorOfExamAsync(examId, userId))
-                {
-                    return Unauthorized(new { message = "You are not allowed to remove questions from this exam." });
-                }
-
-                await _examServices.RemoveQuestionFromExamAsync(examId, questionId);
-                return Ok(new { message = $"Question {questionId} removed from Exam {examId} successfully." });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    new { message = "An error occurred while removing the question from the exam", details = ex.Message });
-            }
-        }
-
-        [HttpPut("Activate/{examId}")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult> ActivateExam(int examId)
-        {
-            if (examId <= 0)
-            {
-                return BadRequest(new { message = "Invalid exam Id." });
-            }
-            
-            try
-            {
-                var userId = _currentUserServices.UserId;
-                await _examServices.ActivateExamAsync(examId, userId);
-                return Ok(new { message = $"Exam {examId} activated successfully." });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                return Unauthorized(new { message = ex.Message });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    new { message = "An error occurred while activating the exam", details = ex.Message });
-            }
+            return result.IsSuccess
+                ? Ok(ResponseViewModel<Result>.Success(result, "Question removed from exam successfully"))
+                : BadRequest(ResponseViewModel<Result>.Failure(
+                    result.Error,
+                    "An error occurred when removing question from exam\n" + result.ErrorMessage));
         }
 
         [HttpPost("{examId}/students")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult> AssignStudentToExam(int examId, string studentId)
+        [ProducesResponseType(typeof(ResponseViewModel<Result>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResponseViewModel<object>), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<ResponseViewModel<Result>>> AssignStudentToExam(
+            Guid examId,
+            [FromBody] Guid studentId)
         {
-            if (string.IsNullOrEmpty(studentId))
-            {
-                return BadRequest(new { message = "StudentId cannot be null or empty." });
-            }
-            
-            if (examId <= 0)
-            {
-                return BadRequest(new { message = "Invalid exam Id." });
-            }
+            if (!ModelState.IsValid)
+                return BadRequest(ResponseViewModel<Result>.Failure(
+                    ErrorCode.ValidationError,
+                    GetValidationErrors()));
 
-            try
+            var assignStudentDto = new AssignStudentToExamDto
             {
-                var userId = _currentUserServices.UserId;
-                if (!await _examServices.IsInstructorOfExamAsync(examId, userId))
-                {
-                    return Unauthorized(new { message = "You are not allowed to assign students to this exam." });
-                }
+                ExamId = examId,
+                StudentId = studentId,
+                InstructorId = _currentUserServices.UserId
+            };
 
-                await _examServices.EnrollStudentToExamAsync(examId, studentId);
-                return Ok(new { message = $"Student with ID {studentId} enrolled in Exam {examId} successfully." });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    new { message = "An error occurred while enrolling the student in the Exam", details = ex.Message });
-            }
+            var result = await _examServices.EnrollStudentToExamAsync(assignStudentDto);
+
+            return result.IsSuccess
+                ? Ok(ResponseViewModel<Result>.Success(result, "Student enrolled in exam successfully"))
+                : BadRequest(ResponseViewModel<Result>.Failure(
+                    result.Error,
+                    "An error occurred when enrolling student to exam\n" + result.ErrorMessage));
         }
+        
     }
 }

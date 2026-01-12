@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Examination_System.Validation;
+using Examination_System.Models.Enums;
 
 namespace Examination_System.DTOs.Exam
 {
@@ -22,23 +23,22 @@ namespace Examination_System.DTOs.Exam
         public int Fullmark { get; set; }
 
         [Required(ErrorMessage = "Exam type is required")]
-        public int ExamType { get; set; } // 0 = Quiz, 1 = Final
+        public ExamType ExamType { get; set; } // 0 = Quiz, 1 = Final
 
-        [Required(ErrorMessage = "Passing score is required")]
+        [Required(ErrorMessage = "Passing persantage is required")]
 
-        public int PassingScore { get; set; }
+        public int PassingPercentage { get; set; }
 
         [Required(ErrorMessage = "Questions count is required")]
         [Range(1, int.MaxValue, ErrorMessage = "Questions count must be at least 1.")]
         public int QuestionsCount { get; set; }
 
         [Required(ErrorMessage = "Course ID is required")]
-        [Range(1, int.MaxValue, ErrorMessage = "Invalid course ID")]
-        public int CourseId { get; set; }
+        public Guid CourseId { get; set; }
 
         [Required(ErrorMessage = "Instructor ID is required")]
-        [Range(1, int.MaxValue, ErrorMessage = "Invalid instructor ID")]
-        public string InstructorId { get; set; }
+        public Guid InstructorId { get; set; }
+        
         public DateTime CreatedAt { get; internal set; }
 
         [Required(ErrorMessage = "Automatic setting is required")]

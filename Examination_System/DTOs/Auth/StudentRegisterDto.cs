@@ -2,6 +2,6 @@
 {
     public class StudentRegisterDto : RegisterDto
     {
-        public string Major { get; set; }
+        public string Major { get; set; } = string.Empty;
     }
 }

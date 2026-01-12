@@ -1,8 +1,11 @@
-﻿using Examination_System.DTOs.Auth;
+﻿using Examination_System.Common;
+using Examination_System.DTOs.Auth;
 using Examination_System.Models;
+using Examination_System.Models.Enums;
+using Examination_System.Repository.UnitOfWork;
+using FluentValidation;
 using Microsoft.AspNetCore.Identity;
 using Examination_System.Services.TokenServices;
-using Examination_System.Repository.UnitOfWork;
 namespace Examination_System.Services.UserServices
 {
     public class UserServices : IUserServices
@@ -11,135 +14,82 @@ namespace Examination_System.Services.UserServices
         private readonly IUnitOfWork _unitOfWork;
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
-        public UserServices(UserManager<User> userManager ,
-            SignInManager<User> signInManager ,
+        private readonly IValidator<LoginDto> _loginValidator;
+        private readonly IValidator<StudentRegisterDto> _studentRegisterValidator;
+        private readonly IValidator<InstructorRegisterDto> _instructorRegisterValidator;
+
+        public UserServices(
+            UserManager<User> userManager,
+            SignInManager<User> signInManager,
             ITokenServices tokenServices,
-            IUnitOfWork UnitOfWork)  
+            IUnitOfWork unitOfWork,
+            IValidator<LoginDto> loginValidator,
+            IValidator<StudentRegisterDto> studentRegisterValidator,
+            IValidator<InstructorRegisterDto> instructorRegisterValidator)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _tokenServices = tokenServices;
-            _unitOfWork = UnitOfWork;
+            _unitOfWork = unitOfWork;
+            _loginValidator = loginValidator;
+            _studentRegisterValidator = studentRegisterValidator;
+            _instructorRegisterValidator = instructorRegisterValidator;
         }
 
-        public async Task<bool> IsEmailExistAsync(string email)
+        public Task<bool> IsEmailExistAsync(string email)
         {
-            return await _userManager.FindByEmailAsync(email) != null;
+            throw new NotImplementedException();
         }
 
-        public async Task<UserDto?> LoginAsync(LoginDto loginDto)
+        public async Task<Result<UserDto>> LoginAsync(LoginDto loginDto)
         {
-            var user = _userManager.FindByEmailAsync(loginDto.Email).Result;
-            if (user is null) return null;
-            var result = _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false).Result;
-            if (!result.Succeeded) return null;
-            //var roles = _userManager.GetRolesAsync(user).Result;
-            var role = await _userManager.GetRolesAsync(user);
-            return new UserDto
+            var validationResult = await _loginValidator.ValidateAsync(loginDto);
+            if (!validationResult.IsValid)
+            {
+                return Result<UserDto>.ValidaitonFailure(validationResult);
+            }
+
+            var user = await _userManager.FindByEmailAsync(loginDto.Email);
+            if (user == null)
+            {
+                return Result<UserDto>.Failure(
+                    ErrorCode.NotFound,
+                    "Invalid email or password");
+            }
+
+            var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, lockoutOnFailure: false);
+            if (!result.Succeeded)
+            {
+                return Result<UserDto>.Failure(
+                    ErrorCode.Unauthorized,
+                    "Invalid email or password");
+            }
+
+            var roles = await _userManager.GetRolesAsync(user);
+
+            var userDto = new UserDto
             {
                 Id = user.Id,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 Email = user.Email,
-                // Role = roles.FirstOrDefault() ?? string.Empty,
-                Token = await _tokenServices.CreateTokenAsync(user, _userManager, role),
+                Token = await _tokenServices.CreateTokenAsync(user, _userManager, roles),
+                Role = roles.FirstOrDefault() ?? string.Empty
             };
 
+            return Result<UserDto>.Success(userDto);
         }
 
-        public async Task<UserDto?> RegisterInstructorAsync(InstructorRegisterDto registerDto)
+        public async Task<Result<UserDto>> RegisterInstructorAsync(InstructorRegisterDto registerDto)
         {
+            var validationResult = await _instructorRegisterValidator.ValidateAsync(registerDto);
+            if (!validationResult.IsValid)
+            {
+                return Result<UserDto>.ValidaitonFailure(validationResult);
+            }
 
             await using var transaction = await _unitOfWork.BeginTransactionAsync();
-            try
-            {
-                var user = await RegisterUserAsync(registerDto);
-                if (user is null) return null;
 
-                var foundUser = await _userManager.FindByIdAsync(user);
-                if (foundUser is not null)
-                {
-                    await _userManager.AddToRoleAsync(foundUser, "Instructor");
-                }
-                var instructor = new Instructor
-                {
-                    Id = user,
-                    Department = registerDto.Department,
-                    Specialization = registerDto.Specialization,
-                };
-             
-                await _unitOfWork.Repository<Instructor, string>().AddAsync(instructor);
-                var result = await _unitOfWork.CompleteAsync();
-              
-                await transaction.CommitAsync();
-                var role = await _userManager.GetRolesAsync(foundUser);
-                return new UserDto
-                {
-                    Id = instructor.Id,
-                    FirstName = registerDto.FirstName,
-                    LastName = registerDto.LastName,
-                    Email = registerDto.Email,
-                    Token = await _tokenServices.CreateTokenAsync(
-                        await _userManager.FindByIdAsync(instructor.Id), _userManager , role),
-                };
-            }
-            catch (Exception ex)
-            {
-                await transaction.RollbackAsync();
-                throw new Exception("Failed to register student", ex);
-            }
-        }
-
-        public async Task<UserDto?> RegisterStudentAsync(StudentRegisterDto registerDto)
-        {
-            await using var transaction = await _unitOfWork.BeginTransactionAsync();
-            try 
-            {
-                var user = await RegisterUserAsync(registerDto);
-                if (user is null) return null;
-                
-                var foundUser = await _userManager.FindByIdAsync(user);
-                if (foundUser is not null)
-                {
-                    await _userManager.AddToRoleAsync(foundUser, "Student");
-                }
-                
-                var student = new Student
-                {
-                    Id = user,
-                    Major = registerDto.Major,
-                };
-                await _unitOfWork.Repository<Student, string>().AddAsync(student);
-                var result = await _unitOfWork.CompleteAsync();
-                
-                await transaction.CommitAsync();
-                var role = await _userManager.GetRolesAsync(foundUser);
-
-                return new UserDto
-                {
-                    Id = student.Id,
-                    FirstName = registerDto.FirstName,
-                    LastName = registerDto.LastName,
-                    Email = registerDto.Email,
-                    Token = await _tokenServices.CreateTokenAsync(
-                        await _userManager.FindByIdAsync(student.Id), _userManager , role),
-                };
-            }
-            catch (Exception ex)
-            {
-                await transaction.RollbackAsync();
-                throw new Exception("Failed to register student", ex);
-            }
-        }
-
-       
-
-        public async Task<string> RegisterUserAsync(RegisterDto registerDto)
-        {
-            if (await IsEmailExistAsync(registerDto.Email)) 
-            {
-                throw new Exception("Email already exists");
-            }
             var user = new User
             {
                 FirstName = registerDto.FirstName,
@@ -149,18 +99,117 @@ namespace Examination_System.Services.UserServices
                 PhoneNumber = registerDto.Phone,
             };
 
-           
-                var result = await _userManager.CreateAsync(user, registerDto.Password);
-                
-               
-           
+            var result = await _userManager.CreateAsync(user, registerDto.Password);
             if (!result.Succeeded)
             {
-                throw new Exception("Failed to register user");
+                await transaction.RollbackAsync();
+                return Result<UserDto>.Failure(
+                    ErrorCode.BadRequest,
+                    string.Join(", ", result.Errors.Select(e => e.Description)));
             }
-            return user.Id;
+
+            await _userManager.AddToRoleAsync(user, "Instructor");
+
+            var instructor = new Instructor
+            {
+                Id = user.Id,
+                Department = registerDto.Department,
+                Specialization = registerDto.Specialization,
+            };
+
+            await _unitOfWork.Repository<Instructor>().AddAsync(instructor);
+            var rowsAffected = await _unitOfWork.CompleteAsync();
+
+            if (rowsAffected == null || rowsAffected < 1)
+            {
+                await transaction.RollbackAsync();
+                return Result<UserDto>.Failure(
+                    ErrorCode.DatabaseError,
+                    "Failed to create instructor record");
+            }
+
+            await transaction.CommitAsync();
+
+            var roles = await _userManager.GetRolesAsync(user);
+            var userDto = new UserDto
+            {
+                Id = user.Id,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
+                Token = await _tokenServices.CreateTokenAsync(user, _userManager, roles),
+                Role = roles.FirstOrDefault() ?? string.Empty
+            };
+
+            return Result<UserDto>.Success(userDto);
         }
 
-      
+        public async Task<Result<UserDto>> RegisterStudentAsync(StudentRegisterDto registerDto)
+        {
+            var validationResult = await _studentRegisterValidator.ValidateAsync(registerDto);
+            if (!validationResult.IsValid)
+            {
+                return Result<UserDto>.ValidaitonFailure(validationResult);
+            }
+
+            await using var transaction = await _unitOfWork.BeginTransactionAsync();
+
+            var user = new User
+            {
+                FirstName = registerDto.FirstName,
+                LastName = registerDto.LastName,
+                Email = registerDto.Email,
+                UserName = registerDto.Email,
+                PhoneNumber = registerDto.Phone,
+            };
+
+            var result = await _userManager.CreateAsync(user, registerDto.Password);
+            if (!result.Succeeded)
+            {
+                await transaction.RollbackAsync();
+                return Result<UserDto>.Failure(
+                    ErrorCode.BadRequest,
+                    string.Join(", ", result.Errors.Select(e => e.Description)));
+            }
+
+            await _userManager.AddToRoleAsync(user, "Student");
+
+            var student = new Student
+            {
+                Id = user.Id,
+                Major = registerDto.Major,
+            };
+
+            await _unitOfWork.Repository<Student>().AddAsync(student);
+            var rowsAffected = await _unitOfWork.CompleteAsync();
+
+            if (rowsAffected == null || rowsAffected < 1)
+            {
+                await transaction.RollbackAsync();
+                return Result<UserDto>.Failure(
+                    ErrorCode.DatabaseError,
+                    "Failed to create student record");
+            }
+
+            await transaction.CommitAsync();
+
+            var roles = await _userManager.GetRolesAsync(user);
+            var userDto = new UserDto
+            {
+                Id = user.Id,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
+                Token = await _tokenServices.CreateTokenAsync(user, _userManager, roles),
+                Role = roles.FirstOrDefault() ?? string.Empty
+            };
+
+            return Result<UserDto>.Success(userDto);
+        }
+
+        public Task<string> RegisterUserAsync(RegisterDto registerDto)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

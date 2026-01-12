@@ -35,7 +35,8 @@ using (var scope = app.Services.CreateScope())
         await context.Database.MigrateAsync();//update database to latest migration
 
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
-        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+        // Fix: Use IdentityRole<Guid> to match Context.cs
+        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
         logger.LogInformation("Starting database seeding...");
         await UserDataSeeding.UserSeedingAsync(userManager, roleManager);
         logger.LogInformation("User seeding completed");

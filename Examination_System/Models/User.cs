@@ -3,18 +3,23 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Examination_System.Models
 {
-    public class User : IdentityUser
+    public class User : IdentityUser<Guid>
     {
-        [Required]
-        [MaxLength(50)]
-        public string FirstName { get; set; }
+        public User()
+        {
+            Id = Guid.CreateVersion7();
+        }
 
         [Required]
         [MaxLength(50)]
-        public string LastName { get; set; }
+        public string FirstName { get; set; } = string.Empty;
 
-        // Navigation properties
-        public Instructor Instructor { get; set; }
-        public Student Student { get; set; }
+        [Required]
+        [MaxLength(50)]
+        public string LastName { get; set; } = string.Empty;
+        
+        
+        public Student? Student { get; set; }
+        public Instructor? Instructor { get; set; }
     }
 }

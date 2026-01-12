@@ -3,7 +3,7 @@ using System.Linq.Expressions;
 
 namespace Examination_System.Specifications
 {
-    public interface ISpecification<T,Tkey> where T :class , IBaseModel<Tkey>
+    public interface ISpecification<T> where T :BaseModelGuid
     {
         public Expression<Func<T, bool>> Criteria { get; set; }
         Func<IQueryable<T>, IOrderedQueryable<T>> AdvancedOrderBy { get; }

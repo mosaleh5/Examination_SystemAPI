@@ -23,10 +23,8 @@ namespace Examination_System.ViewModels.Exam
         public int Fullmark { get; set; }
 
         [Required(ErrorMessage = "Exam type is required")]
-        [ValidateEnum]
+      
         public ExamType ExamType { get; set; }
-
-
 
         [Required(ErrorMessage = "Passing score is required")]
         [Range(0, 100, ErrorMessage = "Passing percentage must be between 0 and 100.")]
@@ -37,8 +35,8 @@ namespace Examination_System.ViewModels.Exam
         public int QuestionsCount { get; set; }
 
         [Required(ErrorMessage = "Course ID is required")]
-        [Range(1, int.MaxValue, ErrorMessage = "Invalid course ID")]
-        public int CourseId { get; set; }
+        public Guid CourseId { get; set; }
+        
         [Required(ErrorMessage = "Automatic setting is required")]
         public bool IsAutomatic { get; set; }
     }

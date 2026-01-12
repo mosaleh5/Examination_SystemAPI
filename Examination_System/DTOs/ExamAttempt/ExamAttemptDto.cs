@@ -1,35 +1,33 @@
-﻿using Examination_System.Models;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using Examination_System.DTOs.Question;
 
 namespace Examination_System.DTOs.ExamAttempt
 {
     public class ExamAttemptDto
     {
-
-        public int ExamId { get; set; }
-    
-
-  
-        public string StudentId { get; set; }
-     
-
-        public DateTime StartedAt { get; set; } = DateTime.UtcNow;
-
+        public Guid Id { get; set; }
+        public Guid ExamId { get; set; }
+        public Guid StudentId { get; set; }
+        public string StudentName { get; set; } = string.Empty;
+        public string ExamTitle { get; set; } = string.Empty;
+        public DateTime StartedAt { get; set; }
         public DateTime? SubmittedAt { get; set; }
-
-        [Range(0, int.MaxValue)]
-        public int? Score { get; set; }
-
-        [Range(0, int.MaxValue)]
-        public int? MaxScore { get; set; }
-
-        public bool IsCompleted { get; set; } = false;
-
-
-        public double? Percentage { get; set; }
-
+        public int Score { get; set; }
+        public int MaxScore { get; set; }
+        public double Percentage { get; set; }
+        public double PassingPercentage { get; set; }
+        public bool IsCompleted { get; set; }
         public bool IsSucceed { get; set; }
-        public ICollection<AttemptAnswersDto> StudentAnswers { get; set; } = new List<AttemptAnswersDto>();
+        
+        // Fixed: Single StudentAnswers collection
+        public ICollection<StudentAnswerDto> StudentAnswers { get; set; } = new List<StudentAnswerDto>();
+    }
+
+    // Unified StudentAnswerDto
+    public class StudentAnswerDto
+    {
+        public Guid ExamAttemtId { get; set; }
+        public QuestionToReturnDto Question { get; set; }
+        public string ChoiceAnswer { get; set; }
+        public bool IsCorrect { get; set; }
     }
 }

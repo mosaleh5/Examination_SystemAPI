@@ -1,4 +1,5 @@
-﻿using Examination_System.Validation;
+﻿using Examination_System.Models;
+using Examination_System.Validation;
 using System.ComponentModel.DataAnnotations;
 using static Examination_System.Models.Question;
 
@@ -16,7 +17,7 @@ namespace Examination_System.DTOs.Question
         [Required]
         public QuestionLevel Level { get; set; }
 
-        public int CourseId { get; set; }
+        public Guid CourseId { get; set; }
 
         [Required]
         [MinLength(2, ErrorMessage = "At least two choices are required")]
@@ -25,6 +26,6 @@ namespace Examination_System.DTOs.Question
         public ICollection<ChoiceDto> Choices { get; set; } = new List<ChoiceDto>();
 
         [Required]
-        public string InstructorId { get; set; } = string.Empty;
+        public Guid InstructorId { get; set; } 
     }
 }

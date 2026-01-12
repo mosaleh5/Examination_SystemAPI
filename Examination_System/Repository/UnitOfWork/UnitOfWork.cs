@@ -30,14 +30,14 @@ namespace Examination_System.Repository.UnitOfWork
       
         
 
-        public GenericRepository<T , Tkey> Repository<T,Tkey>() where T :class , IBaseModel<Tkey>
+        public GenericRepository<T> Repository<T>() where T :BaseModelGuid
         {
           if(!_repositories.ContainsKey(typeof(T).Name))
           {
-            var repository = new GenericRepository<T,Tkey>(_context);
+            var repository = new GenericRepository<T>(_context);
             _repositories.Add(typeof(T).Name, repository);
           }
-            return (_repositories[typeof(T).Name] as GenericRepository<T,Tkey>)!; 
+            return (_repositories[typeof(T).Name] as GenericRepository<T>)!; 
         }
 
         public async Task<int> SaveChangesAsync(CancellationToken ct = default)

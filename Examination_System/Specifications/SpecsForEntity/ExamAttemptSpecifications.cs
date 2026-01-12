@@ -3,7 +3,7 @@ using System.Linq.Expressions;
 
 namespace Examination_System.Specifications.SpecsForEntity
 {
-    public class ExamAttemptSpecifications : BaseSpecification<ExamAttempt , int>
+    public class ExamAttemptSpecifications : BaseSpecification<ExamAttempt>
     {
         public ExamAttemptSpecifications() 
         {

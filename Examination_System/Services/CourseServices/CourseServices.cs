@@ -1,130 +1,332 @@
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using Examination_System.Common;
 using Examination_System.DTOs.Course;
-using Examination_System.Mappers;
-
-//using Examination_System.Mappers;
 using Examination_System.Models;
+using Examination_System.Models.Enums;
 using Examination_System.Repository.UnitOfWork;
 using Examination_System.Specifications.SpecsForEntity;
-using Microsoft.AspNetCore.Authorization;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 
 namespace Examination_System.Services.CourseServices
 {
-    public class CourseServices : GenericServices<Course , int> , ICourseServices
+    public class CourseServices : GenericServices<Course>, ICourseServices
     {
-        public CourseServices(IUnitOfWork unitOfWork, IMapper mapper) 
+        private readonly IValidator<CreateCourseDto> _createCourseValidator;
+        private readonly IValidator<UpdateCourseDto> _updateCourseValidator;
+
+        public CourseServices(
+            IUnitOfWork unitOfWork, 
+            IMapper mapper,
+            IValidator<CreateCourseDto> createCourseValidator,
+            IValidator<UpdateCourseDto> updateCourseValidator) 
             : base(unitOfWork, mapper)
         {
-
+            _createCourseValidator = createCourseValidator;
+            _updateCourseValidator = updateCourseValidator;
         }
 
-        // 
-        /*    public async Task<IEnumerable<CourseDto>> GetAllAsync()
+        public async Task<Result<IEnumerable<CourseDtoToReturn>>> GetAllForInstructorAsync(Guid instructorId)
+        {
+            if (instructorId == null)
             {
-                var courseSpec = new CourseSpecifications();
-                var courses = await _unitOfWork.Repository<Course, int>().GetAllWithSpecificationAsync(courseSpec);
-                return CourseMapper.ToDtoList(courses);
-            }*/
+                return Result<IEnumerable<CourseDtoToReturn>>.Failure(
+                    ErrorCode.ValidationError,
+                    "Instructor ID is required");
+            }
 
-        public async Task<IEnumerable<CourseDtoToReturn>> GetAllForInstructorAsync(string InstructorId)
-        {
-            var courseSpec = new CourseSpecifications(c=>c.InstructorId == InstructorId);
-            var courses = _unitOfWork.Repository<Course, int>().GetAllWithSpecificationAsync(courseSpec);
-            var CourseDetailsDto = await courses.ProjectTo<CourseDtoToReturn>(_mapper.ConfigurationProvider).ToListAsync();
-            return CourseDetailsDto;
+            var courseSpec = new CourseSpecifications(c => c.InstructorId == instructorId);
+            var courses = _unitOfWork.Repository<Course>().GetAllWithSpecificationAsync(courseSpec);
+            
+            var courseDetailsDto = await courses
+                .ProjectTo<CourseDtoToReturn>(_mapper.ConfigurationProvider)
+                .ToListAsync();
+
+            if (!courseDetailsDto.Any())
+            {
+                return Result<IEnumerable<CourseDtoToReturn>>.Failure(
+                    ErrorCode.NotFound,
+                    $"No courses found for instructor {instructorId}");
+            }
+
+            var result = Result<IEnumerable<CourseDtoToReturn>>.Success(courseDetailsDto);
+            return result;
         }
-        public async Task<CourseDtoToReturn> CreateAsync(CreateCourseDto createDto)
+
+        public async Task<Result<CourseDtoToReturn>> CreateAsync(CreateCourseDto createDto)
         {
-            if (createDto == null)
-                throw new ArgumentNullException(nameof(createDto));
+            var validationResult = await _createCourseValidator.ValidateAsync(createDto);
+            if (!validationResult.IsValid)
+            {
+                return Result<CourseDtoToReturn>.ValidaitonFailure(validationResult);
+            }
 
             var course = _mapper.Map<CreateCourseDto, Course>(createDto);
 
-            await _unitOfWork.Repository<Course, int>().Add(course);
-            await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.Repository<Course>().Add(course);
             
-            
+            var rowsAffected = await _unitOfWork.SaveChangesAsync();
+            if (rowsAffected < 1)
+            {
+                return Result<CourseDtoToReturn>.Failure(
+                    ErrorCode.DatabaseError,
+                    "Failed to create course. Database error occurred.");
+            }
+
             var courseToReturn = _mapper.Map<Course, CourseDtoToReturn>(course);
-
-            return courseToReturn;
-                     
-        }
-        public async Task<CourseDetailsDto> GetByIdAsync(int id)
-        {
-            var spec = new CourseSpecifications(c => c.Id == id);
-            var course = await _unitOfWork.Repository<Course,int>().GetByIdWithSpecification(spec);
-         
-            return CourseMapper.ToDetailsDto(course);
-        }
-     
-
-        public  async Task<bool> IsInstructorOfCourseAsync(int courseId, string instructorId)
-        {
-            var result = await _unitOfWork.Repository<Course, int>().GetAll()
-                .AnyAsync(c => c.Id == courseId && c.InstructorId == instructorId);
+            var result = Result<CourseDtoToReturn>.Success(courseToReturn);
             return result;
-
         }
 
-
-
-        public async Task<bool> EnrollStudentInCourseAsync(int courseId, string studentId)
+        public async Task<Result<CourseDtoToReturn>> GetByIdAsync(Guid courseId, Guid instructorId)
         {
-            if (!await _unitOfWork.Repository<Course, int>().IsExistsAsync(courseId))
+            if (courseId == null)
             {
-                throw new KeyNotFoundException($"Course with ID {courseId} not found.");
+                return Result<CourseDtoToReturn>.Failure(
+                    ErrorCode.ValidationError,
+                    "Valid course ID is required");
             }
-            if (!await _unitOfWork.Repository<Student, string>().IsExistsAsync(studentId))
+
+            if (instructorId == null)
             {
-                throw new KeyNotFoundException($"Student with ID {studentId} not found.");
+                return Result<CourseDtoToReturn>.Failure(
+                    ErrorCode.ValidationError,
+                    "Instructor ID is required");
             }
+            if (! await IsInstructorOfCourseAsync(courseId , instructorId))
+            {
+                return Result<CourseDtoToReturn>.Failure(
+                    ErrorCode.Forbidden,
+                    "You don't have permission to access this course");
+            }
+            var spec = new CourseSpecifications(c => c.Id == courseId);
+            var courseDetails = await _unitOfWork.Repository<Course>()
+                .GetByIdWithSpecification(spec)
+                .ProjectTo<CourseDtoToReturn>(_mapper.ConfigurationProvider).FirstOrDefaultAsync();
+
+            if (courseDetails == null)
+            {
+                return Result<CourseDtoToReturn>.Failure(
+                    ErrorCode.NotFound,
+                    $"Course with ID {courseId} not found");
+            }
+
+         
+
+            var result = Result<CourseDtoToReturn>.Success(courseDetails);
+            return result;
+        }
+
+        public async Task<bool> IsInstructorOfCourseAsync(Guid courseId, Guid instructorId)
+        {
+          
+            var isInstructor = await _unitOfWork.Repository<Course>().GetAll()
+                .AnyAsync(c => c.Id == courseId && c.InstructorId == instructorId);
+            return isInstructor;
+        }
+
+        public async Task<Result> EnrollStudentInCourseAsync(Guid courseId, Guid studentId, Guid instructorId)
+        {
+            if (courseId == null)
+            {
+                return Result<CourseDtoToReturn>.Failure(
+                    ErrorCode.ValidationError,
+                    "Valid course ID is required");
+            }
+
+            if (instructorId == null)
+            {
+                return Result<CourseDtoToReturn>.Failure(
+                    ErrorCode.ValidationError,
+                    "Instructor ID is required");
+            }
+
+            if (studentId == null)
+            {
+                return Result<CourseDtoToReturn>.Failure(
+                    ErrorCode.ValidationError,
+                    "Instructor ID is required");
+            }
+            if (!await IsInstructorOfCourseAsync(courseId, instructorId))
+            {
+                return Result<CourseDtoToReturn>.Failure(
+                    ErrorCode.Forbidden,
+                    "You don't have permission to access this course");
+            }
+
+            // Check if course exists
+            if (!await _unitOfWork.Repository<Course>().IsExistsAsync(courseId))
+            {
+                return Result.Failure(
+                    ErrorCode.NotFound,
+                    $"Course with ID {courseId} not found");
+            }
+
+            // Check if instructor owns the course
+            var isInstructor = await _unitOfWork.Repository<Course>().GetAll()
+                .AnyAsync(c => c.Id == courseId && c.InstructorId == instructorId);
+
+            if (!isInstructor)
+            {
+                return Result.Failure(
+                    ErrorCode.Forbidden,
+                    "You don't have permission to enroll students in this course");
+            }
+
+            if (!await _unitOfWork.Repository<Student>().IsExistsAsync(studentId))
+            {
+                return Result.Failure(
+                    ErrorCode.NotFound,
+                    $"Student with ID {studentId} not found");
+            }
+
             if (await IsStudentAlreadyEnrolledAsync(courseId, studentId))
             {
-                throw new InvalidOperationException($"Student {studentId} is already enrolled in course {courseId}.");
+                return Result.Failure(
+                    ErrorCode.Conflict,
+                    $"Student {studentId} is already enrolled in course {courseId}");
             }
+
             var enrollmentCourse = new CourseEnrollment
             {
                 CourseId = courseId,
                 StudentId = studentId,
                 EnrollmentDate = DateTime.UtcNow
             };
-            await _unitOfWork.Repository<CourseEnrollment, int>().Add(enrollmentCourse);
-              var result  = await _unitOfWork.SaveChangesAsync() > 0;
-            return result;
+
+            await _unitOfWork.Repository<CourseEnrollment>().Add(enrollmentCourse);
+            
+            var rowsAffected = await _unitOfWork.SaveChangesAsync();
+            if (rowsAffected < 1)
+            {
+                return Result.Failure(
+                    ErrorCode.DatabaseError,
+                    "Failed to enroll student. Database error occurred.");
+            }
+
+            return Result.Success();
         }
 
-        private async Task<bool> IsStudentAlreadyEnrolledAsync(int courseId, string studentId)
+        private async Task<bool> IsStudentAlreadyEnrolledAsync(Guid courseId, Guid studentId)
         {
-            return await _unitOfWork.Repository<CourseEnrollment, int>().GetAll()
+            return await _unitOfWork.Repository<CourseEnrollment>().GetAll()
                 .AnyAsync(e => e.CourseId == courseId && e.StudentId == studentId);
         }
 
-        public async Task<CourseDtoToReturn> UpdateAsync(UpdateCourseDto updateCourseDto, string userId)
+        public async Task<Result<CourseDtoToReturn>> UpdateAsync(UpdateCourseDto updateCourseDto, Guid userId)
         {
-            if (updateCourseDto == null)
-                throw new ArgumentNullException(nameof(updateCourseDto));
-            if(!await IsInstructorOfCourseAsync(updateCourseDto.ID , userId))
-                throw new UnauthorizedAccessException("You are not authorized to update this course.");
-            var course = _mapper.Map< Course>(updateCourseDto);
-            await _unitOfWork.Repository<Course, int>().UpdatePartialAsync(course);
-            await _unitOfWork.SaveChangesAsync();
+            var validationResult = await _updateCourseValidator.ValidateAsync(updateCourseDto);
+            if (!validationResult.IsValid)
+            {
+                return Result<CourseDtoToReturn>.ValidaitonFailure(validationResult);
+            }
+
+            // Check if course exists
+            var existingCourse = await _unitOfWork.Repository<Course>()
+                .GetAll()
+                .FirstOrDefaultAsync(c => c.Id == updateCourseDto.ID);
+
+            if (existingCourse == null)
+            {
+                return Result<CourseDtoToReturn>.Failure(
+                    ErrorCode.NotFound,
+                    $"Course with ID {updateCourseDto.ID} not found");
+            }
+
+           
+            if (existingCourse.InstructorId != userId)
+            {
+                return Result<CourseDtoToReturn>.Failure(
+                    ErrorCode.Forbidden,
+                    "You are not authorized to update this course");
+            }
+
+            var course = _mapper.Map<Course>(updateCourseDto);
+            await _unitOfWork.Repository<Course>().UpdatePartialAsync(course);
+            
+            var rowsAffected = await _unitOfWork.SaveChangesAsync();
+            if (rowsAffected < 1)
+            {
+                return Result<CourseDtoToReturn>.Failure(
+                    ErrorCode.DatabaseError,
+                    "Failed to update course. Database error occurred.");
+            }
 
             var courseToReturn = _mapper.Map<Course, CourseDtoToReturn>(course);
-
-            return courseToReturn;
+            var result = Result<CourseDtoToReturn>.Success(courseToReturn);
+            return result;
         }
-        public async Task DeleteAsync(int courseId)
+
+        public async Task<Result> DeleteAsync(Guid courseId, Guid instructorId)
         {
-            var course = await IsExistsAsync(courseId);
+            if (courseId == null)
+            {
+                return Result<CourseDtoToReturn>.Failure(
+                    ErrorCode.ValidationError,
+                    "Valid course ID is required");
+            }
+
+            if (instructorId == null)
+            {
+                return Result<CourseDtoToReturn>.Failure(
+                    ErrorCode.ValidationError,
+                    "Instructor ID is required");
+            }
+            if (!await IsInstructorOfCourseAsync(courseId, instructorId))
+            {
+                return Result<CourseDtoToReturn>.Failure(
+                    ErrorCode.Forbidden,
+                    "You don't have permission to access this course");
+            }
+
+            var course = await _unitOfWork.Repository<Course>()
+                .GetAll()
+                .FirstOrDefaultAsync(c => c.Id == courseId);
+
             if (course == null)
             {
-                throw new KeyNotFoundException($"Course with ID {courseId} not found.");
+                return Result.Failure(
+                    ErrorCode.NotFound,
+                    $"Course with ID {courseId} not found");
             }
-            await _unitOfWork.Repository<Course, int>().DeleteAsync(courseId);
-            await _unitOfWork.CompleteAsync();
+
+            
+            if (course.InstructorId != instructorId)
+            {
+                return Result.Failure(
+                    ErrorCode.Forbidden,
+                    "You are not authorized to delete this course");
+            }
+
+         
+            var hasEnrollments = await _unitOfWork.Repository<CourseEnrollment>()
+                .GetAll()
+                .AnyAsync(ce => ce.CourseId == courseId);
+
+            if (hasEnrollments)
+            {
+                return Result.Failure(
+                    ErrorCode.Conflict,
+                    $"Cannot delete course {courseId} because it has enrolled students");
+            }
+
+            await _unitOfWork.Repository<Course>().DeleteAsync(courseId);
+            
+            var rowsAffected = await _unitOfWork.CompleteAsync();
+            if (rowsAffected < 1)
+            {
+                return Result.Failure(
+                    ErrorCode.DatabaseError,
+                    "Failed to delete course. Database error occurred.");
+            }
+
+            return Result.Success();
         }
 
+        public Task<bool> IsInstructorOfCourseAsync(Guid courseId, Guid? instructorId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

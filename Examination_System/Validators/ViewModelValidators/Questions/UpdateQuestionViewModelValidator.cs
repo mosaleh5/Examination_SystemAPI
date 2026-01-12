@@ -1,5 +1,6 @@
-using FluentValidation;
+using Examination_System.Models;
 using Examination_System.ViewModels.Question;
+using FluentValidation;
 
 namespace Examination_System.Validators.ViewModelValidators.Questions
 {
@@ -8,21 +9,22 @@ namespace Examination_System.Validators.ViewModelValidators.Questions
         public UpdateQuestionViewModelValidator()
         {
             RuleFor(x => x.Id)
-                .GreaterThan(0).WithMessage("Invalid question ID");
+                .NotNull().WithMessage("Invalid question ID");
 
-            RuleFor(x => x.Title)
+            RuleFor(x => x.Text)
                 .NotEmpty().WithMessage("Question title is required")
                 .MaximumLength(500).WithMessage("Title cannot exceed 500 characters");
 
             RuleFor(x => x.Mark)
                 .GreaterThan(0).WithMessage("Mark must be greater than 0")
                 .LessThanOrEqualTo(100).WithMessage("Mark cannot exceed 100");
-
             RuleFor(x => x.Level)
-                .IsInEnum().WithMessage("Invalid question level");
+                         .Must(level => level >= QuestionLevel.Simple && level <= QuestionLevel.Hard)
+                         .WithMessage("Invalid question difficulty. Must be Simple (1), Medium (2), or Hard (3)");
+
 
             RuleFor(x => x.CourseId)
-                .GreaterThan(0).WithMessage("Course ID is required");
+                .NotNull().WithMessage("Course ID is required");
 
             RuleFor(x => x.Choices)
                 .NotEmpty().WithMessage("At least two choices are required")

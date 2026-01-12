@@ -9,6 +9,6 @@ namespace Examination_System.Repository.UnitOfWork
         Task<int> SaveChangesAsync(CancellationToken ct = default);
         Task<int?> CompleteAsync();
 
-        GenericRepository<T,Tkey> Repository<T ,Tkey>() where T :class ,  IBaseModel<Tkey>;
+        GenericRepository<T> Repository<T >() where T :  BaseModelGuid;
     }
 }

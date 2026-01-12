@@ -19,7 +19,8 @@ namespace Examination_System.Extensions
         public static IServiceCollection IdentityService(this IServiceCollection services , IConfiguration configuration)
         {
             services.AddScoped<ITokenServices, TokenServices>();
-            services.AddIdentity<User, IdentityRole>()
+           
+            services.AddIdentity<User, IdentityRole<Guid>>()
                 .AddEntityFrameworkStores<Context>();
             services.AddScoped<ICurrentUserServices, CurrentUserServices>();
 

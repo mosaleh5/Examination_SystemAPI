@@ -1,5 +1,6 @@
-using FluentValidation;
+using Examination_System.Models.Enums;
 using Examination_System.ViewModels.Exam;
+using FluentValidation;
 
 namespace Examination_System.Validators.ViewModelValidators.Exam
 {
@@ -21,8 +22,10 @@ namespace Examination_System.Validators.ViewModelValidators.Exam
             RuleFor(x => x.Fullmark)
                 .GreaterThan(0).WithMessage("Full mark must be greater than 0");
 
+
             RuleFor(x => x.ExamType)
-                .IsInEnum().WithMessage("Invalid exam type");
+                .Must(exam => exam == ExamType.Quiz || exam == ExamType.Final)
+                .WithMessage("Exam type must be quiz or final");
 
             RuleFor(x => x.PassingPercentage)
                 .InclusiveBetween(0, 100).WithMessage("Passing percentage must be between 0 and 100");
@@ -31,7 +34,7 @@ namespace Examination_System.Validators.ViewModelValidators.Exam
                 .GreaterThan(0).WithMessage("Questions count must be at least 1");
 
             RuleFor(x => x.CourseId)
-                .GreaterThan(0).WithMessage("Course ID is required");
+                .NotEmpty().WithMessage("Course ID is required");
         }
 
         private bool BeInFuture(DateTime date)
@@ -39,6 +42,4 @@ namespace Examination_System.Validators.ViewModelValidators.Exam
             return date > DateTime.UtcNow;
         }
     }
-
- 
 }

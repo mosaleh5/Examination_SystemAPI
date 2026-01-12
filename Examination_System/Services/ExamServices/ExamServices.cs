@@ -6,72 +6,139 @@ using Examination_System.Models;
 using Examination_System.Models.Enums;
 using Examination_System.Repository.UnitOfWork;
 using Examination_System.Specifications.SpecsForEntity;
-using Examination_System.ViewModels.Exam;
-using Microsoft.AspNetCore.Mvc;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using static Examination_System.Models.Question;
 
 namespace Examination_System.Services.ExamServices
 {
-    public class ExamServices : GenericServices<Exam , int>  , IExamServices
+    public class ExamServices : GenericServices<Exam>, IExamServices
     {
-    
-
-        public ExamServices(IUnitOfWork unitOfWork, IMapper mapper) : base(unitOfWork, mapper) 
+        private readonly IValidator<CreateExamDto> _createExamValidator;
+        private readonly IValidator<CreateAutomaticExamDto> _createAutomaticExamValidator;
+        private readonly IValidator<AssignStudentToExamDto> _assignStudentToExamDtoValidator;
+        private readonly IValidator<ActivateExamDto> _activateExamDtoValidator;
+        private readonly IValidator<AddQuestionsToExamDto> _addQuestionsToExamDtoValidator;
+        private readonly IValidator<ReplaceExamQuestionsDto> _replaceExamQuestionsDtoValidator;
+        private readonly IValidator<RemoveQuestionFromExamDto> _removeQuestionFromExamDtoValidator;
+        private readonly IValidator<GetExamByIdDto> _getExamByIdDtoValidator;
+        public ExamServices(
+            IUnitOfWork unitOfWork,
+            IMapper mapper,
+            IValidator<CreateExamDto> createExamValidator,
+            IValidator<CreateAutomaticExamDto> createAutomaticExamValidator,
+            IValidator<AssignStudentToExamDto> assignStudentToExamDtoValidator,
+            IValidator<ActivateExamDto> activateExamDtoValidator,
+            IValidator<AddQuestionsToExamDto> addQuestionsToExamDtoValidator,
+            IValidator<ReplaceExamQuestionsDto> replaceExamQuestionsDtoValidator,
+            IValidator<RemoveQuestionFromExamDto> removeQuestionFromExamDtoValidator,
+            IValidator<GetExamByIdDto> getExamByIdDtoValidator)
+            : base(unitOfWork, mapper)
         {
-         
+            _createExamValidator = createExamValidator;
+            _createAutomaticExamValidator = createAutomaticExamValidator;
+            _assignStudentToExamDtoValidator = assignStudentToExamDtoValidator;
+            _activateExamDtoValidator = activateExamDtoValidator;
+            _addQuestionsToExamDtoValidator = addQuestionsToExamDtoValidator;
+            _replaceExamQuestionsDtoValidator = replaceExamQuestionsDtoValidator;
+            _removeQuestionFromExamDtoValidator = removeQuestionFromExamDtoValidator;
+            _getExamByIdDtoValidator = getExamByIdDtoValidator;
         }
 
-        public Task CreateExamAsync(CreateExamDto createExamDto)
+        public async Task<Result<ExamToReturnDto>> CreateExam(CreateExamDto createExamDto)
         {
-            throw new NotImplementedException();
-        }
-
-        public async Task<ActionResult<ExamToReturnDto>> CreateAutomaticExam(CreateAutomaticExamDto createExamDto)
-        {
-            if (createExamDto is null)
+            var validationResult = await _createExamValidator.ValidateAsync(createExamDto);
+            if (!validationResult.IsValid)
             {
-                return new BadRequestObjectResult("Invalid exam data.");
+                return Result<ExamToReturnDto>.ValidaitonFailure(validationResult);
             }
 
-            if (createExamDto.QuestionsCount <= 0)
+            if (!await IsCourseExists(createExamDto.CourseId))
             {
-                return new BadRequestObjectResult("QuestionsCount must be greater than zero.");
+                return Result<ExamToReturnDto>.Failure(
+                    ErrorCode.NotFound,
+                    $"Course with ID {createExamDto.CourseId} not found");
             }
 
-            // Prepare exam entity once
+            if (!await IsInstructorOfCourse(createExamDto.CourseId, createExamDto.InstructorId))
+            {
+                return Result<ExamToReturnDto>.Failure(
+                    ErrorCode.Forbidden,
+                    "You are not the instructor of this course");
+            }
+
             var exam = _mapper.Map<Exam>(createExamDto);
-            await _unitOfWork.Repository<Exam, int>().AddAsync(exam);
-            await _unitOfWork.CompleteAsync();
+            await _unitOfWork.Repository<Exam>().AddAsync(exam);
+            
+            var rowsAffected = await _unitOfWork.CompleteAsync();
+            if (rowsAffected < 1)
+            {
+                return Result<ExamToReturnDto>.Failure(
+                    ErrorCode.DatabaseError,
+                    "Failed to create exam. Database error occurred.");
+            }
 
-            var (simpleCount, mediumCount, hardCount) = GetBalancedCounts(createExamDto.QuestionsCount);
+            var examToReturn = _mapper.Map<ExamToReturnDto>(exam);
+            return Result<ExamToReturnDto>.Success(examToReturn);
+        }
 
-            var availableQuestions = _unitOfWork.Repository<Question, int>()
-                .GetByCriteria(q => q.CourseId == createExamDto.CourseId)
+        public async Task<Result<ExamToReturnDto>> CreateAutomaticExam(CreateAutomaticExamDto createAutomaticExamDto)
+        {
+            var validationResult = await _createAutomaticExamValidator.ValidateAsync(createAutomaticExamDto);
+            if (!validationResult.IsValid)
+            {
+                return Result<ExamToReturnDto>.ValidaitonFailure(validationResult);
+            }
+
+            if (!await IsCourseExists(createAutomaticExamDto.CourseId))
+            {
+                return Result<ExamToReturnDto>.Failure(
+                    ErrorCode.NotFound,
+                    $"Course with ID {createAutomaticExamDto.CourseId} not found");
+            }
+
+            if (!await IsInstructorOfCourse(createAutomaticExamDto.CourseId, createAutomaticExamDto.InstructorId))
+            {
+                return Result<ExamToReturnDto>.Failure(
+                    ErrorCode.Forbidden,
+                    "You are not the instructor of this course");
+            }
+
+            var exam = _mapper.Map<Exam>(createAutomaticExamDto);
+            await _unitOfWork.Repository<Exam>().AddAsync(exam);
+            var rowsAffected = await _unitOfWork.CompleteAsync();
+            if (rowsAffected < 1)
+            {
+                return Result<ExamToReturnDto>.Failure(
+                    ErrorCode.DatabaseError,
+                    "Failed to create automatic exam. Database error occurred.");
+            }
+
+            var (simpleCount, mediumCount, hardCount) = GetBalancedCounts(createAutomaticExamDto.QuestionsCount);
+
+            var availableQuestions = _unitOfWork.Repository<Question>()
+                .GetByCriteria(q => q.CourseId == createAutomaticExamDto.CourseId)
                 .ToList();
 
             if (!HasSufficientQuestions(availableQuestions, simpleCount, mediumCount, hardCount))
             {
-                return new BadRequestObjectResult("Not enough questions in the course to create a balanced exam.");
+                return Result<ExamToReturnDto>.Failure(
+                    ErrorCode.BadRequest,
+                    "Not enough questions in the course to create a balanced exam");
             }
 
             var selectedQuestions = SelectBalancedQuestions(availableQuestions, simpleCount, mediumCount, hardCount);
-            if (selectedQuestions.Count != createExamDto.QuestionsCount)
+            if (selectedQuestions.Count != createAutomaticExamDto.QuestionsCount)
             {
-                return new BadRequestObjectResult("Could not select the required number of questions.");
+                return Result<ExamToReturnDto>.Failure(
+                    ErrorCode.BadRequest,
+                    "Could not select the required number of questions");
             }
 
             var totalMark = (int)selectedQuestions.Sum(q => q.mark);
+            exam.Fullmark = totalMark;
+            await _unitOfWork.Repository<Exam>().UpdatePartialAsync(exam);
 
-            // Update exam full mark
-            await _unitOfWork.Repository<Exam, int>().ExecuteUpdateAsync(exam.Id, e => e.Fullmark, totalMark);
-
-            // Persist exam questions
             var examQuestions = selectedQuestions.Select(q => new ExamQuestion
             {
                 QuestionId = q.Id,
@@ -80,13 +147,443 @@ namespace Examination_System.Services.ExamServices
 
             foreach (var eq in examQuestions)
             {
-                await _unitOfWork.Repository<ExamQuestion, int>().AddAsync(eq);
+                await _unitOfWork.Repository<ExamQuestion>().AddAsync(eq);
             }
 
-            await _unitOfWork.CompleteAsync();
+            var ExamrowsAffected = await _unitOfWork.CompleteAsync();
+            if (ExamrowsAffected < 1)
+            {
+                return Result<ExamToReturnDto>.Failure(
+                    ErrorCode.DatabaseError,
+                    "Failed to create automatic exam. Database error occurred.");
+            }
+            
+            var GetExamDto = new GetExamByIdDto
+            {
+                ExamId = exam.Id,
+                InstructorId = createAutomaticExamDto.InstructorId
+            };
+            var result = await GetExamsForInstructorById(GetExamDto);
+            if(!result.IsSuccess)
+            {
+                var examToReturn = _mapper.Map<ExamToReturnDto>(exam);
+                return Result<ExamToReturnDto>.Success(examToReturn , "Exam created succfully if you want it in details you can get it from get by id");
+            }
 
-            var examToReturn = _mapper.Map<ExamToReturnDto>(exam);
-            return examToReturn;
+            return result;
+        }
+
+        public async Task<Result<IEnumerable<ExamToReturnDto>>> GetAllExamsForInstructor(Guid? instructorId)
+        {
+            if (instructorId == null)
+            {
+                return Result<IEnumerable<ExamToReturnDto>>.Failure(
+                    ErrorCode.ValidationError,
+                    "Instructor ID is required");
+            }
+
+            var examSpecifications = new ExamSpecifications(e => e.InstructorId == instructorId);
+            var examsQuery = _unitOfWork.Repository<Exam>().GetAllWithSpecificationAsync(examSpecifications);
+            var exams = await examsQuery
+                .ProjectTo<ExamToReturnDto>(_mapper.ConfigurationProvider)
+                .ToListAsync();
+
+            if (!exams.Any())
+            {
+                return Result<IEnumerable<ExamToReturnDto>>.Failure(
+                    ErrorCode.NotFound,
+                    $"No exams found for instructor {instructorId}");
+            }
+
+            return Result<IEnumerable<ExamToReturnDto>>.Success(exams);
+        }
+
+        public async Task<Result> EnrollStudentToExamAsync(AssignStudentToExamDto assignedStudentDto)
+        {
+            var validationResult = await _assignStudentToExamDtoValidator.ValidateAsync(assignedStudentDto);
+            if (!validationResult.IsValid)
+            {
+                return Result.ValidaitonFailure(validationResult);
+            }
+
+            if (!await _unitOfWork.Repository<Exam>().IsExistsAsync(assignedStudentDto.ExamId))
+            {
+                return Result.Failure(
+                    ErrorCode.NotFound,
+                    $"Exam with ID {assignedStudentDto.ExamId} not found");
+            }
+
+            if (!await _unitOfWork.Repository<Student>().IsExistsAsync(assignedStudentDto.StudentId))
+            {
+                return Result.Failure(
+                    ErrorCode.NotFound,
+                    $"Student with ID {assignedStudentDto.StudentId} not found");
+            }
+
+            if (!await IsInstructorOfExamAsync(assignedStudentDto.ExamId, assignedStudentDto.InstructorId))
+            {
+                return Result.Failure(
+                    ErrorCode.Forbidden,
+                    "You are not authorized to assign students to this exam");
+            }
+
+            if (await IsStudentAlreadyEnrolledToThisExam(assignedStudentDto.ExamId, assignedStudentDto.StudentId))
+            {
+                return Result.Failure(
+                    ErrorCode.Conflict,
+                    $"Student {assignedStudentDto.StudentId} is already assigned to exam {assignedStudentDto.ExamId}");
+            }
+
+            var examEntity = await _unitOfWork.Repository<Exam>().GetByIdAsync(assignedStudentDto.ExamId);
+            var courseId = examEntity.CourseId ;
+
+
+
+            if (!await IsStudentAlreadyEnrolledToCourseAsync(courseId, assignedStudentDto.StudentId))
+            {
+                return Result.Failure(
+                    ErrorCode.BadRequest,
+                    $"Student {assignedStudentDto.StudentId} is not enrolled in course {courseId}. Student must be enrolled in the course first");
+            }
+
+
+
+            var examAssignment = _mapper.Map<ExamAssignment>(assignedStudentDto);
+
+            await _unitOfWork.Repository<ExamAssignment>().Add(examAssignment);
+            
+            var rowsAffected = await _unitOfWork.CompleteAsync();
+            if (rowsAffected < 1)
+            {
+                return Result.Failure(
+                    ErrorCode.DatabaseError,
+                    "Failed to enroll student to exam. Database error occurred.");
+            }
+
+            return Result.Success();
+        }
+
+        public async Task<Result> ActivateExamAsync(ActivateExamDto activateExamDto)
+        {
+            var validationResult = await _activateExamDtoValidator.ValidateAsync(activateExamDto);
+            if (!validationResult.IsValid)
+            {
+                return Result.ValidaitonFailure(validationResult);
+            }
+
+            var exam = await _unitOfWork.Repository<Exam>().GetByIdAsync(activateExamDto.ExamId);
+            if (exam == null)
+            {
+                return Result.Failure(
+                    ErrorCode.NotFound,
+                    $"Exam with ID {activateExamDto.ExamId} not found");
+            }
+
+            if (exam.InstructorId != activateExamDto.InstructorId)
+            {
+                return Result.Failure(
+                    ErrorCode.Forbidden,
+                    "You are not authorized to activate this exam");
+            }
+
+            if (exam.IsActive)
+            {
+                return Result.Failure(
+                    ErrorCode.Conflict,
+                    $"Exam {activateExamDto.ExamId} is already active");
+            }
+
+            //await _unitOfWork.Repository<Exam>().ExecuteUpdateAsync(activateExamDto.ExamId, e => e.IsActive, true);
+            var affectedRows = await _unitOfWork.Repository<Exam>().ExecuteUpdateAsync<Exam>(
+                course => course.Id == activateExamDto.ExamId,
+                setters => setters
+                    .SetProperty(c => c.IsActive, true)
+                    .SetProperty(c => c.UpdatedAt, DateTime.UtcNow)
+            );
+
+            if (affectedRows < 1)
+            {
+                return Result.Failure(
+                    ErrorCode.DatabaseError,
+                    "Failed to activate exam. Database error occurred.");
+            }
+
+            return Result.Success();
+        }
+
+        public async Task<Result> AddQuestionsToExamAsync(AddQuestionsToExamDto addQuestionsDto)
+        {
+            var validationResult = await _addQuestionsToExamDtoValidator.ValidateAsync(addQuestionsDto);
+            if (!validationResult.IsValid)
+            {
+                return Result.ValidaitonFailure(validationResult);
+            }
+
+            var exam = await _unitOfWork.Repository<Exam>().GetByIdAsync(addQuestionsDto.ExamId);
+            if (exam == null)
+            {
+                return Result.Failure(
+                    ErrorCode.NotFound,
+                    $"Exam with ID {addQuestionsDto.ExamId} not found");
+            }
+
+            if (exam.InstructorId != addQuestionsDto.InstructorId)
+            {
+                return Result.Failure(
+                    ErrorCode.Forbidden,
+                    "You are not authorized to modify this exam");
+            }
+
+            if (exam.IsActive)
+            {
+                return Result.Failure(
+                    ErrorCode.Conflict,
+                    $"Cannot modify questions of an active exam {addQuestionsDto.ExamId}");
+            }
+
+            var existingQuestionIds = await _unitOfWork.Repository<ExamQuestion>().GetAll()
+                .Where(eq => eq.ExamId == addQuestionsDto.ExamId)
+                .Select(eq => eq.QuestionId)
+                .ToListAsync();
+
+            var newQuestionIds = addQuestionsDto.QuestionIds.Except(existingQuestionIds).ToList();
+
+            if (!newQuestionIds.Any())
+            {
+                return Result.Failure(
+                    ErrorCode.Conflict,
+                    "All provided questions are already added to this exam");
+            }
+
+            var questions = await _unitOfWork.Repository<Question>().GetAll()
+                .Where(q => newQuestionIds.Contains(q.Id))
+                .ToListAsync();
+
+            if (questions.Count != newQuestionIds.Count)
+            {
+                return Result.Failure(
+                    ErrorCode.NotFound,
+                    "One or more questions were not found");
+            }
+
+            if (exam.QuestionsCount < newQuestionIds.Count + existingQuestionIds.Count)
+            {
+                return Result.Failure(
+                    ErrorCode.BadRequest,
+                    $"Cannot add more than {exam.QuestionsCount} questions to this exam");
+            }
+
+            if (questions.Any(q => q.CourseId != exam.CourseId))
+            {
+                return Result.Failure(
+                    ErrorCode.BadRequest,
+                    "All questions must belong to the same course as the exam");
+            }
+
+            var examQuestions = newQuestionIds.Select(qId => new ExamQuestion
+            {
+                ExamId = addQuestionsDto.ExamId,
+                QuestionId = qId
+            }).ToList();
+
+            await _unitOfWork.Repository<ExamQuestion>().AddCollectionAsync(examQuestions);
+
+            var totalMark = existingQuestionIds.Count + newQuestionIds.Count > 0
+                ? (int)await _unitOfWork.Repository<Question>().GetAll()
+                    .Where(q => existingQuestionIds.Concat(newQuestionIds).Contains(q.Id))
+                    .SumAsync(q => q.mark)
+                : 0;
+
+            await _unitOfWork.Repository<Exam>().ExecuteUpdateAsync(addQuestionsDto.ExamId, e => e.Fullmark, totalMark);
+
+            var rowsAffected = await _unitOfWork.CompleteAsync();
+            if (rowsAffected < 1)
+            {
+                return Result.Failure(
+                    ErrorCode.DatabaseError,
+                    "Failed to add questions to exam. Database error occurred.");
+            }
+
+            return Result.Success();
+        }
+
+        public async Task<Result> ReplaceExamQuestionsAsync(ReplaceExamQuestionsDto replaceQuestionsDto)
+        {
+            var validationResult = await _replaceExamQuestionsDtoValidator.ValidateAsync(replaceQuestionsDto);
+            if (!validationResult.IsValid)
+            {
+                return Result.ValidaitonFailure(validationResult);
+            }
+
+            var exam = await _unitOfWork.Repository<Exam>().GetByIdAsync(replaceQuestionsDto.ExamId);
+            if (exam == null)
+            {
+                return Result.Failure(
+                    ErrorCode.NotFound,
+                    $"Exam with ID {replaceQuestionsDto.ExamId} not found");
+            }
+
+            if (exam.InstructorId != replaceQuestionsDto.InstructorId)
+            {
+                return Result.Failure(
+                    ErrorCode.Forbidden,
+                    "You are not authorized to modify this exam");
+            }
+
+            if (exam.IsActive)
+            {
+                return Result.Failure(
+                    ErrorCode.Conflict,
+                    $"Cannot modify questions of an active exam {replaceQuestionsDto.ExamId}");
+            }
+
+            if (exam.QuestionsCount < replaceQuestionsDto.QuestionIds.Count)
+            {
+                return Result.Failure(
+                    ErrorCode.BadRequest,
+                    $"Cannot add more than {exam.QuestionsCount} questions to this exam");
+            }
+
+            var questions = await _unitOfWork.Repository<Question>().GetAll()
+                .Where(q => replaceQuestionsDto.QuestionIds.Contains(q.Id))
+                .ToListAsync();
+
+            if (questions.Count != replaceQuestionsDto.QuestionIds.Distinct().Count())
+            {
+                return Result.Failure(
+                    ErrorCode.NotFound,
+                    "One or more questions were not found");
+            }
+
+            if (questions.Any(q => q.CourseId != exam.CourseId))
+            {
+                return Result.Failure(
+                    ErrorCode.BadRequest,
+                    "All questions must belong to the same course as the exam");
+            }
+
+            var existingExamQuestions = await _unitOfWork.Repository<ExamQuestion>().GetAll()
+                .Where(eq => eq.ExamId == replaceQuestionsDto.ExamId)
+                .ToListAsync();
+
+            foreach (var eq in existingExamQuestions)
+            {
+                await _unitOfWork.Repository<ExamQuestion>().DeleteAsync(eq.Id);
+            }
+
+            var newExamQuestions = replaceQuestionsDto.QuestionIds.Select(qId => new ExamQuestion
+            {
+                ExamId = replaceQuestionsDto.ExamId,
+                QuestionId = qId
+            }).ToList();
+
+            foreach (var eq in newExamQuestions)
+            {
+                await _unitOfWork.Repository<ExamQuestion>().AddAsync(eq);
+            }
+
+            var totalMark = (int)questions.Sum(q => q.mark);
+            await _unitOfWork.Repository<Exam>().ExecuteUpdateAsync(replaceQuestionsDto.ExamId, e => e.Fullmark, totalMark);
+
+            var rowsAffected = await _unitOfWork.CompleteAsync();
+            if (rowsAffected < 1)
+            {
+                return Result.Failure(
+                    ErrorCode.DatabaseError,
+                    "Failed to replace exam questions. Database error occurred.");
+            }
+
+            return Result.Success();
+        }
+
+        public async Task<Result> RemoveQuestionFromExamAsync(RemoveQuestionFromExamDto removeQuestionDto)
+        {
+            var validationResult = await _removeQuestionFromExamDtoValidator.ValidateAsync(removeQuestionDto);
+            if (!validationResult.IsValid)
+            {
+                return Result.ValidaitonFailure(validationResult);
+            }
+
+            var exam = await _unitOfWork.Repository<Exam>().GetByIdAsync(removeQuestionDto.ExamId);
+            if (exam == null)
+            {
+                return Result.Failure(
+                    ErrorCode.NotFound,
+                    $"Exam with ID {removeQuestionDto.ExamId} not found");
+            }
+
+            if (exam.InstructorId != removeQuestionDto.InstructorId)
+            {
+                return Result.Failure(
+                    ErrorCode.Forbidden,
+                    "You are not authorized to modify this exam");
+            }
+
+            if (exam.IsActive)
+            {
+                return Result.Failure(
+                    ErrorCode.Conflict,
+                    $"Cannot modify questions of an active exam {removeQuestionDto.ExamId}");
+            }
+
+            var examQuestion = await _unitOfWork.Repository<ExamQuestion>().GetAll()
+                .FirstOrDefaultAsync(eq => eq.ExamId == removeQuestionDto.ExamId && eq.QuestionId == removeQuestionDto.QuestionId);
+
+            if (examQuestion == null)
+            {
+                return Result.Failure(
+                    ErrorCode.NotFound,
+                    $"Question {removeQuestionDto.QuestionId} is not part of exam {removeQuestionDto.ExamId}");
+            }
+
+            await _unitOfWork.Repository<ExamQuestion>().DeleteAsync(examQuestion.Id);
+
+            var remainingQuestionIds = await _unitOfWork.Repository<ExamQuestion>().GetAll()
+                .Where(eq => eq.ExamId == removeQuestionDto.ExamId)
+                .Select(eq => eq.QuestionId)
+                .ToListAsync();
+
+            var totalMark = remainingQuestionIds.Any()
+                ? (int)await _unitOfWork.Repository<Question>().GetAll()
+                    .Where(q => remainingQuestionIds.Contains(q.Id))
+                    .SumAsync(q => q.mark)
+                : 0;
+
+            await _unitOfWork.Repository<Exam>().ExecuteUpdateAsync(removeQuestionDto.ExamId, e => e.Fullmark, totalMark);
+
+            var rowsAffected = await _unitOfWork.CompleteAsync();
+            if (rowsAffected < 1)
+            {
+                return Result.Failure(
+                    ErrorCode.DatabaseError,
+                    "Failed to remove question from exam. Database error occurred.");
+            }
+
+            return Result.Success();
+        }
+
+        // Private helper methods
+        private async Task<bool> IsCourseExists(Guid courseId)
+        {
+            return await _unitOfWork.Repository<Course>().IsExistsAsync(courseId);
+        }
+
+        private async Task<bool> IsInstructorOfCourse(Guid courseId, Guid instructorId)
+        {
+            return await _unitOfWork.Repository<Course>()
+                .IsExistsByCriteriaAsync(c => c.Id == courseId && c.InstructorId == instructorId);
+        }
+
+        private async Task<bool> IsStudentAlreadyEnrolledToThisExam(Guid examId, Guid studentId)
+        {
+            return await _unitOfWork.Repository<ExamAssignment>().GetAll()
+                .AnyAsync(e => e.ExamId == examId && e.StudentId == studentId);
+        }
+
+        private async Task<bool> IsStudentAlreadyEnrolledToCourseAsync(Guid courseId, Guid studentId)
+        {
+            return await _unitOfWork.Repository<CourseEnrollment>().GetAll()
+                .AnyAsync(e => e.CourseId == courseId && e.StudentId == studentId);
         }
 
         private static (int simple, int medium, int hard) GetBalancedCounts(int totalCount)
@@ -102,11 +599,9 @@ namespace Examination_System.Services.ExamServices
             var mediumAvailable = questions.Count(q => q.Level == QuestionLevel.Medium);
             var hardAvailable = questions.Count(q => q.Level == QuestionLevel.Hard);
 
-            if (simpleNeeded > simpleAvailable) return false;
-            if (mediumNeeded > mediumAvailable) return false;
-            if (hardNeeded > hardAvailable) return false;
-
-            return true;
+            return simpleNeeded <= simpleAvailable &&
+                   mediumNeeded <= mediumAvailable &&
+                   hardNeeded <= hardAvailable;
         }
 
         private static List<Question> SelectBalancedQuestions(IEnumerable<Question> questions, int simpleNeeded, int mediumNeeded, int hardNeeded)
@@ -131,331 +626,39 @@ namespace Examination_System.Services.ExamServices
             return selected;
         }
 
-        public async Task<Result<ExamToReturnDto>> CreateExam(CreateExamDto createExamDto)
+        public async Task<bool> IsInstructorOfExamAsync(Guid examId, Guid instructorId)
         {
-        
-            if (!await IscourseExists(createExamDto.CourseId))
+            return await _unitOfWork.Repository<Exam>()
+                .IsExistsByCriteriaAsync(e => e.Id == examId && e.InstructorId == instructorId);
+        }
+
+        public async Task<Result<ExamToReturnDto>> GetExamsForInstructorById(GetExamByIdDto getExamByIdDto)
+        {
+            var validationResult = _getExamByIdDtoValidator.Validate(getExamByIdDto);
+            if (!validationResult.IsValid)
+            {
+                return  Result<ExamToReturnDto>.ValidaitonFailure(validationResult);
+            }
+            if(!await IsInstructorOfExamAsync(getExamByIdDto.ExamId, getExamByIdDto.InstructorId))
             {
                 return Result<ExamToReturnDto>.Failure(
-                    ErrorCode.CourseIsNotFound,
-                    "Course with Id {createExamDto.CourseId} does not exist"
-                    );  
+                    ErrorCode.Forbidden,
+                    "You are not authorized to view this exam");
             }
-
-           
-            if (! await IsInstructorOfCourse(createExamDto.CourseId , createExamDto.InstructorId))
+            var examSpecifications = new ExamSpecifications(e => e.Id == getExamByIdDto.ExamId);
+            var exam = await _unitOfWork.Repository<Exam>()
+                .GetAllWithSpecificationAsync(examSpecifications)
+                .ProjectTo<ExamToReturnDto>(_mapper.ConfigurationProvider)
+                .FirstOrDefaultAsync();
+            if (exam == null)
             {
                 return Result<ExamToReturnDto>.Failure(
-                     ErrorCode.CourseIsNotFound,
-                     "Course with Id {createExamDto.CourseId} does not exist"
-                     );
+                    ErrorCode.NotFound,
+                    $"No exams found for instructor {getExamByIdDto.InstructorId} with exam id {getExamByIdDto.ExamId}");
             }
-
-            var exam = _mapper.Map<Exam>(createExamDto);
-            await _unitOfWork.Repository<Exam, int>().AddAsync(exam);
-            await _unitOfWork.CompleteAsync();
-
-            var examToReturn = _mapper.Map<ExamToReturnDto>(exam);
-            return Result<ExamToReturnDto>.Success(examToReturn);
-        }
-
-        private async Task<bool> IscourseExists(int courseId)
-        {
-            return await _unitOfWork.Repository<Course, int>()
-                .IsExistsAsync(courseId);
-        }
-
-        private async Task<bool> IsInstructorOfCourse(int courseId, string instructorId)
-        {
-            return await _unitOfWork.Repository<Course, int>()
-                .IsExistsByCriteriaAsync(c => c.Id == courseId && c.InstructorId == instructorId);
-                   
-        }
-        public async Task<IEnumerable<ExamToReturnDto>> GetAllExamsForInstructor(string? instructorId)
-        {
-            if (instructorId.IsNullOrEmpty())
-            {
-                throw new ArgumentNullException(nameof(instructorId));
-            }
-
-            var examSpecifications = new ExamSpecifications(e => e.InstructorId == instructorId);
-            var examsQuery = _unitOfWork.Repository<Exam, int>().GetAllWithSpecificationAsync(examSpecifications);
-            var exams = await examsQuery.ProjectTo<ExamToReturnDto>(_mapper.ConfigurationProvider).ToListAsync();
-
-            if (exams == null || exams.Count == 0)
-            {
-                throw new InvalidOperationException("No exams found for the given instructor.");
-            }
-
-            return exams;
-        }
-    
-        public async Task<bool> EnrollStudentToExamAsync(int examId, string studentId)
-        {
-            if (!await _unitOfWork.Repository<Exam, int>().IsExistsAsync(examId))
-            {
-                throw new KeyNotFoundException($"Exam with ID {examId} not found.");
-            }
-
-            if (!await _unitOfWork.Repository<Student, string>().IsExistsAsync(studentId))
-            {
-                throw new KeyNotFoundException($"Student with ID {studentId} not found.");
-            }
-
-            var examSpecifications = new ExamSpecifications(e => e.Id == examId);
-            var exam = await _unitOfWork.Repository<Exam, int>().GetByIdWithSpecification(examSpecifications);
-            if (exam == null)
-            {
-                throw new KeyNotFoundException($"Exam with ID {examId} not found.");
-            }
-
-            if (!await IsStudentAlreadyEnrolledToCourseAsync(exam.CourseId, studentId))
-            {
-                throw new InvalidOperationException($"Student {studentId} is not assigned to the course {exam.CourseId}. You must assign the student to the course first.");
-            }
-
-            if (await IsStudentAlreadyEnrolledToThisExam(examId, studentId))
-            {
-                throw new InvalidOperationException($"Student {studentId} is already assigned to exam {examId}.");
-            }
-
-            var examAssignment = new ExamAssignment
-            {
-                ExamId = examId,
-                StudentId = studentId,
-                AssignedDate = DateTime.UtcNow
-            };
-
-            await _unitOfWork.Repository<ExamAssignment, int>().Add(examAssignment);
-            var result = await _unitOfWork.SaveChangesAsync() > 0;
-            return result;
-        }
-
-        private async Task<bool> IsStudentAlreadyEnrolledToThisExam(int examId, string studentId)
-        {
-            return await _unitOfWork.Repository<ExamAssignment, int>().GetAll()
-                .AnyAsync(e => e.ExamId == examId && e.StudentId == studentId);
-        }
-
-        private async Task<bool> IsStudentAlreadyEnrolledToCourseAsync(int courseId, string studentId)
-        {
-            return await _unitOfWork.Repository<CourseEnrollment, int>().GetAll()
-                .AnyAsync(e => e.CourseId == courseId && e.StudentId == studentId);
-        }
-
-      
-
-        public async Task<bool> IsInstructorOfExamAsync(int examId, string instructorId)
-        {
-            var exam = await _unitOfWork.Repository<Exam, int>().GetByIdAsync(examId);
-            
-            if (exam == null)
-            {
-                throw new KeyNotFoundException($"Exam with ID {examId} not found.");
-            }
-
-            return exam.InstructorId == instructorId;
-        }
-
-        public async Task<bool> ActivateExamAsync(int examId, string instructorId)
-        {
-            var exam = await _unitOfWork.Repository<Exam, int>().GetByIdAsync(examId);
-            if (exam == null)
-            {
-                throw new KeyNotFoundException($"Exam with ID {examId} not found.");
-            }
-
-            if (exam.InstructorId != instructorId)
-            {
-                throw new UnauthorizedAccessException($"Instructor {instructorId} is not authorized to activate exam {examId}.");
-            }
-
-            if (exam.IsActive)
-            {
-                throw new InvalidOperationException($"Exam {examId} is already active.");
-            }
-
-            await _unitOfWork.Repository<Exam, int>().ExecuteUpdateAsync(examId, e => e.IsActive, true);
-            await _unitOfWork.CompleteAsync();
-            return true;
-        }
-
-        public async Task AddQuestionsToExamAsync(int examId, List<int> questionIds)
-        {
-            if (questionIds == null || questionIds.Count == 0)
-            {
-                throw new ArgumentException("Question IDs cannot be null or empty.");
-            }
-
-            var exam = await _unitOfWork.Repository<Exam, int>().GetByIdAsync(examId);
-            if (exam == null)
-            {
-                throw new KeyNotFoundException($"Exam with ID {examId} not found.");
-            }
-
-            if (exam.IsActive)
-            {
-                throw new InvalidOperationException($"Cannot modify questions of an active exam {examId}.");
-            }
-
-            // Get existing question IDs for this exam
-            var existingQuestionIds = await _unitOfWork.Repository<ExamQuestion, int>().GetAll()
-                .Where(eq => eq.ExamId == examId)
-                .Select(eq => eq.QuestionId)
-                .ToListAsync();
-
-            // Filter out duplicates
-            var newQuestionIds = questionIds.Except(existingQuestionIds).ToList();
-
-            if (newQuestionIds.Count == 0)
-            {
-                throw new InvalidOperationException("All provided questions are already added to this exam.");
-            }
-
-            // Validate all questions exist and belong to the same course
-            var questions = await _unitOfWork.Repository<Question, int>().GetAll()
-                .Where(q => newQuestionIds.Contains(q.Id))
-                .ToListAsync();
-
-            if (questions.Count != newQuestionIds.Count)
-            {
-                throw new KeyNotFoundException("One or more questions were not found ");
-            }
-            if(exam.QuestionsCount < newQuestionIds.Count + existingQuestionIds.Count)
-            {
-                throw new InvalidOperationException($"you can not add more than {exam.QuestionsCount} Questions for this exam");
-            }
-            if (questions.Any(q => q.CourseId != exam.CourseId))
-            {
-                throw new InvalidOperationException("All questions must belong to the same course as the exam.");
-            }
-
-            // Add new questions
-            var examQuestions = newQuestionIds.Select(qId => new ExamQuestion
-            {
-                ExamId = examId,
-                QuestionId = qId
-            }).ToList();
-
            
-        await _unitOfWork.Repository<ExamQuestion, int>().AddCollectionAsync(examQuestions);
-            
+            return Result<ExamToReturnDto>.Success(exam);
 
-            // Update exam full mark
-            var totalMark = existingQuestionIds.Count + newQuestionIds.Count > 0
-                ? (int)await _unitOfWork.Repository<Question, int>().GetAll()
-                    .Where(q => existingQuestionIds.Concat(newQuestionIds).Contains(q.Id))
-                    .SumAsync(q => q.mark)
-                : 0;
-
-            await _unitOfWork.Repository<Exam, int>().ExecuteUpdateAsync(examId, e => e.Fullmark, totalMark);
-            await _unitOfWork.CompleteAsync();
-        }
-
-        public async Task ReplaceExamQuestionsAsync(int examId, List<int> questionIds)
-        {
-            var exam = await _unitOfWork.Repository<Exam, int>().GetByIdAsync(examId);
-
-            if (exam.QuestionsCount < questionIds.Count)
-            {
-                throw new InvalidOperationException($"you can not add more than {exam.QuestionsCount} Questions for this exam");
-            }
-            if (questionIds == null || questionIds.Count == 0)
-            {
-                throw new ArgumentException("Question IDs cannot be null or empty.");
-            }
-
-            if (exam == null)
-            {
-                throw new KeyNotFoundException($"Exam with ID {examId} not found.");
-            }
-
-            if (exam.IsActive)
-            {
-                throw new InvalidOperationException($"Cannot modify questions of an active exam {examId}.");
-            }
-
-            // Validate all questions exist and belong to the same course
-            var questions = await _unitOfWork.Repository<Question, int>().GetAll()
-                .Where(q => questionIds.Contains(q.Id))
-                .ToListAsync();
-
-            if (questions.Count != questionIds.Distinct().Count())
-            {
-                throw new KeyNotFoundException("One or more questions were not found.");
-            }
-
-            if (questions.Any(q => q.CourseId != exam.CourseId))
-            {
-                throw new InvalidOperationException("All questions must belong to the same course as the exam.");
-            }
-
-            // Remove all existing questions
-            var existingExamQuestions = await _unitOfWork.Repository<ExamQuestion, int>().GetAll()
-                .Where(eq => eq.ExamId == examId)
-                .ToListAsync();
-
-            foreach (var eq in existingExamQuestions)
-            {
-                await _unitOfWork.Repository<ExamQuestion, int>().DeleteAsync(eq.Id);
-            }
-
-            // Add new questions
-            var newExamQuestions = questionIds.Select(qId => new ExamQuestion
-            {
-                ExamId = examId,
-                QuestionId = qId
-            }).ToList();
-
-            foreach (var eq in newExamQuestions)
-            {
-                await _unitOfWork.Repository<ExamQuestion, int>().AddAsync(eq);
-            }
-
-            // Update exam full mark
-            var totalMark = (int)questions.Sum(q => q.mark);
-            await _unitOfWork.Repository<Exam, int>().ExecuteUpdateAsync(examId, e => e.Fullmark, totalMark);
-
-            await _unitOfWork.CompleteAsync();
-        }
-
-        public async Task RemoveQuestionFromExamAsync(int examId, int questionId)
-        {
-            var exam = await _unitOfWork.Repository<Exam, int>().GetByIdAsync(examId);
-            if (exam == null)
-            {
-                throw new KeyNotFoundException($"Exam with ID {examId} not found.");
-            }
-
-            if (exam.IsActive)
-            {
-                throw new InvalidOperationException($"Cannot modify questions of an active exam {examId}.");
-            }
-
-            var examQuestion = await _unitOfWork.Repository<ExamQuestion, int>().GetAll()
-                .FirstOrDefaultAsync(eq => eq.ExamId == examId && eq.QuestionId == questionId);
-
-            if (examQuestion == null)
-            {
-                throw new KeyNotFoundException($"Question {questionId} is not part of exam {examId}.");
-            }
-
-            await _unitOfWork.Repository<ExamQuestion, int>().DeleteAsync(examQuestion.Id);
-
-            // Recalculate full mark
-            var remainingQuestionIds = await _unitOfWork.Repository<ExamQuestion, int>().GetAll()
-                .Where(eq => eq.ExamId == examId)
-                .Select(eq => eq.QuestionId)
-                .ToListAsync();
-
-            var totalMark = remainingQuestionIds.Count > 0
-                ? (int)await _unitOfWork.Repository<Question, int>().GetAll()
-                    .Where(q => remainingQuestionIds.Contains(q.Id))
-                    .SumAsync(q => q.mark)
-                : 0;
-
-            await _unitOfWork.Repository<Exam, int>().ExecuteUpdateAsync(examId, e => e.Fullmark, totalMark);
-            await _unitOfWork.CompleteAsync();
         }
     }
 }

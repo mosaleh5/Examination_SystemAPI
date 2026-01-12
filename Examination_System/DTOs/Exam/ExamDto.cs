@@ -1,3 +1,5 @@
+using Examination_System.DTOs.Question;
+
 namespace Examination_System.DTOs.Exam
 {
     public class ExamDtoToReturn
@@ -15,5 +17,6 @@ namespace Examination_System.DTOs.Exam
         public int InstructorId { get; set; }
         public string InstructorName { get; set; }
         public DateTime CreatedAt { get; set; }
+     
     }
 }

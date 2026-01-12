@@ -11,7 +11,16 @@
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public string? UserId => _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+        public Guid? UserIdGuid
+        {
+            get
+            {
+                var userIdString = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+                return Guid.TryParse(userIdString, out var userId) ? userId : null;
+            }
+        }
+        public Guid UserId => UserIdGuid.Value;
+
 
         public string? UserName => _httpContextAccessor.HttpContext?.User?.Identity?.Name;
 

@@ -1,14 +1,15 @@
-﻿using Examination_System.DTOs.ExamAttempt;
+﻿using Examination_System.Common;
+using Examination_System.DTOs.ExamAttempt;
 
 namespace Examination_System.Services.ExamAttemptServices
 {
     public interface IExamAttemptServices
     {
-        Task<ExamToAttemptDto> StartExamAsync(int examId, string userId);
-        Task<ExamAttemptDto> SubmitExamAsync(int attemptId, List<SubmitAnswerDto> answers);
-        Task<ExamAttemptDto> GetAttemptByIdAsync(int attemptId);
-        Task<IEnumerable<ExamAttemptDto>> GetStudentAttemptsForInstructorAsync(string instructorId);
-        Task<IEnumerable<ExamAttemptDto>> GetStudentAttemptsAsync(string instructorId, string studentId);
-        Task<IEnumerable<ExamAttemptDto>> GetStudentAttemptsForStudentAsync(string userId);
+        Task<Result<ExamToAttemptDto>> StartExamAsync(Guid examId, Guid userId);
+        Task<Result<ExamAttemptDto>> SubmitExamAsync(Guid attemptId, List<SubmitAnswerDto> answers);
+        Task<Result<ExamAttemptDto>> GetAttemptByIdAsync(Guid attemptId);
+        Task<Result<IEnumerable<ExamAttemptDto>>> GetStudentAttemptsForInstructorAsync(Guid instructorId);
+        Task<Result<IEnumerable<ExamAttemptDto>>> GetStudentAttemptsAsync(Guid instructorId, Guid studentId);
+        Task<Result<IEnumerable<ExamAttemptDto>>> GetStudentAttemptsForStudentAsync(Guid userId);
     }
 }

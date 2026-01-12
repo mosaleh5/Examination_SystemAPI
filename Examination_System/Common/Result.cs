@@ -24,6 +24,16 @@ namespace Examination_System.Common
 
         public static Result Failure(ErrorCode error, string errorMessage)
             => new Result(false, error, errorMessage);
+        
+        public static Result ValidaitonFailure(ValidationResult validationResult)
+        {
+            var errorMessage = string.Join("; ",
+                 validationResult.Errors.Select(e => $"{e.PropertyName}: {e.ErrorMessage}"));
+
+            return Result.Failure(
+                ErrorCode.ValidationError, "Validation Failed: \n" +
+                errorMessage);
+        }
     }
 
     /// <summary>
@@ -44,6 +54,7 @@ namespace Examination_System.Common
 
         public static new Result<T> Failure(ErrorCode error, string errorMessage)
             => new Result<T>(false, null, error, errorMessage);
+        
         public static new Result<T> ValidaitonFailure(ValidationResult validationResult)
         {
             var errorMessage = string.Join("; ",

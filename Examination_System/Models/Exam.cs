@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Examination_System.Models
 {
-    public class Exam : BaseModel
+    public class Exam : BaseModelGuid
     {
         [Required]
         [MaxLength(150)]
@@ -41,11 +41,11 @@ namespace Examination_System.Models
         public bool IsActive { get; set; } = false;
 
         [ForeignKey(nameof(Course))]
-        public int CourseId { get; set; }
+        public Guid CourseId { get; set; }
         public Course? Course { get; set; }
 
         [ForeignKey(nameof(Instructor))]
-        public string InstructorId { get; set; }
+        public Guid InstructorId { get; set; }
         public Instructor? Instructor { get; set; }
 
         public ICollection<ExamAttempt> ExamAttempts { get; set; } = new List<ExamAttempt>();

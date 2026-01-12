@@ -2,17 +2,17 @@
 
 namespace Examination_System.Models
 {
-    public class CourseEnrollment : BaseModel
+    public class CourseEnrollment : BaseModelGuid
     {
 
    
         [Required]
 
-        public string StudentId { get; set; }
+        public Guid StudentId { get; set; }
         [Required]
         public Student Student { get; set; }
         [Required]
-        public int CourseId { get; set; }
+        public Guid CourseId { get; set; }
         public Course Course { get; set; }
         public DateTime EnrollmentDate { get; set; } = DateTime.UtcNow;
     }

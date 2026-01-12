@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using Examination_System.Common;
 using Examination_System.DTOs.ExamAttempt;
 using Examination_System.Models;
 using Examination_System.Models.Enums;
@@ -9,198 +10,346 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Examination_System.Services.ExamAttemptServices
 {
-    public class ExamAttemptServices : GenericServices<ExamAttempt, int> , IExamAttemptServices
+    public class ExamAttemptServices : GenericServices<ExamAttempt>, IExamAttemptServices
     {
-        public ExamAttemptServices(IUnitOfWork unitOfWork , IMapper mapper):base(unitOfWork, mapper) { }
-          
-        public Task<ExamAttemptDto> GetAttemptByIdAsync(int attemptId)
+        public ExamAttemptServices(IUnitOfWork unitOfWork, IMapper mapper) : base(unitOfWork, mapper) { }
+
+        public async Task<Result<ExamAttemptDto>> GetAttemptByIdAsync(Guid attemptId)
         {
-            throw new NotImplementedException();
+            var attemptSpec = new ExamAttemptSpecifications(s => s.Id == attemptId);
+            var attempt = await _unitOfWork.Repository<ExamAttempt>()
+                .GetAllWithSpecificationAsync(attemptSpec)
+                .FirstOrDefaultAsync();
+
+            if (attempt == null)
+            {
+                return Result<ExamAttemptDto>.Failure(
+                    ErrorCode.NotFound,
+                    $"Exam attempt with ID {attemptId} not found");
+            }
+
+            var attemptDto = _mapper.Map<ExamAttemptDto>(attempt);
+            return Result<ExamAttemptDto>.Success(attemptDto);
         }
 
-    
-
-        
-        public async Task<ExamToAttemptDto> StartExamAsync(int examId, string studentId)
+        public async Task<Result<ExamToAttemptDto>> StartExamAsync(Guid examId, Guid studentId)
         {
-
-            if (!await IsStudentAlreadyEnrolledToThisExam(examId, studentId))
+            // Validate student enrollment
+            if (!await IsStudentEnrolledInExamAsync(examId, studentId))
             {
-                throw new InvalidOperationException($"Student {studentId} is not assigned to exam {examId}.");
+                return Result<ExamToAttemptDto>.Failure(
+                    ErrorCode.Forbidden,
+                    $"Student {studentId} is not assigned to exam {examId}");
             }
-            var examSpecifications = new ExamSpecifications(e => e.Id == examId);
-            var exam = (Exam)await _unitOfWork.Repository<Exam, int>().GetByIdWithSpecification(examSpecifications);
 
+            // Get exam details
+            var exam = await GetExamByIdAsync(examId);
             if (exam == null)
             {
-                throw new KeyNotFoundException($"Exam with ID {examId} not found.");
+                return Result<ExamToAttemptDto>.Failure(
+                    ErrorCode.NotFound,
+                    $"Exam with ID {examId} not found");
             }
 
-
-
-            if (!exam.IsActive)
+            // Validate exam availability
+            var validationResult = ValidateExamAvailability(exam, studentId);
+            if (!validationResult.IsSuccess)
             {
-                throw new InvalidOperationException($"You do not have access to enroll to exam {examId}.");
+                return Result<ExamToAttemptDto>.Failure(validationResult.Error, validationResult.ErrorMessage);
             }
 
-            if (exam.ExamType == ExamType.Final && await IsCompeleted(exam.Id, studentId))
-            {
-                throw new InvalidOperationException($"You completed this final exam {examId}.");
-            }
-            var AttemptExamStart = new ExamAttempt
+            // Create and save exam attempt
+            var attemptExamStart = new ExamAttempt
             {
                 ExamId = exam.Id,
                 StudentId = studentId,
                 StartedAt = DateTime.UtcNow,
-
             };
 
-            await _unitOfWork.Repository<ExamAttempt, int>().AddAsync(AttemptExamStart);
-            await _unitOfWork.CompleteAsync();
+            await _unitOfWork.Repository<ExamAttempt>().AddAsync(attemptExamStart);
+            var rowsAffected = await _unitOfWork.CompleteAsync();
+
+            if (rowsAffected < 1)
+            {
+                return Result<ExamToAttemptDto>.Failure(
+                    ErrorCode.DatabaseError,
+                    "Failed to start exam. Database error occurred.");
+            }
+
             var examToAttempt = _mapper.Map<ExamToAttemptDto>(exam);
-            examToAttempt.StartedAt = AttemptExamStart.StartedAt;
-            examToAttempt.ID = AttemptExamStart.Id;
-            return examToAttempt;
+            examToAttempt.StartedAt = attemptExamStart.StartedAt;
+            examToAttempt.ID = attemptExamStart.Id;
+
+            return Result<ExamToAttemptDto>.Success(examToAttempt);
         }
 
-        public async Task<bool> IsCompeleted(int examId, string studentId)
+        public async Task<Result<ExamAttemptDto>> SubmitExamAsync(Guid attemptId, List<SubmitAnswerDto> answers)
         {
-            return await _unitOfWork.Repository<ExamAttempt, int>().GetAll()
+            // Validate input
+            if (answers == null || !answers.Any())
+            {
+                return Result<ExamAttemptDto>.Failure(
+                    ErrorCode.ValidationError,
+                    "Answers cannot be null or empty");
+            }
+
+            // Get attempt with related data
+            var attempt = await GetAttemptWithDetailsAsync(attemptId);
+            if (attempt == null)
+            {
+                return Result<ExamAttemptDto>.Failure(
+                    ErrorCode.NotFound,
+                    $"Exam attempt with ID {attemptId} not found");
+            }
+
+            // Validate submission
+            var validationResult = ValidateExamSubmission(attempt, answers);
+            if (!validationResult.IsSuccess)
+            {
+                return Result<ExamAttemptDto>.Failure(validationResult.Error, validationResult.ErrorMessage);
+            }
+
+            // Evaluate answers and update attempt
+            var studentAnswers = await EvaluateExamAsync(attempt, answers);
+            UpdateAttemptWithResults(attempt);
+
+            // Save changes
+            await _unitOfWork.Repository<ExamAttempt>().UpdatePartialAsync(attempt);
+            await SaveStudentAnswersAsync(studentAnswers);
+
+            var rowsAffected = await _unitOfWork.CompleteAsync();
+            if (rowsAffected < 1)
+            {
+                return Result<ExamAttemptDto>.Failure(
+                    ErrorCode.DatabaseError,
+                    "Failed to submit exam. Database error occurred.");
+            }
+
+            // Return updated attempt
+            var reloadedAttempt = await GetAttemptWithDetailsAsync(attemptId);
+            var attemptDto = _mapper.Map<ExamAttemptDto>(reloadedAttempt);
+            attemptDto.PassingPercentage = attempt.Exam.PassingPercentage;
+            
+            return Result<ExamAttemptDto>.Success(attemptDto);
+        }
+
+        public async Task<Result<IEnumerable<ExamAttemptDto>>> GetStudentAttemptsForInstructorAsync(Guid instructorId)
+        {
+            var instructorExamIds = await GetInstructorExamIdsAsync(instructorId);
+
+            var attemptSpec = new ExamAttemptSpecifications();
+            var attemptsList = await _unitOfWork.Repository<ExamAttempt>()
+                .GetAllWithSpecificationAsync(attemptSpec)
+                .Where(s => instructorExamIds.Contains(s.ExamId))
+                .ProjectTo<ExamAttemptDto>(_mapper.ConfigurationProvider)
+                .ToListAsync();
+
+            if (!attemptsList.Any())
+            {
+                return Result<IEnumerable<ExamAttemptDto>>.Failure(
+                    ErrorCode.NotFound,
+                    $"No student attempts found for instructor {instructorId}");
+            }
+
+            return Result<IEnumerable<ExamAttemptDto>>.Success(attemptsList);
+        }
+
+        public async Task<Result<IEnumerable<ExamAttemptDto>>> GetStudentAttemptsAsync(Guid instructorId, Guid studentId)
+        {
+            var instructorExamIds = await GetInstructorExamIdsAsync(instructorId);
+
+            var attemptSpec = new ExamAttemptSpecifications();
+            var attemptsList = await _unitOfWork.Repository<ExamAttempt>()
+                .GetAllWithSpecificationAsync(attemptSpec)
+                .Where(s => instructorExamIds.Contains(s.ExamId) && s.StudentId == studentId)
+                .ProjectTo<ExamAttemptDto>(_mapper.ConfigurationProvider)
+                .ToListAsync();
+
+            if (!attemptsList.Any())
+            {
+                return Result<IEnumerable<ExamAttemptDto>>.Failure(
+                    ErrorCode.NotFound,
+                    $"No attempts found for student {studentId} in instructor {instructorId}'s exams");
+            }
+
+            return Result<IEnumerable<ExamAttemptDto>>.Success(attemptsList);
+        }
+
+        public async Task<Result<IEnumerable<ExamAttemptDto>>> GetStudentAttemptsForStudentAsync(Guid studentId)
+        {
+            var attemptSpec = new ExamAttemptSpecifications();
+            var attemptsList = await _unitOfWork.Repository<ExamAttempt>()
+                .GetAllWithSpecificationAsync(attemptSpec)
+                .Where(s => s.StudentId == studentId)
+                .ProjectTo<ExamAttemptDto>(_mapper.ConfigurationProvider)
+                .ToListAsync();
+
+            if (!attemptsList.Any())
+            {
+                return Result<IEnumerable<ExamAttemptDto>>.Failure(
+                    ErrorCode.NotFound,
+                    $"No attempts found for student {studentId}");
+            }
+
+            return Result<IEnumerable<ExamAttemptDto>>.Success(attemptsList);
+        }
+
+        #region Private Helper Methods
+
+        private async Task<Exam?> GetExamByIdAsync(Guid examId)
+        {
+            var examSpecifications = new ExamSpecifications(e => e.Id == examId);
+            return await _unitOfWork.Repository<Exam>()
+                .GetByIdWithSpecification(examSpecifications)
+                .FirstOrDefaultAsync();
+        }
+
+        private async Task<ExamAttempt?> GetAttemptWithDetailsAsync(Guid attemptId)
+        {
+            var attemptSpec = new ExamAttemptSpecifications(s => s.Id == attemptId);
+            return await _unitOfWork.Repository<ExamAttempt>()
+                .GetAllWithSpecificationAsync(attemptSpec)
+                .FirstOrDefaultAsync();
+        }
+
+        private async Task<List<Guid>> GetInstructorExamIdsAsync(Guid instructorId)
+        {
+            var instructorExamsSpec = new ExamSpecifications(e => e.InstructorId == instructorId);
+            return await _unitOfWork.Repository<Exam>()
+                .GetAllWithSpecificationAsync(instructorExamsSpec)
+                .Select(e => e.Id)
+                .ToListAsync();
+        }
+
+        private async Task<bool> IsExamCompletedAsync(Guid examId, Guid studentId)
+        {
+            return await _unitOfWork.Repository<ExamAttempt>()
+                .GetAll()
                 .AnyAsync(at => at.ExamId == examId && at.StudentId == studentId && at.IsCompleted);
         }
-        public async Task<ExamAttemptDto> SubmitExamAsync(int attemptId, List<SubmitAnswerDto> answers)
+
+        private async Task<bool> IsStudentEnrolledInExamAsync(Guid examId, Guid studentId)
         {
-            if (attemptId <= 0)
-                throw new ArgumentException("Invalid attempt ID.", nameof(attemptId));
+            return await _unitOfWork.Repository<ExamAssignment>()
+                .GetAll()
+                .AnyAsync(e => e.ExamId == examId && e.StudentId == studentId);
+        }
 
-            if (answers == null || !answers.Any())
-                throw new ArgumentException("Answers cannot be null or empty.", nameof(answers));
-
-            var examSpecification = new ExamAttemptSpecifications(s => s.Id ==  attemptId);
-            var attempt = await _unitOfWork.Repository<ExamAttempt, int>().GetAllWithSpecificationAsync(examSpecification).FirstOrDefaultAsync();
-            
-            if (attempt == null)
-                throw new KeyNotFoundException($"Exam attempt with ID {attemptId} not found.");
-
-            if (attempt.IsCompleted)
-                throw new InvalidOperationException($"Exam attempt {attemptId} has already been submitted.");
-
-            var durationInMinuteToFinish = DateTime.UtcNow - attempt.StartedAt;
-            if (durationInMinuteToFinish.TotalMinutes > attempt.Exam.DurationInMinutes)
+        private Result<object> ValidateExamAvailability(Exam exam, Guid studentId)
+        {
+            if (!exam.IsActive)
             {
-                throw new InvalidOperationException(
-                    $"Submission time exceeded. Exam duration: {attempt.Exam.DurationInMinutes} minutes, " +
-                    $"Actual time: {durationInMinuteToFinish.TotalMinutes:F2} minutes.");
+                return Result<object>.Failure(
+                    ErrorCode.Forbidden,
+                    $"Exam {exam.Id} is not currently active");
             }
-            
+
+            if (exam.ExamType == ExamType.Final && IsExamCompletedAsync(exam.Id, studentId).Result)
+            {
+                return Result<object>.Failure(
+                    ErrorCode.Conflict,
+                    $"You have already completed this final exam {exam.Id}");
+            }
+
+            return Result<object>.Success(null);
+        }
+
+        private Result<object> ValidateExamSubmission(ExamAttempt attempt, List<SubmitAnswerDto> answers)
+        {
+            if (attempt.IsCompleted)
+            {
+                return Result<object>.Failure(
+                    ErrorCode.Conflict,
+                    $"Exam attempt {attempt.Id} has already been submitted");
+            }
+
+            var durationInMinutes = (DateTime.UtcNow - attempt.StartedAt).TotalMinutes;
+            if (durationInMinutes > attempt.Exam.DurationInMinutes)
+            {
+                return Result<object>.Failure(
+                    ErrorCode.BadRequest,
+                    $"Submission time exceeded. Exam duration: {attempt.Exam.DurationInMinutes} minutes, " +
+                    $"Actual time: {durationInMinutes:F2} minutes");
+            }
+
             if (answers.Count != attempt.Exam.QuestionsCount)
             {
-                throw new InvalidOperationException(
-                    $"Invalid number of answers. Expected: {attempt.Exam.QuestionsCount}, Received: {answers.Count}.");
+                return Result<object>.Failure(
+                    ErrorCode.ValidationError,
+                    $"Invalid number of answers. Expected: {attempt.Exam.QuestionsCount}, Received: {answers.Count}");
             }
 
-            var studentAnswers = await EvaluateExamAsync(attempt, answers);
+            return Result<object>.Success(null);
+        }
 
-            attempt.Percentage = attempt.MaxScore > 0 ? ((double)attempt.Score / attempt.MaxScore) * 100 : 0;
+        private void UpdateAttemptWithResults(ExamAttempt attempt)
+        {
+            attempt.Percentage = attempt.MaxScore > 0 
+                ? ((double)attempt.Score / attempt.MaxScore) * 100 
+                : 0;
             attempt.IsSucceed = attempt.Percentage >= attempt.Exam.PassingPercentage;
             attempt.IsCompleted = true;
             attempt.SubmittedAt = DateTime.UtcNow;
+        }
 
-            await _unitOfWork.Repository<ExamAttempt, int>().UpdatePartialAsync(attempt);
-            
-            // Add student answers separately
+        private async Task SaveStudentAnswersAsync(List<StudentAnswer> studentAnswers)
+        {
             foreach (var studentAnswer in studentAnswers)
             {
-                await _unitOfWork.Repository<StudentAnswer, int>().AddAsync(studentAnswer);
+                await _unitOfWork.Repository<StudentAnswer>().AddAsync(studentAnswer);
             }
-            
-            await _unitOfWork.CompleteAsync();
-
-            // Reload attempt with student answers for mapping
-            var reloadedAttempt = await _unitOfWork.Repository<ExamAttempt, int>().GetAllWithSpecificationAsync(examSpecification).FirstOrDefaultAsync();
-            var AttemptDto =  _mapper.Map<ExamAttemptDto>(reloadedAttempt);
-            return AttemptDto;
         }
+
         private async Task<List<StudentAnswer>> EvaluateExamAsync(ExamAttempt attempt, List<SubmitAnswerDto> answers)
         {
             attempt.Score = 0;
             attempt.MaxScore = 0;
-            
+
             var studentAnswers = new List<StudentAnswer>();
-            
             var questionIds = answers.Select(a => a.QuestionId).ToList();
-            var questionSpecifications = new QuestionSpecifications(q => questionIds.Contains(q.Id));
-            var questions = await _unitOfWork.Repository<Question, int>().GetAllWithSpecificationAsync(questionSpecifications).ToListAsync();
-            
+            var questions = await GetQuestionsByIdsAsync(questionIds);
+
             foreach (var answer in answers)
             {
                 var question = questions.FirstOrDefault(q => q.Id == answer.QuestionId);
-                if (question != null)
+                if (question == null) continue;
+
+                var studentAnswer = CreateStudentAnswer(answer, question, attempt.Id);
+                studentAnswers.Add(studentAnswer);
+
+                if (studentAnswer.IsCorrect)
                 {
-                    var correctChoice = question.Choices.FirstOrDefault(c => c.IsCorrect);
-                    var isCorrect = correctChoice != null && correctChoice.Id == answer.choiceId;
-                    
-                    var studentAnswer = new StudentAnswer
-                    {
-                        QuestionId = question.Id,
-                        SelectedChoiceId = answer.choiceId > 0 ? answer.choiceId : null,
-                        AttemptId = attempt.Id,
-                        IsCorrect = isCorrect
-                    };
-                    
-                    if (isCorrect)
-                    {
-                        attempt.Score += question.mark;
-                    }
-                    
-                    studentAnswers.Add(studentAnswer);
-                    attempt.MaxScore += question.mark;
+                    attempt.Score += question.mark;
                 }
+
+                attempt.MaxScore += question.mark;
             }
-       
+
             return studentAnswers;
         }
-        private async Task<bool> IsStudentAlreadyEnrolledToThisExam(int examId, string studentId)
-        {
-            return await _unitOfWork.Repository<ExamAssignment, int>().GetAll()
-                .AnyAsync(e => e.ExamId == examId && e.StudentId == studentId);
-        }
-        public async Task<IEnumerable<ExamAttemptDto>> GetStudentAttemptsForInstructorAsync(string instructorId)
-        {
-            var instructorExamsSpec = new ExamSpecifications(e => e.InstructorId == instructorId);
-            var instructorExams = await _unitOfWork.Repository<Exam, int>()
-                .GetAllWithSpecificationAsync(instructorExamsSpec).Select(e => e.Id).ToListAsync();
-            var attemptSpec = new ExamAttemptSpecifications();
-            var attemptsList = await _unitOfWork.Repository<ExamAttempt, int>()
-                .GetAllWithSpecificationAsync(attemptSpec)
-                .Where(s => instructorExams.Contains(s.ExamId))
-                .ProjectTo<ExamAttemptDto>(_mapper.ConfigurationProvider).ToListAsync();
-            return attemptsList;
-        }
-        public async Task<IEnumerable<ExamAttemptDto>> GetStudentAttemptsAsync(string instructorId, string studentId)
-        {
-            var instructorExamsSpec = new ExamSpecifications(e => e.InstructorId == instructorId);
-            var instructorExams = await _unitOfWork.Repository<Exam, int>()
-                .GetAllWithSpecificationAsync(instructorExamsSpec).Select(e => e.Id).ToListAsync();
-            var attemptSpec = new ExamAttemptSpecifications();
-            var attemptsList = await _unitOfWork.Repository<ExamAttempt, int>()
-                .GetAllWithSpecificationAsync(attemptSpec)
-                .Where(s => instructorExams.Contains(s.ExamId) && s.StudentId == studentId)
-                .ProjectTo<ExamAttemptDto>(_mapper.ConfigurationProvider).ToListAsync();
 
-            return attemptsList;
+        private async Task<List<Question>> GetQuestionsByIdsAsync(List<Guid> questionIds)
+        {
+            var questionSpecifications = new QuestionSpecifications(q => questionIds.Contains(q.Id));
+            return await _unitOfWork.Repository<Question>()
+                .GetAllWithSpecificationAsync(questionSpecifications)
+                .ToListAsync();
         }
 
-        public async Task<IEnumerable<ExamAttemptDto>> GetStudentAttemptsForStudentAsync(string StudentId)
+        private StudentAnswer CreateStudentAnswer(SubmitAnswerDto answer, Question question, Guid attemptId)
         {
-                  
-            var attemptSpec = new ExamAttemptSpecifications();
-            var attemptsList = await _unitOfWork.Repository<ExamAttempt, int>()
-                .GetAllWithSpecificationAsync(attemptSpec)
-                .Where(s => s.StudentId == StudentId)
-                .ProjectTo<ExamAttemptDto>(_mapper.ConfigurationProvider).ToListAsync();
+            var correctChoice = question.Choices.FirstOrDefault(c => c.IsCorrect);
+            var isCorrect = correctChoice != null && correctChoice.Id == answer.ChoiceId;
 
-            return attemptsList;
+            return new StudentAnswer
+            {
+                QuestionId = question.Id,
+                SelectedChoiceId = answer.ChoiceId,
+                AttemptId = attemptId,
+                IsCorrect = isCorrect
+            };
         }
+
+        #endregion
     }
 }

@@ -3,7 +3,7 @@ using Examination_System.Models;
 
 namespace Examination_System.Specifications
 {
-    public class BaseSpecification<T, Tkey> : ISpecification<T, Tkey> where T : class, IBaseModel<Tkey>
+    public class BaseSpecification<T> : ISpecification<T> where T : BaseModelGuid
     {
         public Expression<Func<T, bool>> Criteria { get; set; }
         public List<Expression<Func<T, object>>> IncludeExpressions { get; set; } = new List<Expression<Func<T, object>>>();

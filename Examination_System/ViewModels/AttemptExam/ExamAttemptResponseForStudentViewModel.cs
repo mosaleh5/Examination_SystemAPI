@@ -1,23 +1,25 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Examination_System.DTOs.ExamAttempt;
+using System.ComponentModel.DataAnnotations;
 
 namespace Examination_System.ViewModels.AttemptExam
 {
     public class ExamAttemptResponseForStudentViewModel
     {
- 
-        public DateTime StartedAt { get; set; } = DateTime.UtcNow;
+        public Guid Id { get; set; }  // Changed from int
+        public Guid ExamId { get; set; }  // Changed from int
+        public Guid StudentId { get; set; }  // Changed from string
+        public string StudentName { get; set; } = string.Empty;
+        public string ExamTitle { get; set; } = string.Empty;
+        public DateTime StartedAt { get; set; }
         public DateTime? SubmittedAt { get; set; }
+        public int Score { get; set; }
+        public int MaxScore { get; set; }
+        public double Percentage { get; set; }
+        public double PassingPercentage { get; set; }
 
-        [Range(0, int.MaxValue)]
-        public int? Score { get; set; }
-
-        [Range(0, int.MaxValue)]
-        public int? MaxScore { get; set; }
-
-        public bool IsCompleted { get; set; } = false;
-        public double? Percentage { get; set; }
+        public bool IsCompleted { get; set; }
         public bool IsSucceed { get; set; }
 
-        public List<AttemptAnswerResponseForStudentViewModel> Answers { get; set; }
+        public ICollection<AttemptAnswerResponseForStudentViewModel> StudentAnswers { get; set; }
     }
 }

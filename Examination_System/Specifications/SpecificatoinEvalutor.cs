@@ -3,9 +3,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Examination_System.Specifications
 {
-    public class SpecificatoinEvalutor<T, Tkey> where T : class, IBaseModel<Tkey>
+    public class SpecificatoinEvalutor<T> where T : BaseModelGuid
     {
-        public static IQueryable<T> CreatQuery(IQueryable<T> Query, ISpecification<T, Tkey> specs)
+        public static IQueryable<T> CreatQuery(IQueryable<T> Query, ISpecification<T> specs)
         {
             if (specs.Criteria != null)
             {

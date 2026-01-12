@@ -2,11 +2,11 @@
 {
     public class UserDto
     {
-        public string Id { get; set; }
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public string Email { get; set; }
-        public string? Role { get; set; }
-        public string Token { get; set; }
+        public Guid Id { get; set; }  // Changed from string
+        public string FirstName { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Token { get; set; } = string.Empty;
+        public string Role { get; set; } = string.Empty;
     }
 }

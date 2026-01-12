@@ -21,7 +21,7 @@ namespace Examination_System.Data
                 _logger.LogInformation("Starting database seeding...");
 
                 // Check if database already has data
-                if (!_context.Questions.Any())
+                if (_context.Questions.Any())
                 {
                     _logger.LogWarning("Database already contains questions. Skipping seed.");
                     return;
@@ -36,7 +36,7 @@ namespace Examination_System.Data
                 }
 
                 // Get the first course from the database
-                var firstCourse = await _context.Courses.Where(c=>c.Id == 5).FirstOrDefaultAsync();
+                var firstCourse = await _context.Courses.FirstOrDefaultAsync();
                 if (firstCourse == null)
                 {
                     _logger.LogError("No courses found in database. Cannot seed questions.");

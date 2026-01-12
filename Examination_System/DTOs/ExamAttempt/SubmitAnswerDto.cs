@@ -2,7 +2,8 @@
 {
     public class SubmitAnswerDto
     {
-        public int QuestionId { get; set; }
-        public int choiceId { get; set; }
+        public Guid AttemptId { get; set; }
+        public Guid QuestionId { get; set; } 
+        public Guid ChoiceId { get; set; } 
     }
 }

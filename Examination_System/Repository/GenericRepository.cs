@@ -1,18 +1,17 @@
-﻿using Examination_System.Data;
+﻿using System.Linq.Expressions;
+using Examination_System.Data;
 using Examination_System.Models;
 using Examination_System.Specifications;
-using Examination_System.Specifications.SpecsForEntity;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
-using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore.Query;
 
 namespace Examination_System.Repository
 {
     // For entities with int IDs
-    public class GenericRepository<T, Tkey> : IGenericRepository<T, Tkey> where T : class, IBaseModel<Tkey>
+    public class GenericRepository<T> : IGenericRepository<T> where T :  BaseModelGuid
     {
         private readonly Context _context;
-        private readonly DbSet<T> _dbSet;
+        private  DbSet<T> _dbSet;
      
         public GenericRepository(Context context)
         {
@@ -20,7 +19,7 @@ namespace Examination_System.Repository
             _dbSet = _context.Set<T>();
         }
 
-        public async Task<T> GetByIdAsync(Tkey id)
+        public async Task<T> GetByIdAsync(Guid id)
         {
             var res = await _dbSet.Where(c => c.Id.Equals(id) && !c.IsDeleted).FirstOrDefaultAsync();
             return res;
@@ -40,7 +39,6 @@ namespace Examination_System.Repository
 
 
 
-
         public async Task Add(T entity)
         {
             await _dbSet.AddAsync(entity);
@@ -53,21 +51,21 @@ namespace Examination_System.Repository
 
             return TEntity;
         }
-        public IQueryable<T> GetAllWithSpecificationAsync(ISpecification<T, Tkey> specifications)
+        public IQueryable<T> GetAllWithSpecificationAsync(ISpecification<T> specifications)
         {
             return ApplySpecification(specifications).AsQueryable<T>();
         }
-        private IQueryable<T> ApplySpecification(ISpecification<T, Tkey> Spec)
+        private IQueryable<T> ApplySpecification(ISpecification<T> Spec)
         {
-            return SpecificatoinEvalutor<T, Tkey>.CreatQuery(_dbSet, Spec);
+            return SpecificatoinEvalutor<T>.CreatQuery(_dbSet, Spec);
         }
 
-        public async Task<T> GetByIdWithSpecification(ISpecification<T, Tkey> Spec)
+        public  IQueryable<T> GetByIdWithSpecification(ISpecification<T> Spec)
         {
-            return await ApplySpecification(Spec).FirstOrDefaultAsync();
+            return  ApplySpecification(Spec);
         }
 
-        public async Task<T> GetById(Tkey id)
+        public async Task<T> GetById(Guid id)
         {
             return await _dbSet.Where(c => c.Id.Equals(id) && !c.IsDeleted).FirstOrDefaultAsync();
         }
@@ -76,7 +74,7 @@ namespace Examination_System.Repository
         {
             return _dbSet.Where(predicate).Where(e => !e.IsDeleted);
         }
-        /*      public async Task DeleteAsync(Tkey id)
+        /*      public async Task DeleteAsync(Guid id)
               {
                   var entity = await GetByIdAsync(id);
                   if (entity != null)
@@ -85,7 +83,7 @@ namespace Examination_System.Repository
                       await UpdatePartialAsync(entity);
                   }
               }*/
-        public async Task<bool> IsExistsAsync(Tkey id)
+        public async Task<bool> IsExistsAsync(Guid id)
         {
             return await _dbSet.FirstOrDefaultAsync(e => e.Id.Equals(id) && !e.IsDeleted) is not null ? true : false;
 
@@ -96,20 +94,20 @@ namespace Examination_System.Repository
             return await _dbSet.Where(e => !e.IsDeleted).FirstOrDefaultAsync(predicate) is not null ? true : false;
         }
         public async Task<int> ExecuteUpdateAsync<TProperty>(
-           Tkey id,
-           Func<T, TProperty> propertySelector,
-           TProperty newValue)
+         Guid id,
+         Func<T, TProperty> propertySelector,
+         TProperty newValue)
         {
-            if (id == null)
+            if (id == Guid.Empty)
                 return 0;
 
-            var rowsAffected = await _dbSet
-                .Where(e => e.Id!.Equals(id) && !e.IsDeleted)
-                .ExecuteUpdateAsync(setters => setters
-                    .SetProperty(propertySelector, _ => newValue));
-
-            return rowsAffected;
+            return await _dbSet
+                .Where(e => e.Id == id && !e.IsDeleted)
+                .ExecuteUpdateAsync(setters =>
+                    setters.SetProperty(propertySelector, _ => newValue));
         }
+
+
 
         public async Task AddCollectionAsync(ICollection<T> eq)
         {
@@ -117,7 +115,7 @@ namespace Examination_System.Repository
             await _dbSet.AddRangeAsync(eq);
         }
 
-        public async Task<bool> DeleteAsync(Tkey id)
+        public async Task<bool> DeleteAsync(Guid id)
         {
             var entity = await GetByIdAsync(id);
             if (entity == null)
@@ -127,5 +125,14 @@ namespace Examination_System.Repository
             return result > 0;
         }
 
+        public async Task<int> ExecuteUpdateAsync<TEntity>(
+            Expression<Func<TEntity, bool>> predicate,
+            Expression<Func<SetPropertyCalls<TEntity>, SetPropertyCalls<TEntity>>> setPropertyCalls) 
+            where TEntity : class
+        {
+            return await _context.Set<TEntity>()
+                .Where(predicate)
+                .ExecuteUpdateAsync(setPropertyCalls);
+        }
     }
 }

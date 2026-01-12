@@ -1,13 +1,13 @@
 ﻿namespace Examination_System.Models
 {
-    public class ExamQuestion : BaseModel
+    public class ExamQuestion : BaseModelGuid
     {
      
 
-        public int ExamId { get; set; }
+        public Guid ExamId { get; set; }
         public Exam Exam { get; set; }
 
-        public int QuestionId { get; set; }
+        public Guid QuestionId { get; set; }
         public Question Question { get; set; }
     }
 }

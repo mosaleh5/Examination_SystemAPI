@@ -1,6 +1,9 @@
-using FluentValidation;
-using Examination_System.ViewModels.Question;
 using Examination_System.ViewModels.Choice;
+using Examination_System.ViewModels.Question;
+using FluentValidation;
+using Examination_System.Models.Enums;
+using static Examination_System.Models.Question;
+using Examination_System.Models;
 
 namespace Examination_System.Validators.ViewModelValidators.Questions
 {
@@ -17,23 +20,24 @@ namespace Examination_System.Validators.ViewModelValidators.Questions
                 .LessThanOrEqualTo(100).WithMessage("Mark cannot exceed 100");
 
             RuleFor(x => x.Level)
-                .IsInEnum().WithMessage("Invalid question level");
+                      .Must(level => level >= QuestionLevel.Simple && level <= QuestionLevel.Hard)
+                      .WithMessage("Invalid question difficulty. Must be Simple (1), Medium (2), or Hard (3)");
 
             RuleFor(x => x.CourseId)
-                .GreaterThan(0).WithMessage("Course ID is required");
+                .NotNull().WithMessage("Course ID is required");
 
-            RuleFor(x => x.Choices)
+        RuleFor(x => x.Choices)
                 .NotEmpty().WithMessage("At least two choices are required")
                 .Must(HaveAtLeastTwoChoices).WithMessage("At least two choices are required")
                 .Must(HaveExactlyOneCorrectChoice).WithMessage("Exactly one choice must be marked as correct");
         }
 
-        private bool HaveAtLeastTwoChoices(ICollection<ChoiceViewModel>? choices)
+        private bool HaveAtLeastTwoChoices(ICollection<CreateChoiceViewModel>? choices)
         {
             return choices != null && choices.Count >= 2;
         }
 
-        private bool HaveExactlyOneCorrectChoice(ICollection<ChoiceViewModel>? choices)
+        private bool HaveExactlyOneCorrectChoice(ICollection<CreateChoiceViewModel>? choices)
         {
             if (choices == null) return false;
             return choices.Count(c => c.IsCorrect) == 1;

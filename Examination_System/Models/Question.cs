@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 
 namespace Examination_System.Models
 {
-    public partial class Question : BaseModel
+    public partial class Question : BaseModelGuid
     {
 
         [Required]
@@ -20,13 +20,13 @@ namespace Examination_System.Models
         [ValidateOneChoiceIsCorrect]
         public ICollection<Choice> Choices { get; set; } = new List<Choice>();
         public ICollection<ExamQuestion> ExamQuestions { get; set; } = new List<ExamQuestion>();
-        [ForeignKey(nameof(InstructorId))]
 
         public Instructor Instructor { get; set; }
-        public string InstructorId { get; set; }
+        [ForeignKey(nameof(Instructor))]
+        public Guid InstructorId { get; set; }
 
-        [ForeignKey(nameof(CourseId))]
         public Course Course { get; set; }
-        public int? CourseId { get; set; }
+        [ForeignKey(nameof(Course))]
+        public Guid? CourseId { get; set; }
     }
 }

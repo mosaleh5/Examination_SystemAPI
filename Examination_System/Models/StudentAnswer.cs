@@ -4,20 +4,20 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Examination_System.Models
 {
     // StudentAnswer Entity (Student's answer to a question in an attempt)
-    public class StudentAnswer : BaseModel
+    public class StudentAnswer : BaseModelGuid
     {
   
 
         [ForeignKey("ExamAttempt")]
-        public int AttemptId { get; set; }
+        public Guid AttemptId { get; set; }
         public ExamAttempt ExamAttempt { get; set; }
 
         [ForeignKey("Question")]
-        public int QuestionId { get; set; }
+        public Guid QuestionId { get; set; }
         public Question Question { get; set; }
 
         [ForeignKey("Choice")]
-        public int? SelectedChoiceId { get; set; }
+        public Guid? SelectedChoiceId { get; set; }
         public Choice SelectedChoice { get; set; }
 
         public bool IsCorrect { get; set; }

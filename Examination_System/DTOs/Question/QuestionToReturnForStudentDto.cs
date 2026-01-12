@@ -7,7 +7,7 @@ namespace Examination_System.DTOs.Question
 {
     public class QuestionToReturnForStudentDto
     {
-        public int Id { get; set; }    
+        public Guid Id { get; set; }    
         public string Title { get; set; }
         public int Mark { get; set; }
         public ICollection<ChoiceToReturnForStudentDto> Choices { get; set; }

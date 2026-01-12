@@ -1,8 +1,11 @@
 ﻿using AutoMapper;
+using Examination_System.Common;
 using Examination_System.DTOs.ExamAttempt;
+using Examination_System.Models.Enums;
 using Examination_System.Services.CurrentUserServices;
 using Examination_System.Services.ExamAttemptServices;
 using Examination_System.Validation;
+using Examination_System.ViewModels;
 using Examination_System.ViewModels.AttemptExam;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -28,152 +31,158 @@ namespace Examination_System.Controllers
 
         [Authorize(Roles = "Student")]
         [HttpGet("start/{examId}")]
-        [ProducesResponseType(typeof(ExamToAttemptDetailedResponseForStudentViewModel), 200)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<ExamToAttemptDetailedResponseForStudentViewModel>> StartExam(int examId)
+        [ProducesResponseType(typeof(ResponseViewModel<ExamToAttemptDetailedResponseForStudentViewModel>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResponseViewModel<object>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ResponseViewModel<object>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ResponseViewModel<object>), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<ResponseViewModel<ExamToAttemptDetailedResponseForStudentViewModel>>> StartExam(Guid examId)
         {
-            var userId = _currentUserServices.UserId;
-           
-
-            if (examId <= 0)
+            if (_currentUserServices.UserId == null)
             {
-                return BadRequest(new { message = "Invalid exam ID." });
+                return Unauthorized(ResponseViewModel<ExamToAttemptDetailedResponseForStudentViewModel>.Failure(
+                    ErrorCode.Unauthorized,
+                    "User not authenticated"));
             }
 
-            try
+            var result = await _examAttemptServices.StartExamAsync(examId, _currentUserServices.UserId);
+
+            if (!result.IsSuccess)
             {
-                var exam = await _examAttemptServices.StartExamAsync(examId, userId);
-                var examViewModel = _mapper.Map<ExamToAttemptDetailedResponseForStudentViewModel>(exam);
-                return Ok(examViewModel);
+                return BadRequest(ResponseViewModel<ExamToAttemptDetailedResponseForStudentViewModel>.Failure(
+                    result.Error,
+                    result.ErrorMessage));
             }
-            catch (InvalidOperationException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    new { message = "An error occurred while starting the exam", details = ex.Message });
-            }
+
+            var examViewModel = _mapper.Map<ExamToAttemptDto, ExamToAttemptDetailedResponseForStudentViewModel>(result.Data);
+            return Ok(ResponseViewModel<ExamToAttemptDetailedResponseForStudentViewModel>.Success(
+                examViewModel,
+                "Exam started successfully"));
         }
 
         [Authorize(Roles = "Student")]
         [HttpPost("submit/{attemptId}")]
-        [ProducesResponseType(typeof(ExamAttemptResponseForStudentViewModel), 200)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)] 
-        public async Task<ActionResult<ExamAttemptResponseForStudentViewModel>> SubmitExam(
-            int attemptId, 
+        [ProducesResponseType(typeof(ResponseViewModel<ExamAttemptResponseForStudentViewModel>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResponseViewModel<object>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ResponseViewModel<object>), StatusCodes.Status401Unauthorized)]
+        public async Task<ActionResult<ResponseViewModel<ExamAttemptResponseForStudentViewModel>>> SubmitExam(
+            Guid attemptId,
             [FromBody] IList<SubmitAnswerForStudentViewModel> answers)
         {
-            var userId = _currentUserServices.UserId;
-           
-
-            if (attemptId <= 0)
+            if (!ModelState.IsValid)
             {
-                return BadRequest(new { message = "Invalid attempt ID." });
+                return BadRequest(ResponseViewModel<ExamAttemptResponseForStudentViewModel>.Failure(
+                    ErrorCode.ValidationError,
+                    GetValidationErrors()));
             }
 
-            try
+            var submitAnswerDtos = _mapper.Map<List<SubmitAnswerDto>>(answers);
+            submitAnswerDtos.ForEach(a => a.AttemptId = attemptId);
+
+            var result = await _examAttemptServices.SubmitExamAsync(attemptId, submitAnswerDtos);
+
+            if (!result.IsSuccess)
             {
-                var submitAnswerDtos = _mapper.Map<List<SubmitAnswerDto>>(answers);
-                var examAttempt = await _examAttemptServices.SubmitExamAsync(attemptId, submitAnswerDtos);
-                var examAttemptViewModel = _mapper.Map<ExamAttemptResponseForStudentViewModel>(examAttempt);
-                return Ok(examAttemptViewModel);
-            } 
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(ResponseViewModel<ExamAttemptResponseForStudentViewModel>.Failure(
+                    result.Error,
+                    "An error occurred when submitting exam\n" + result.ErrorMessage));
             }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    new { message = "An error occurred while submitting the exam", details = ex.Message });
-            }
+
+            var examAttemptViewModel = _mapper.Map<ExamAttemptResponseForStudentViewModel>(result.Data);
+            return Ok(ResponseViewModel<ExamAttemptResponseForStudentViewModel>.Success(
+                examAttemptViewModel,
+                "Exam submitted successfully"));
         }
 
         [Authorize(Roles = "Instructor")]
         [HttpGet("instructor/studentattempts")]
-        [ProducesResponseType(typeof(IEnumerable<ExamAttemptResponseForStudentViewModel>), 200)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<ActionResult<IEnumerable<ExamAttemptResponseForStudentViewModel>>> GetAllStudentAttempts()
+        [ProducesResponseType(typeof(ResponseViewModel<IEnumerable<ExamAttemptResponseForStudentViewModel>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResponseViewModel<object>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ResponseViewModel<object>), StatusCodes.Status401Unauthorized)]
+        public async Task<ActionResult<ResponseViewModel<IEnumerable<ExamAttemptResponseForStudentViewModel>>>> GetAllStudentAttempts()
         {
-            var userId = _currentUserServices.UserId;
-          
+            if (_currentUserServices.UserId == null)
+            {
+                return Unauthorized(ResponseViewModel<IEnumerable<ExamAttemptResponseForStudentViewModel>>.Failure(
+                    ErrorCode.Unauthorized,
+                    "User not authenticated"));
+            }
 
-            try
+            var result = await _examAttemptServices.GetStudentAttemptsForInstructorAsync(_currentUserServices.UserId);
+
+            if (!result.IsSuccess)
             {
-                var attempts = await _examAttemptServices.GetStudentAttemptsForInstructorAsync(userId);
-                var examAttemptViewModels = _mapper.Map<IEnumerable<ExamAttemptResponseForStudentViewModel>>(attempts);
-                return Ok(examAttemptViewModels);
+                return BadRequest(ResponseViewModel<IEnumerable<ExamAttemptResponseForStudentViewModel>>.Failure(
+                    result.Error,
+                    result.ErrorMessage));
             }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    new { message = "An error occurred while retrieving student attempts", details = ex.Message });
-            }
+
+            var examAttemptViewModels = _mapper.Map<IEnumerable<ExamAttemptResponseForStudentViewModel>>(result.Data);
+
+            return Ok(ResponseViewModel<IEnumerable<ExamAttemptResponseForStudentViewModel>>.Success(
+                examAttemptViewModels));
         }
 
         [Authorize(Roles = "Instructor")]
-        [HttpGet("instructor/studentattempts/{studentId}")]
-        [ProducesResponseType(typeof(IEnumerable<ExamAttemptResponseForStudentViewModel>), 200)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<ActionResult<IEnumerable<ExamAttemptResponseForStudentViewModel>>> GetSpecificStudentAttempts(string studentId)
+        [HttpGet("{studentId}")]
+        [ProducesResponseType(typeof(ResponseViewModel<IEnumerable<ExamAttemptResponseForStudentViewModel>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResponseViewModel<object>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ResponseViewModel<object>), StatusCodes.Status401Unauthorized)]
+        public async Task<ActionResult<ResponseViewModel<IEnumerable<ExamAttemptResponseForStudentViewModel>>>> GetSpecificStudentAttempts(Guid studentId)
         {
-            var userId = _currentUserServices.UserId;
-          
-
-            if (string.IsNullOrWhiteSpace(studentId))
+            if (_currentUserServices.UserId == null)
             {
-                return BadRequest(new { message = "Student ID is required." });
+                return Unauthorized(ResponseViewModel<IEnumerable<ExamAttemptResponseForStudentViewModel>>.Failure(
+                    ErrorCode.Unauthorized,
+                    "User not authenticated"));
             }
 
-            try
+            if (studentId == Guid.Empty)
             {
-                var attempts = await _examAttemptServices.GetStudentAttemptsAsync(userId, studentId);
-                var examAttemptViewModels = _mapper.Map<IEnumerable<ExamAttemptResponseForStudentViewModel>>(attempts);
-                return Ok(examAttemptViewModels);
+                return BadRequest(ResponseViewModel<IEnumerable<ExamAttemptResponseForStudentViewModel>>.Failure(
+                    ErrorCode.ValidationError,
+                    "Student ID is required"));
             }
-            catch (Exception ex)
+
+            var result = await _examAttemptServices.GetStudentAttemptsAsync(_currentUserServices.UserId, studentId);
+
+            if (!result.IsSuccess)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    new { message = "An error occurred while retrieving student attempts", details = ex.Message });
+                return BadRequest(ResponseViewModel<IEnumerable<ExamAttemptResponseForStudentViewModel>>.Failure(
+                    result.Error,
+                    result.ErrorMessage));
             }
+
+            var examAttemptViewModels = _mapper.Map<IEnumerable<ExamAttemptResponseForStudentViewModel>>(result.Data);
+            return Ok(ResponseViewModel<IEnumerable<ExamAttemptResponseForStudentViewModel>>.Success(
+                examAttemptViewModels));
         }
 
         [Authorize(Roles = "Student")]
         [HttpGet("student/myattempts")]
-        [ProducesResponseType(typeof(IEnumerable<ExamAttemptResponseForStudentViewModel>), 200)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<ActionResult<IEnumerable<ExamAttemptResponseForStudentViewModel>>> GetMyAttempts()
+        [ProducesResponseType(typeof(ResponseViewModel<IEnumerable<ExamAttemptResponseForStudentViewModel>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResponseViewModel<object>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ResponseViewModel<object>), StatusCodes.Status401Unauthorized)]
+        public async Task<ActionResult<ResponseViewModel<IEnumerable<ExamAttemptResponseForStudentViewModel>>>> GetMyAttempts()
         {
-            var userId = _currentUserServices.UserId;
-           
+            if (_currentUserServices.UserId == null)
+            {
+                return Unauthorized(ResponseViewModel<IEnumerable<ExamAttemptResponseForStudentViewModel>>.Failure(
+                    ErrorCode.Unauthorized,
+                    "User not authenticated"));
+            }
 
-            try
+            var result = await _examAttemptServices.GetStudentAttemptsForStudentAsync(_currentUserServices.UserId);
+
+            if (!result.IsSuccess)
             {
-                var attempts = await _examAttemptServices.GetStudentAttemptsForStudentAsync(userId);
-                var examAttemptViewModels = _mapper.Map<IEnumerable<ExamAttemptResponseForStudentViewModel>>(attempts);
-                return Ok(examAttemptViewModels);
+                return BadRequest(ResponseViewModel<IEnumerable<ExamAttemptResponseForStudentViewModel>>.Failure(
+                    result.Error,
+                    result.ErrorMessage));
             }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    new { message = "An error occurred while retrieving student attempts", details = ex.Message });
-            }
+
+            var examAttemptViewModels = _mapper.Map<IEnumerable<ExamAttemptResponseForStudentViewModel>>(result.Data);
+            return Ok(ResponseViewModel<IEnumerable<ExamAttemptResponseForStudentViewModel>>.Success(
+                examAttemptViewModels));
         }
     }
 }

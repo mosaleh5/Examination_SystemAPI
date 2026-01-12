@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Examination_System.Models
 {
-    public class Choice : BaseModel
+    public class Choice : BaseModelGuid
     {
 
         [Required]
@@ -13,7 +13,7 @@ namespace Examination_System.Models
         public bool IsCorrect { get; set; }
         [ForeignKey(nameof(QuestionId))]
         public Question Question { get; set; }
-        public int QuestionId { get; set; }
+        public Guid QuestionId { get; set; }
       
 
         public ICollection<StudentAnswer>? StudentAnswers { get; set; }

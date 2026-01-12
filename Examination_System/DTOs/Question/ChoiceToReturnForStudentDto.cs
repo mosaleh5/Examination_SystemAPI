@@ -2,8 +2,8 @@
 {
     public class ChoiceToReturnForStudentDto
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
         public string Text { get; set; }     
-        public int? QuestionId { get; set; }
+        public Guid? QuestionId { get; set; }
     }
 }

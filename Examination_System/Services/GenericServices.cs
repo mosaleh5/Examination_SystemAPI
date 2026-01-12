@@ -4,7 +4,7 @@ using Examination_System.Repository.UnitOfWork;
 
 namespace Examination_System.Services
 {
-    public class GenericServices<T, Tkey> : IGenericServices<T, Tkey> where T : class, IBaseModel<Tkey>
+    public class GenericServices<T> : IGenericServices<T> where T : BaseModelGuid
     {
         protected readonly IUnitOfWork _unitOfWork;
         protected readonly IMapper _mapper;
@@ -20,9 +20,9 @@ namespace Examination_System.Services
             _mapper = mapper;
         }
 
-        public async Task<bool> IsExistsAsync(Tkey Id)
+        public async Task<bool> IsExistsAsync(Guid Id)
         {
-            var exists = await _unitOfWork.Repository<T, Tkey>().IsExistsAsync(Id);
+            var exists = await _unitOfWork.Repository<T>().IsExistsAsync(Id);
             return exists;
         }
     }

@@ -5,13 +5,13 @@ namespace Examination_System.Data.SeedData
 {
     public class UserDataSeeding
     {
-        public async static Task UserSeedingAsync(UserManager<User> userManager, RoleManager<IdentityRole> roleManager)
+        public async static Task UserSeedingAsync(UserManager<User> userManager, RoleManager<IdentityRole<Guid>> roleManager)
         {
             await RoleSeedingAsync(roleManager);
             await AdminUserSeedingAsync(userManager);
         }
 
-        private async static Task RoleSeedingAsync(RoleManager<IdentityRole> roleManager)
+        private async static Task RoleSeedingAsync(RoleManager<IdentityRole<Guid>> roleManager)
         {
             var roles = new[] { "Admin", "Instructor", "Student" };
 
@@ -19,7 +19,7 @@ namespace Examination_System.Data.SeedData
             {
                 if (!await roleManager.RoleExistsAsync(roleName))
                 {
-                    var role = new IdentityRole(roleName);
+                    var role = new IdentityRole<Guid>(roleName);
                     var result = await roleManager.CreateAsync(role);
                   
                 }

@@ -1,5 +1,4 @@
 ﻿using Examination_System.Data;
-using Examination_System.Helpers;
 using Examination_System.Repository.UnitOfWork;
 using Examination_System.Services;
 using Examination_System.Services.CourseServices;
@@ -10,6 +9,7 @@ using Examination_System.Services.StudentService;
 using Microsoft.EntityFrameworkCore;
 using FluentValidation.AspNetCore;
 using FluentValidation;
+using Examination_System.Mapping;
 
 namespace Examination_System.Extensions
 {
@@ -19,12 +19,12 @@ namespace Examination_System.Extensions
         {
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<ICourseServices , CourseServices>();
-            services.AddScoped<IExamServices , ExamServices>();
+            services.AddScoped<IExamServices , Examination_System.Services.ExamServices.ExamServices>();
             services.AddScoped<IQuestionServices , QuestionServices>();
             services.AddScoped<IStudentServices , StudentServices>();
             services.AddScoped<IExamAttemptServices , ExamAttemptServices>();
 
-          
+            services.AddFluentValidationAutoValidation();
             services.AddValidatorsFromAssemblyContaining<Program>();
 
             services.AddAutoMapper(typeof(MappingProfiles));

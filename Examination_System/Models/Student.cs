@@ -1,13 +1,15 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+
 
 namespace Examination_System.Models
 {
-    public class Student : BaseModelString
+    public class Student : BaseModelGuid
     {
         [Key]
         [ForeignKey(nameof(User))]
-        public new string Id { get; set; }  // Override to be PK and FK
+        public Guid Id { get; set; }  // Override to be PK and FK
         
         public User User { get; set; }
         

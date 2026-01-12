@@ -7,10 +7,10 @@ namespace Examination_System.Services.QuestionServices
     {
 
         Task<Result<QuestionToReturnDto>> CreateQuestionAsync(CreateQuestionDto createQuestionDto);
-        Task<Result<IEnumerable<QuestionToReturnDto>>> GetQuestionsByInstructorAsync(string? instructorId);
-        Task<Result<IEnumerable<QuestionToReturnDto>>> GetQuestionsByInstructorAndCourseAsync(string? instructorId,int? CourseId);
+        Task<Result<IEnumerable<QuestionToReturnDto>>> GetQuestionsByInstructorAsync(Guid? instructorId);
+        Task<Result<IEnumerable<QuestionToReturnDto>>> GetQuestionsByInstructorAndCourseAsync(Guid? instructorId, Guid? CourseId);
         Task<Result<QuestionToReturnDto>> UpdateQuestionAsync(UpdateQuestionDto updateQuestionDto);
-        Task<Result> DeleteQuestionAsync(int questionId, string ? instructorId);
-        Task<Result<QuestionToReturnDto>> GetQuestionByIdAsync(int questionId, string instructorId);
+        Task<Result> DeleteQuestionAsync(Guid questionId, Guid? instructorId);
+        Task<Result<QuestionToReturnDto>> GetQuestionByIdAsync(Guid questionId, Guid instructorId);
     }
 }

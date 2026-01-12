@@ -1,4 +1,5 @@
 using Examination_System.Models;
+using Microsoft.AspNetCore.Identity;
 using static Examination_System.Models.Question;
 
 namespace Examination_System.Data
@@ -278,20 +279,20 @@ namespace Examination_System.Data
         public static List<Question> GetQuestions()
         {
             return new List<Question>
-{
-    new Question { Title = "What is a variable in programming?", mark = 5, Level = QuestionLevel.Simple, InstructorId = "f6ccfb9f-aee9-4151-91b0-f25daccd2831", CourseId = 9, IsDeleted = false, CreatedAt = DateTime.UtcNow },
-    new Question { Title = "Explain the difference between value types and reference types in C#.", mark = 10, Level = QuestionLevel.Medium, InstructorId = "f6ccfb9f-aee9-4151-91b0-f25daccd2831", CourseId = 9, IsDeleted = false, CreatedAt = DateTime.UtcNow },
-    new Question { Title = "What is polymorphism and how is it implemented?", mark = 15, Level = QuestionLevel.Hard, InstructorId = "f6ccfb9f-aee9-4151-91b0-f25daccd2831", CourseId = 9, IsDeleted = false, CreatedAt = DateTime.UtcNow },
-    new Question { Title = "What is normalization in databases?", mark = 5, Level = QuestionLevel.Simple, InstructorId = "f6ccfb9f-aee9-4151-91b0-f25daccd2831", CourseId = 9, IsDeleted = false, CreatedAt = DateTime.UtcNow },
-    new Question { Title = "Write a SQL query to perform an INNER JOIN between two tables.", mark = 15, Level = QuestionLevel.Hard, InstructorId = "f6ccfb9f-aee9-4151-91b0-f25daccd2831", CourseId = 9, IsDeleted = false, CreatedAt = DateTime.UtcNow },
-    new Question { Title = "Explain ACID properties in database transactions.", mark = 10, Level = QuestionLevel.Medium, InstructorId = "f6ccfb9f-aee9-4151-91b0-f25daccd2831", CourseId = 9, IsDeleted = false, CreatedAt = DateTime.UtcNow },
-    new Question { Title = "What is the MVC pattern?", mark = 5, Level = QuestionLevel.Simple, InstructorId = "f6ccfb9f-aee9-4151-91b0-f25daccd2831", CourseId = 9, IsDeleted = false, CreatedAt = DateTime.UtcNow },
-    new Question { Title = "Explain RESTful API design principles.", mark = 10, Level = QuestionLevel.Medium, InstructorId = "f6ccfb9f-aee9-4151-91b0-f25daccd2831", CourseId = 9, IsDeleted = false, CreatedAt = DateTime.UtcNow },
-    new Question { Title = "What is the difference between authentication and authorization?", mark = 10, Level = QuestionLevel.Medium, InstructorId = "f6ccfb9f-aee9-4151-91b0-f25daccd2831", CourseId = 9, IsDeleted = false, CreatedAt = DateTime.UtcNow },
-    new Question { Title = "Implement a binary search algorithm.", mark = 15, Level = QuestionLevel.Hard, InstructorId = "f6ccfb9f-aee9-4151-91b0-f25daccd2831", CourseId = 9, IsDeleted = false, CreatedAt = DateTime.UtcNow },
-    new Question { Title = "Explain the concept of inheritance in OOP.", mark = 10, Level = QuestionLevel.Medium, InstructorId = "f6ccfb9f-aee9-4151-91b0-f25daccd2831", CourseId = 9, IsDeleted = false, CreatedAt = DateTime.UtcNow },
-    new Question { Title = "What is a foreign key?", mark = 5, Level = QuestionLevel.Simple, InstructorId = "f6ccfb9f-aee9-4151-91b0-f25daccd2831", CourseId = 9, IsDeleted = false, CreatedAt = DateTime.UtcNow }
-};
+    {
+        new Question { Title = "What is a variable in programming?", mark = 5, Level = QuestionLevel.Simple, InstructorId = Guid.Parse("f6ccfb9f-aee9-4151-91b0-f25daccd2831"), CourseId = new Guid("00000000-0000-0000-0000-000000000009"), IsDeleted = false, CreatedAt = DateTime.UtcNow },
+        new Question { Title = "Explain the difference between value types and reference types in C#.", mark = 10, Level = QuestionLevel.Medium, InstructorId = Guid.Parse("f6ccfb9f-aee9-4151-91b0-f25daccd2831"), CourseId = new Guid("00000000-0000-0000-0000-000000000009"), IsDeleted = false, CreatedAt = DateTime.UtcNow },
+        new Question { Title = "What is polymorphism and how is it implemented?", mark = 15, Level = QuestionLevel.Hard, InstructorId = Guid.Parse("f6ccfb9f-aee9-4151-91b0-f25daccd2831"), CourseId = new Guid("00000000-0000-0000-0000-000000000009"), IsDeleted = false, CreatedAt = DateTime.UtcNow },
+        new Question { Title = "What is normalization in databases?", mark = 5, Level = QuestionLevel.Simple, InstructorId = Guid.Parse("f6ccfb9f-aee9-4151-91b0-f25daccd2831"), CourseId = new Guid("00000000-0000-0000-0000-000000000009"), IsDeleted = false, CreatedAt = DateTime.UtcNow },
+        new Question { Title = "Write a SQL query to perform an INNER JOIN between two tables.", mark = 15, Level = QuestionLevel.Hard, InstructorId = Guid.Parse("f6ccfb9f-aee9-4151-91b0-f25daccd2831"), CourseId = new Guid("00000000-0000-0000-0000-000000000009"), IsDeleted = false, CreatedAt = DateTime.UtcNow },
+        new Question { Title = "Explain ACID properties in database transactions.", mark = 10, Level = QuestionLevel.Medium, InstructorId = Guid.Parse("f6ccfb9f-aee9-4151-91b0-f25daccd2831"), CourseId = new Guid("00000000-0000-0000-0000-000000000009"), IsDeleted = false, CreatedAt = DateTime.UtcNow },
+        new Question { Title = "What is the MVC pattern?", mark = 5, Level = QuestionLevel.Simple, InstructorId = Guid.Parse("f6ccfb9f-aee9-4151-91b0-f25daccd2831"), CourseId = new Guid("00000000-0000-0000-0000-000000000009"), IsDeleted = false, CreatedAt = DateTime.UtcNow },
+        new Question { Title = "Explain RESTful API design principles.", mark = 10, Level = QuestionLevel.Medium, InstructorId = Guid.Parse("f6ccfb9f-aee9-4151-91b0-f25daccd2831"), CourseId = new Guid("00000000-0000-0000-0000-000000000009"), IsDeleted = false, CreatedAt = DateTime.UtcNow },
+        new Question { Title = "What is the difference between authentication and authorization?", mark = 10, Level = QuestionLevel.Medium, InstructorId = Guid.Parse("f6ccfb9f-aee9-4151-91b0-f25daccd2831"), CourseId = new Guid("00000000-0000-0000-0000-000000000009"), IsDeleted = false, CreatedAt = DateTime.UtcNow },
+        new Question { Title = "Implement a binary search algorithm.", mark = 15, Level = QuestionLevel.Hard, InstructorId = Guid.Parse("f6ccfb9f-aee9-4151-91b0-f25daccd2831"), CourseId = new Guid("00000000-0000-0000-0000-000000000009"), IsDeleted = false, CreatedAt = DateTime.UtcNow },
+        new Question { Title = "Explain the concept of inheritance in OOP.", mark = 10, Level = QuestionLevel.Medium, InstructorId = Guid.Parse("f6ccfb9f-aee9-4151-91b0-f25daccd2831"), CourseId = new Guid("00000000-0000-0000-0000-000000000009"), IsDeleted = false, CreatedAt = DateTime.UtcNow },
+        new Question { Title = "What is a foreign key?", mark = 5, Level = QuestionLevel.Simple, InstructorId = Guid.Parse("f6ccfb9f-aee9-4151-91b0-f25daccd2831"), CourseId = new Guid("00000000-0000-0000-0000-000000000009"), IsDeleted = false, CreatedAt = DateTime.UtcNow }
+    };
         }
 
         public static List<Choice> GetChoices(List<Question> questions)
@@ -431,5 +432,35 @@ namespace Examination_System.Data
                 new ExamAssignment { Student = students[3], Exam = exams[5], SubmissionDate = new DateTime(2024, 12, 24, 10, 10, 0, DateTimeKind.Utc), IsDeleted = false, CreatedAt = DateTime.UtcNow }
             ];
         }*/
+
+        public static async Task SeedAdminUser(UserManager<User> userManager, RoleManager<IdentityRole<Guid>> roleManager)
+{
+    // Create admin role
+    if (!await roleManager.RoleExistsAsync("Admin"))
+    {
+        await roleManager.CreateAsync(new IdentityRole<Guid>("Admin"));
+    }
+
+    // Create admin user
+    var adminUser = new User
+    {
+        // Id auto-generated with Guid.CreateVersion7()
+        FirstName = "Admin",
+        LastName = "User",
+        Email = "admin@exam.com",
+        UserName = "admin@exam.com",
+        EmailConfirmed = true
+    };
+
+    var existingUser = await userManager.FindByEmailAsync(adminUser.Email);
+    if (existingUser == null)
+    {
+        var result = await userManager.CreateAsync(adminUser, "Admin@123");
+        if (result.Succeeded)
+        {
+            await userManager.AddToRoleAsync(adminUser, "Admin");
+        }
+    }
+}
     }
 }

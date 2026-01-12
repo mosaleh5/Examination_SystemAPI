@@ -5,15 +5,15 @@ using Microsoft.EntityFrameworkCore;
 namespace Examination_System.Models
 {
     [Index(nameof(StudentId), nameof(ExamId))]
-    public class ExamAttempt : BaseModel
+    public class ExamAttempt : BaseModelGuid
     {
         [ForeignKey("Exam")]
-        public int ExamId { get; set; }
+        public Guid ExamId { get; set; }
         [Required]
         public Exam Exam { get; set; } = null!;
 
         [ForeignKey("Student")]
-        public string StudentId { get; set; }
+        public Guid StudentId { get; set; }
         [Required]
         public Student Student { get; set; } = null!;
 

@@ -1,6 +1,7 @@
-﻿using Examination_System.Models;
+﻿using System.Linq.Expressions;
+using Examination_System.Models;
 using Examination_System.Specifications;
-using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore.Query;
 
 namespace Examination_System.Repository
 {
@@ -8,9 +9,9 @@ namespace Examination_System.Repository
     /// Generic repository interface for data access operations.
     /// All methods automatically filter soft-deleted records (IsDeleted = true).
     /// </summary>
-    public interface IGenericRepository<T, Tkey> where T : class, IBaseModel<Tkey>
+    public interface IGenericRepository<T> where T : BaseModelGuid
     {
-        Task<T> GetByIdAsync(Tkey id);
+        Task<T> GetByIdAsync(Guid id);
 
         IQueryable<T> GetAll();
 
@@ -20,23 +21,28 @@ namespace Examination_System.Repository
         Task<T> UpdatePartialAsync(T entity);
 
       
-        Task<T> GetById(Tkey id);
+        Task<T> GetById(Guid id);
 
        
         IQueryable<T> GetByCriteria(Expression<Func<T, bool>> predicate);
 
-        IQueryable<T> GetAllWithSpecificationAsync(ISpecification<T, Tkey> specifications);
+        IQueryable<T> GetAllWithSpecificationAsync(ISpecification<T> specifications);
 
-        Task<T> GetByIdWithSpecification(ISpecification<T, Tkey> specification);
+        IQueryable<T> GetByIdWithSpecification(ISpecification<T> specification);
 
-        Task<bool> IsExistsAsync(Tkey id);
-        Task<bool> IsExistsbyCriteriaAsync(Expression<Func<T, bool>> predicate);
+        Task<bool> IsExistsAsync(Guid id);
+        Task<bool> IsExistsByCriteriaAsync(Expression<Func<T, bool>> predicate);
 
-        Task<bool> DeleteAsync(Tkey id);
+        Task<bool> DeleteAsync(Guid id);
 
         Task<int> ExecuteUpdateAsync<TProperty>(
-            Tkey id,
+            Guid id,
             Func<T, TProperty> propertySelector,
             TProperty newValue);
+
+        Task<int> ExecuteUpdateAsync<TEntity>(
+            Expression<Func<TEntity, bool>> predicate,
+            Expression<Func<SetPropertyCalls<TEntity>, SetPropertyCalls<TEntity>>> setPropertyCalls)
+            where TEntity : class;
     }
 }

@@ -15,6 +15,10 @@
         FailedToAddQuestionToExam = 501,
         DatabaseError = 502,
         CourseIsNotFound = 503,
-        updateQuestion = 504
+        updateQuestion = 504,
+        InvalidInput = 505,
+        ExamsNotFound = 506,
+        ExamNotFound = 507,
+        ActivateExam = 508
     }
 }
