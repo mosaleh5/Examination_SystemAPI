@@ -1073,6 +1073,18 @@
         }
       ],
       "id": "ae492e39-ad1c-4cf1-ad84-82edb2b840f2"
+    },
+    {
+      "name": "New Request",
+      "id": "7b090e58-ab99-480f-93ce-7462a332c268",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": ""
+        }
+      },
+      "response": []
     }
   ],
   "auth": {
