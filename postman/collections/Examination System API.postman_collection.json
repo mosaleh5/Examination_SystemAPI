@@ -1,0 +1,1175 @@
+{
+  "info": {
+    "_postman_id": "490e1d01-bc45-4199-ada1-2d39e9344328",
+    "name": "Examination System API",
+    "description": "Complete API collection for the Examination System v1.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Account",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.token) {",
+                  "        pm.collectionVariables.set('authToken', jsonData.data.token);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "id": "56270202-0b73-428a-9157-04b8f036663f"
+              }
+            }
+          ],
+          "id": "5bb0c0b6-3fea-4dcb-80e8-fc39ea089b1b",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"instructor@example.com\",\n  \"password\": \"Password123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Account/Login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Account",
+                "Login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login Copy",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.token) {",
+                  "        pm.collectionVariables.set('authToken', jsonData.data.token);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "id": "56270202-0b73-428a-9157-04b8f036663f"
+              }
+            }
+          ],
+          "id": "097f9e48-eb5b-4131-90ca-78bbac9c8945",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"instructor@example.com\",\n  \"password\": \"Password123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Account/Login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Account",
+                "Login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Student Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.token) {",
+                  "        pm.collectionVariables.set('authToken', jsonData.data.token);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "id": "56270202-0b73-428a-9157-04b8f036663f"
+              }
+            }
+          ],
+          "id": "969a0a2c-f169-445f-a4cb-048af75ea8b2",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"instructor@example.com\",\n  \"password\": \"Password123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Account/Login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Account",
+                "Login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Register Student",
+          "id": "4e435c3c-5b79-4003-b49a-088ccc29204b",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"password\": \"Password123!\",\n  \"email\": \"student@example.com\",\n  \"phone\": \"+1234567890\",\n  \"major\": \"Computer Science\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Account/RegisterStudent",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Account",
+                "RegisterStudent"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Register Instructor",
+          "id": "51aac21b-cd5e-4292-aa92-ccf4132fbf33",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Smith\",\n  \"password\": \"Password123!\",\n  \"email\": \"instructor@example.com\",\n  \"phone\": \"+1234567891\",\n  \"department\": \"Computer Science\",\n  \"specialization\": \"Software Engineering\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Account/RegisterInstructor",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Account",
+                "RegisterInstructor"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "id": "8405dc2a-3e71-4f81-8e5d-bdea83174ce9"
+    },
+    {
+      "name": "Course",
+      "item": [
+        {
+          "name": "Get All Courses (Instructor)",
+          "id": "076ff81b-4daf-4031-9d97-cd20fd12e063",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/Course/GetAllForInstructor",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Course",
+                "GetAllForInstructor"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Course By ID",
+          "id": "fc72b47e-3060-4d16-956b-5b7b069a36f9",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/Course/GetById/{{courseId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Course",
+                "GetById",
+                "{{courseId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Course",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.id) {",
+                  "        pm.collectionVariables.set('courseId', jsonData.data.id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "id": "36b05344-03f9-49b2-bc10-fc5a2d539aa6"
+              }
+            }
+          ],
+          "id": "978de670-79ef-4525-890a-f0245423b7c8",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Introduction to Programming\",\n  \"description\": \"Learn the fundamentals of programming\",\n  \"hours\": \"45\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Course/Create",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Course",
+                "Create"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Course",
+          "id": "ba999c1f-baf1-41e5-9d02-0d9e119a4a6f",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{courseId}}\",\n  \"name\": \"Advanced Programming\",\n  \"description\": \"Deep dive into advanced programming concepts\",\n  \"hours\": \"60\",\n  \"instructorId\": \"{{instructorId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Course/UpdateCourse/{{courseId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Course",
+                "UpdateCourse",
+                "{{courseId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Assign Student to Course",
+          "id": "cad4d5ba-07ec-4e42-9080-4a9c527284f3",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/Course/AssignStudentToCourse/{{courseId}}/students?studentId={{studentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Course",
+                "AssignStudentToCourse",
+                "{{courseId}}",
+                "students"
+              ],
+              "query": [
+                {
+                  "key": "studentId",
+                  "value": "{{studentId}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Course",
+          "id": "ab64fd39-4c6f-41b2-b6da-81f2e09b1e79",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/Course/DeleteCourse/{{courseId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Course",
+                "DeleteCourse",
+                "{{courseId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "id": "2d0235c5-2ded-40ab-ac44-0b733ef80298"
+    },
+    {
+      "name": "Question",
+      "item": [
+        {
+          "name": "Get All Questions (Instructor)",
+          "id": "d94bbe7e-683d-4090-bb9d-b25cd3ca456a",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/Question/GetQuestionsByInstructor",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Question",
+                "GetQuestionsByInstructor"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Question By ID",
+          "id": "c7446e98-65b2-42be-8ddc-8e303e9fbe00",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/Question/GetQuestionById/{{questionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Question",
+                "GetQuestionById",
+                "{{questionId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Question",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.id) {",
+                  "        pm.collectionVariables.set('questionId', jsonData.data.id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "id": "be115bed-0709-4e75-9b53-e6b93561b243"
+              }
+            }
+          ],
+          "id": "1b66b9f8-892b-477a-bce7-b0e81f1982f3",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"What is the output of print(2 + 2)?\",\n  \"level\": \"Easy\",\n  \"mark\": 5,\n  \"courseId\": \"{{courseId}}\",\n  \"choices\": [\n    {\n      \"text\": \"3\",\n      \"isCorrect\": false\n    },\n    {\n      \"text\": \"4\",\n      \"isCorrect\": true\n    },\n    {\n      \"text\": \"5\",\n      \"isCorrect\": false\n    },\n    {\n      \"text\": \"22\",\n      \"isCorrect\": false\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Question/CreateQuestion",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Question",
+                "CreateQuestion"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Question",
+          "id": "b532369d-0771-42b8-b377-85932b5cd476",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{questionId}}\",\n  \"text\": \"What is the result of 2 + 2 in Python?\",\n  \"level\": \"Easy\",\n  \"mark\": 5,\n  \"courseId\": \"{{courseId}}\",\n  \"choices\": [\n    {\n      \"id\": \"{{choiceId1}}\",\n      \"text\": \"3\",\n      \"isCorrect\": false\n    },\n    {\n      \"id\": \"{{choiceId2}}\",\n      \"text\": \"4\",\n      \"isCorrect\": true\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Question/UpdateQuestion/{{questionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Question",
+                "UpdateQuestion",
+                "{{questionId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Question",
+          "id": "7a97caed-385e-4da0-832c-d75544f2d334",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/Question/DeleteQuestion/{{questionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Question",
+                "DeleteQuestion",
+                "{{questionId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "id": "997de884-3f37-4c77-beac-f83bc4efe090"
+    },
+    {
+      "name": "Exam",
+      "item": [
+        {
+          "name": "Create Manual Exam",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.id) {",
+                  "        pm.collectionVariables.set('examId', jsonData.data.id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "id": "f19036ea-ca58-44a1-af44-0708de36a3d7"
+              }
+            }
+          ],
+          "id": "668e4bb3-e798-4f4b-9d91-4ffa21c8a236",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Midterm Exam\",\n  \"description\": \"Covers chapters 1-5\",\n  \"courseId\": \"{{courseId}}\",\n  \"durationInMinutes\": 90,\n  \"questionsCount\": 20,\n  \"passingPercentage\": 60,\n  \"examType\": \"Midterm\",\n  \"date\": \"2026-02-15T10:00:00Z\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Exam/CreateExam/manual",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Exam",
+                "CreateExam",
+                "manual"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Automatic Exam",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.id) {",
+                  "        pm.collectionVariables.set('examId', jsonData.data.id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "id": "7f754283-4d89-47b6-9f5f-3638fb5dc2a0"
+              }
+            }
+          ],
+          "id": "ad96e2eb-0b3e-4432-b38a-20029353df0f",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Auto Generated Quiz\",\n  \"date\": \"2026-02-20T14:00:00Z\",\n  \"durationInMinutes\": 60,\n  \"fullmark\": 100,\n  \"examType\": 1,\n  \"passingPercentage\": 70,\n  \"questionsCount\": 15,\n  \"courseId\": 1,\n  \"isAutomatic\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Exam/CreateAutomaticExam/automatic",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Exam",
+                "CreateAutomaticExam",
+                "automatic"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Exams (Instructor)",
+          "id": "8342f08c-0424-4ee1-bd26-4ddcc182b3c2",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/Exam/GetAllExamsForInstructor",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Exam",
+                "GetAllExamsForInstructor"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Activate Exam",
+          "id": "1e14ac20-9e77-4d8f-8136-057c1a2d6781",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/Exam/ActivateExam/Activate/{{examId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Exam",
+                "ActivateExam",
+                "Activate",
+                "{{examId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add Questions to Exam",
+          "id": "dbea675c-8371-4bf9-b0be-ff92fa9e3161",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  \"{{questionId}}\"\n]"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Exam/AddQuestionsToExam/manual/{{examId}}/questions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Exam",
+                "AddQuestionsToExam",
+                "manual",
+                "{{examId}}",
+                "questions"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Replace Exam Questions",
+          "id": "4e4b5573-97af-428a-88db-cd5a7af84635",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  \"{{questionId}}\"\n]"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Exam/ReplaceExamQuestions/manual/{{examId}}/questions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Exam",
+                "ReplaceExamQuestions",
+                "manual",
+                "{{examId}}",
+                "questions"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Remove Question from Exam",
+          "id": "51dea470-3bef-450a-abe2-5fb09a6f49d4",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/Exam/RemoveQuestionFromExam/manual/{{examId}}/questions/{{questionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Exam",
+                "RemoveQuestionFromExam",
+                "manual",
+                "{{examId}}",
+                "questions",
+                "{{questionId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Assign Student to Exam",
+          "id": "7168bb95-c1c7-4721-be90-4cc8376d9cf7",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "\"{{studentId}}\""
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Exam/AssignStudentToExam/{{examId}}/students",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Exam",
+                "AssignStudentToExam",
+                "{{examId}}",
+                "students"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "New Request",
+          "id": "388545aa-3f47-4f60-ae26-7c0fdf249ed4",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        }
+      ],
+      "id": "8e275935-2b7b-42f6-9b07-0351f4f15706"
+    },
+    {
+      "name": "Student",
+      "item": [
+        {
+          "name": "Get My Courses",
+          "id": "4f6b7cb1-d6ce-4165-861c-6f771fb985be",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/Student/GetMyCourses/my-courses",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Student",
+                "GetMyCourses",
+                "my-courses"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Exams",
+          "id": "efa4e754-5f63-4d86-9036-bab06d880b9d",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/Student/GetMyExams/my-exams",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Student",
+                "GetMyExams",
+                "my-exams"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "id": "0eda79dd-ca4f-47d0-ae8f-45cffcc73501"
+    },
+    {
+      "name": "Student Exam Attempt",
+      "item": [
+        {
+          "name": "Start Exam",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.attemptId) {",
+                  "        pm.collectionVariables.set('attemptId', jsonData.data.attemptId);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "id": "ba5feb29-edb3-40b8-9b51-1c25fb5fec21"
+              }
+            }
+          ],
+          "id": "6e5c120b-9d04-4038-911d-f0efdaa8d726",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/StudentExamAttempt/StartExam/start/{{examId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "StudentExamAttempt",
+                "StartExam",
+                "start",
+                "{{examId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Submit Exam",
+          "id": "5eed4ee5-606d-4c76-9ea8-2797269a81c5",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"questionId\": \"{{questionId}}\",\n    \"choiceId\": \"{{choiceId}}\"\n  }\n]"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/StudentExamAttempt/SubmitExam/submit/{{attemptId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "StudentExamAttempt",
+                "SubmitExam",
+                "submit",
+                "{{attemptId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Student Attempts (Instructor)",
+          "id": "864336df-fc26-4dbe-8510-d73644dae56b",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/StudentExamAttempt/GetAllStudentAttempts/instructor/studentattempts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "StudentExamAttempt",
+                "GetAllStudentAttempts",
+                "instructor",
+                "studentattempts"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Specific Student Attempts",
+          "id": "2bc867de-b5f1-4347-8bce-45ea5014bfc9",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/StudentExamAttempt/GetSpecificStudentAttempts/{{studentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "StudentExamAttempt",
+                "GetSpecificStudentAttempts",
+                "{{studentId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Attempts (Student)",
+          "id": "70ec7a7b-ed7d-4fa5-9c7e-9d720b0b4c16",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/StudentExamAttempt/GetMyAttempts/student/myattempts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "StudentExamAttempt",
+                "GetMyAttempts",
+                "student",
+                "myattempts"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "id": "648f71d4-0c85-4f16-bc0f-bbae86c5edef"
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "id": "ed9c57ca-26e8-4d83-8a53-b6c27d5818c0",
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "id": "cbd0f2d6-87f5-486f-a66d-924b408402a9",
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "id": "4b388931-b044-495e-8158-c1a34e8d2f1d",
+      "key": "baseUrl",
+      "value": "http://localhost:5001"
+    },
+    {
+      "id": "3b22a619-fa77-4248-875c-fead7364b8b9",
+      "key": "instructorToken",
+      "value": ""
+    },
+    {
+      "id": "319bee74-0ad2-4aa8-963e-721e75ddc29f",
+      "key": "courseId",
+      "value": ""
+    },
+    {
+      "id": "4ee26629-b9ce-4710-99f3-fd7c436fa3de",
+      "key": "examId",
+      "value": ""
+    },
+    {
+      "id": "b20bf9d0-86de-4467-9c58-b7d03e21df47",
+      "key": "questionId",
+      "value": ""
+    },
+    {
+      "id": "bc0c42c0-ca8a-4ad3-b46a-6909bb51804f",
+      "key": "studentId",
+      "value": ""
+    },
+    {
+      "id": "09464ba6-c024-4f9d-a51f-aa367b1f7440",
+      "key": "attemptId",
+      "value": ""
+    },
+    {
+      "id": "c59038fd-fdff-4ce4-bc53-03cb96ca7732",
+      "key": "authToken",
+      "value": ""
+    }
+  ]
+}
