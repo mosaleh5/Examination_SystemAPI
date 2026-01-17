@@ -1,0 +1,1138 @@
+{
+  "info": {
+    "_postman_id": "9a2be7e1-c65d-4722-b5b7-e63d03945629",
+    "name": "Examination System API After Data Seeding",
+    "description": "Complete API collection for Examination System with seeding data",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Account",
+      "item": [
+        {
+          "name": "Login Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.token) {",
+                  "        pm.collectionVariables.set('token', jsonData.data.token);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "id": "27149982-c627-4a0d-8dc3-7c75bcda9ebf"
+              }
+            }
+          ],
+          "id": "e1753571-66c0-4903-bcbd-88beece967bd",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@exam.com\",\n  \"password\": \"Admin@123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Account/Login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Account",
+                "Login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login Instructor (Ahmed)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.token) {",
+                  "        pm.collectionVariables.set('token', jsonData.data.token);",
+                  "        pm.collectionVariables.set('instructorId', jsonData.data.id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "id": "1b16c948-bde8-4992-85fd-18d7f854ec33"
+              }
+            }
+          ],
+          "id": "b5b791c0-a8fe-4499-8f61-6214e621802c",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"ahmed.mohammed@example.com\",\n  \"password\": \"Password@123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Account/Login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Account",
+                "Login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login Student (Mohammed Ibrahim)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.token) {",
+                  "        pm.collectionVariables.set('token', jsonData.data.token);",
+                  "        pm.collectionVariables.set('studentId', jsonData.data.id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "id": "656fa6d7-e5d3-4ef7-b986-6eb4465f5a48"
+              }
+            }
+          ],
+          "id": "180b40c0-e357-4845-a5cc-53f86b035f91",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"mohammed.ibrahim@example.com\",\n  \"password\": \"Password@123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Account/Login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Account",
+                "Login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Register New Student",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.token) {",
+                  "        pm.collectionVariables.set('token', jsonData.data.token);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "id": "61a0a1c3-e027-45b1-a173-79793619d09e"
+              }
+            }
+          ],
+          "id": "5555f7e2-8ef4-44ef-99e8-be863a37326b",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Ali\",\n  \"lastName\": \"Hassan\",\n  \"password\": \"Student@123\",\n  \"email\": \"ali.hassan@example.com\",\n  \"phone\": \"+966512345690\",\n  \"major\": \"Computer Science\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Account/RegisterStudent",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Account",
+                "RegisterStudent"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Register New Instructor",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.token) {",
+                  "        pm.collectionVariables.set('token', jsonData.data.token);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "id": "2f98577d-6c1f-4af4-b715-f5a2c11601df"
+              }
+            }
+          ],
+          "id": "a2042051-83b5-424b-9ac4-9423d4ce8a86",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Youssef\",\n  \"lastName\": \"Nasser\",\n  \"password\": \"Instructor@123\",\n  \"email\": \"youssef.nasser@example.com\",\n  \"phone\": \"+966512345691\",\n  \"department\": \"Computer Science\",\n  \"specialization\": \"Software Engineering\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Account/RegisterInstructor",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Account",
+                "RegisterInstructor"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "id": "ac85c62e-6283-44c1-9f63-3b6ca95ff25e"
+    },
+    {
+      "name": "Course",
+      "item": [
+        {
+          "name": "Get All Courses For Instructor",
+          "id": "51ff9fc3-9787-43ed-b7c5-f4d96a6ca6a9",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/Course/GetAllForInstructor",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Course",
+                "GetAllForInstructor"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Course By Id",
+          "id": "6a55f97c-5548-41b1-b368-9c97fd69c6e6",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/Course/GetById/{{courseId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Course",
+                "GetById",
+                "{{courseId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Course",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.id) {",
+                  "        pm.collectionVariables.set('courseId', jsonData.data.id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "id": "8035b96f-47b0-4a31-a609-ea6c312db0eb"
+              }
+            }
+          ],
+          "id": "1f305e4f-51a3-426a-9160-71873e885156",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Mobile Application Development\",\n  \"description\": \"Learn to build mobile apps for iOS and Android\",\n  \"hours\": \"42\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Course/Create",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Course",
+                "Create"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Course",
+          "id": "4832c24d-6768-49b5-b977-ffbcacd11793",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{courseId}}\",\n  \"name\": \"Advanced Mobile Development\",\n  \"description\": \"Advanced mobile app development techniques\",\n  \"hours\": \"48\",\n  \"instructorId\": \"{{instructorId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Course/UpdateCourse/{{courseId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Course",
+                "UpdateCourse",
+                "{{courseId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Assign Student To Course",
+          "id": "db0a419a-f575-4c2a-bced-13dbe85fd4a4",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/Course/AssignStudentToCourse/{{courseId}}/students?studentId={{studentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Course",
+                "AssignStudentToCourse",
+                "{{courseId}}",
+                "students"
+              ],
+              "query": [
+                {
+                  "key": "studentId",
+                  "value": "{{studentId}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Course",
+          "id": "aa39c310-a475-48fe-8837-e45791dee3d3",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/Course/DeleteCourse/{{courseId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Course",
+                "DeleteCourse",
+                "{{courseId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "id": "e733c40d-b286-46bf-9162-281393d6764c"
+    },
+    {
+      "name": "Question",
+      "item": [
+        {
+          "name": "Get All Questions",
+          "id": "62f266e1-cb32-4341-8647-843bd5a2aace",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/Question/GetAll",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Question",
+                "GetAll"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Question By Id",
+          "id": "1ca1e0db-ec29-48b9-93b0-e2a563c56bb0",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/Question/GetById/{{questionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Question",
+                "GetById",
+                "{{questionId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Questions By Course",
+          "id": "68eb6418-cfab-4bbf-a11d-58cb20569539",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/Question/GetByCourse/course/{{courseId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Question",
+                "GetByCourse",
+                "course",
+                "{{courseId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Question",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.id) {",
+                  "        pm.collectionVariables.set('questionId', jsonData.data.id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "id": "1db258a4-f61a-46fd-9c6f-71fcabcaf16d"
+              }
+            }
+          ],
+          "id": "64a0d53c-989f-408b-b57a-7724593ebc80",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"What is dependency injection?\",\n  \"level\": 2,\n  \"mark\": 10,\n  \"courseId\": \"{{courseId}}\",\n  \"choices\": [\n    {\n      \"text\": \"A design pattern that implements IoC for resolving dependencies\",\n      \"isCorrect\": true\n    },\n    {\n      \"text\": \"A database connection pooling technique\",\n      \"isCorrect\": false\n    },\n    {\n      \"text\": \"A way to inject SQL queries\",\n      \"isCorrect\": false\n    },\n    {\n      \"text\": \"A JavaScript framework\",\n      \"isCorrect\": false\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Question/Create",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Question",
+                "Create"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Question",
+          "id": "c59bd4c8-7cc2-4e9e-bbb3-17718a7cbc53",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{questionId}}\",\n  \"text\": \"Explain dependency injection in detail\",\n  \"level\": 3,\n  \"mark\": 15,\n  \"courseId\": \"{{courseId}}\",\n  \"choices\": [\n    {\n      \"id\": \"00000000-0000-0000-0000-000000000000\",\n      \"text\": \"A design pattern for implementing IoC and managing dependencies\",\n      \"isCorrect\": true\n    },\n    {\n      \"id\": \"00000000-0000-0000-0000-000000000000\",\n      \"text\": \"A database connection technique\",\n      \"isCorrect\": false\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Question/Update/{{questionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Question",
+                "Update",
+                "{{questionId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Question",
+          "id": "79835d7b-c732-4415-98ef-22baba39b369",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/Question/Delete/{{questionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Question",
+                "Delete",
+                "{{questionId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "id": "44472a93-3f1e-4f6b-b843-76f84a4361e5"
+    },
+    {
+      "name": "Exam",
+      "item": [
+        {
+          "name": "Get All Exams For Instructor",
+          "id": "dad17b33-d020-4431-9dd8-c187c8b4f816",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/Exam/GetAllExamsForInstructor",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Exam",
+                "GetAllExamsForInstructor"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Exam By Id",
+          "id": "8e346fc9-7bbf-47c0-88f2-c6e932eebead",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/Exam/GetExamsForInstructorById/{{examId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Exam",
+                "GetExamsForInstructorById",
+                "{{examId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Manual Exam",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.id) {",
+                  "        pm.collectionVariables.set('examId', jsonData.data.id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "id": "15585cc4-4ceb-444b-96ea-d13e5dfaec4f"
+              }
+            }
+          ],
+          "id": "78990678-68a6-4584-8bca-fb8ae194bacd",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Programming Advanced Quiz\",\n  \"description\": \"Advanced programming concepts assessment\",\n  \"courseId\": \"{{courseId}}\",\n  \"durationInMinutes\": 60,\n  \"questionsCount\": 15,\n  \"passingPercentage\": 70,\n  \"examType\": 2,\n  \"date\": \"2025-03-15T10:00:00Z\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Exam/CreateExam/manual",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Exam",
+                "CreateExam",
+                "manual"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Automatic Exam",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.id) {",
+                  "        pm.collectionVariables.set('examId', jsonData.data.id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "id": "ccc207dc-8fe0-4f65-8ab4-b5577d965892"
+              }
+            }
+          ],
+          "id": "ec5c73e1-16ad-471b-a8df-5e982ddf84e0",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Auto-Generated Final Exam\",\n  \"date\": \"2025-03-20T14:00:00Z\",\n  \"durationInMinutes\": 120,\n  \"fullmark\": 100,\n  \"examType\": 1,\n  \"passingPercentage\": 60,\n  \"questionsCount\": 20,\n  \"courseId\": \"{{courseId}}\",\n  \"isAutomatic\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Exam/CreateAutomaticExam/automatic",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Exam",
+                "CreateAutomaticExam",
+                "automatic"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add Questions To Exam",
+          "id": "38cd2f28-b246-4426-8100-e1f4dcd2d575",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  \"{{questionId}}\"\n]"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Exam/AddQuestionsToExam/manual/{{examId}}/questions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Exam",
+                "AddQuestionsToExam",
+                "manual",
+                "{{examId}}",
+                "questions"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Replace Exam Questions",
+          "id": "a958e27c-9f84-419d-82ca-7c85dda624d4",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  \"{{questionId}}\"\n]"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Exam/ReplaceExamQuestions/manual/{{examId}}/questions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Exam",
+                "ReplaceExamQuestions",
+                "manual",
+                "{{examId}}",
+                "questions"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Remove Question From Exam",
+          "id": "6502269d-d4ec-4dcd-8fb6-dbef5b7a2cf0",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/Exam/RemoveQuestionFromExam/manual/{{examId}}/questions/{{questionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Exam",
+                "RemoveQuestionFromExam",
+                "manual",
+                "{{examId}}",
+                "questions",
+                "{{questionId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Activate Exam",
+          "id": "4eaadcf3-3027-4a90-a4fd-0f91acfa65c1",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/Exam/ActivateExam/Activate/{{examId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Exam",
+                "ActivateExam",
+                "Activate",
+                "{{examId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Assign Student To Exam",
+          "id": "7f86f518-1311-4512-852a-547205ab36f1",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "\"{{studentId}}\""
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Exam/AssignStudentToExam/{{examId}}/students",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Exam",
+                "AssignStudentToExam",
+                "{{examId}}",
+                "students"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "id": "f81a66de-7125-4ac4-b471-cf85ad440504"
+    },
+    {
+      "name": "Student",
+      "item": [
+        {
+          "name": "Get My Courses",
+          "id": "d1dce562-561c-4632-ad4f-7a31c329f769",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/Student/GetMyCourses/my-courses",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Student",
+                "GetMyCourses",
+                "my-courses"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Exams",
+          "id": "05102c07-58e6-4eb6-b706-25be22db2a9e",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/Student/GetMyExams/my-exams",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Student",
+                "GetMyExams",
+                "my-exams"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Profile",
+          "id": "7a888652-d861-4643-a3d4-a551f319df87",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/Student/GetMyProfile/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Student",
+                "GetMyProfile",
+                "profile"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "id": "b3100107-a95b-4f85-be6f-cef11753bb99"
+    },
+    {
+      "name": "Student Exam Attempt",
+      "item": [
+        {
+          "name": "Start Exam",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.id) {",
+                  "        pm.collectionVariables.set('attemptId', jsonData.data.id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "id": "d12e58ca-eb2b-4972-a617-88a9de46f538"
+              }
+            }
+          ],
+          "id": "4678c0a9-ecda-4edc-a64c-c0f229e63b40",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/StudentExamAttempt/StartExam/start/{{examId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "StudentExamAttempt",
+                "StartExam",
+                "start",
+                "{{examId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Submit Exam",
+          "id": "9d6b49af-d73b-476d-a6d1-341f943ee31e",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"questionId\": \"{{questionId}}\",\n    \"choiceId\": \"00000000-0000-0000-0000-000000000000\"\n  }\n]"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/StudentExamAttempt/SubmitExam/submit/{{attemptId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "StudentExamAttempt",
+                "SubmitExam",
+                "submit",
+                "{{attemptId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Student Attempts (Instructor)",
+          "id": "71232394-f882-4acc-bc0c-e5b6881c5230",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/StudentExamAttempt/GetAllStudentAttempts/instructor/studentattempts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "StudentExamAttempt",
+                "GetAllStudentAttempts",
+                "instructor",
+                "studentattempts"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Specific Student Attempts",
+          "id": "7a422a3f-98b8-4eed-8d88-b0c0ab056dad",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/StudentExamAttempt/GetSpecificStudentAttempts/{{studentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "StudentExamAttempt",
+                "GetSpecificStudentAttempts",
+                "{{studentId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Attempts (Student)",
+          "id": "c4a7dada-711d-42a5-b7c4-11114551119c",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/StudentExamAttempt/GetMyAttempts/student/myattempts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "StudentExamAttempt",
+                "GetMyAttempts",
+                "student",
+                "myattempts"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "id": "ae492e39-ad1c-4cf1-ad84-82edb2b840f2"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "id": "31b69b7d-c849-4167-8b6c-5d3470ac7205",
+      "key": "baseUrl",
+      "value": "http://localhost:5002",
+      "type": "string"
+    },
+    {
+      "id": "bf08f32f-5c77-4eee-950e-01fc79e479fd",
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "id": "8673b481-3160-4e17-9229-fb1c327082c5",
+      "key": "instructorId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "id": "15a9924f-c53c-4908-8591-b85f26766446",
+      "key": "studentId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "id": "c68e2130-9461-493f-a8e0-c84fc9f94b71",
+      "key": "courseId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "id": "1156bc80-750c-4b34-970c-d9438e62c81c",
+      "key": "examId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "id": "32f7c356-6ebd-4ce1-ab0a-2232ee5fe78b",
+      "key": "questionId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "id": "9c250e97-c311-409b-8877-efdb8a3328db",
+      "key": "attemptId",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

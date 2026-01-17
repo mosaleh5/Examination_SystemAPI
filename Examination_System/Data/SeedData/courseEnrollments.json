@@ -1,0 +1,74 @@
+{
+  "enrollments": [
+    {
+      "studentIndex": 0,
+      "courseIndex": 0,
+      "enrollmentDate": "2024-09-01T00:00:00Z"
+    },
+    {
+      "studentIndex": 0,
+      "courseIndex": 1,
+      "enrollmentDate": "2024-09-01T00:00:00Z"
+    },
+    {
+      "studentIndex": 0,
+      "courseIndex": 3,
+      "enrollmentDate": "2024-09-01T00:00:00Z"
+    },
+    {
+      "studentIndex": 1,
+      "courseIndex": 0,
+      "enrollmentDate": "2024-09-02T00:00:00Z"
+    },
+    {
+      "studentIndex": 1,
+      "courseIndex": 1,
+      "enrollmentDate": "2024-09-02T00:00:00Z"
+    },
+    {
+      "studentIndex": 1,
+      "courseIndex": 2,
+      "enrollmentDate": "2024-09-02T00:00:00Z"
+    },
+    {
+      "studentIndex": 1,
+      "courseIndex": 4,
+      "enrollmentDate": "2024-09-02T00:00:00Z"
+    },
+    {
+      "studentIndex": 2,
+      "courseIndex": 0,
+      "enrollmentDate": "2024-09-03T00:00:00Z"
+    },
+    {
+      "studentIndex": 2,
+      "courseIndex": 1,
+      "enrollmentDate": "2024-09-03T00:00:00Z"
+    },
+    {
+      "studentIndex": 2,
+      "courseIndex": 2,
+      "enrollmentDate": "2024-09-03T00:00:00Z"
+    },
+    {
+      "studentIndex": 2,
+      "courseIndex": 4,
+      "enrollmentDate": "2024-09-03T00:00:00Z"
+    },
+    {
+      "studentIndex": 3,
+      "courseIndex": 0,
+      "enrollmentDate": "2024-09-04T00:00:00Z"
+    },
+    {
+      "studentIndex": 3,
+      "courseIndex": 2,
+      "enrollmentDate": "2024-09-04T00:00:00Z"
+    },
+    {
+      "studentIndex": 3,
+      "courseIndex": 3,
+      "enrollmentDate": "2024-09-04T00:00:00Z"
+    }
+  ]
+}

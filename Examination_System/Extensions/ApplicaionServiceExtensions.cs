@@ -20,6 +20,7 @@ using Examination_System.Services.StudentService.Repository;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace Examination_System.Extensions
 {
@@ -51,9 +52,13 @@ namespace Examination_System.Extensions
             // AutoMapper - scans assembly for all Profile classes
             services.AddAutoMapper(typeof(ApplicationMappingProfile).Assembly);
 
-            services.AddDbContext<Context>(option =>
+            services.AddDbContext<Context>(options =>
             {
-                option.UseSqlServer(configuration.GetConnectionString("DefaultConnection"));
+                options.UseSqlServer
+                (
+                        configuration.GetConnectionString("DefaultConnection"),
+                         sql => sql.EnableRetryOnFailure()
+                );
             });
 
             return services;

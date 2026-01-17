@@ -1,0 +1,194 @@
+{
+  "choices": [
+    {
+      "questionIndex": 0,
+      "text": "A named storage location in memory",
+      "isCorrect": true
+    },
+    {
+      "questionIndex": 0,
+      "text": "A type of loop",
+      "isCorrect": false
+    },
+    {
+      "questionIndex": 0,
+      "text": "A function definition",
+      "isCorrect": false
+    },
+    {
+      "questionIndex": 0,
+      "text": "A class member",
+      "isCorrect": false
+    },
+    {
+      "questionIndex": 1,
+      "text": "Value types store data directly, reference types store a reference to data",
+      "isCorrect": true
+    },
+    {
+      "questionIndex": 1,
+      "text": "They are exactly the same",
+      "isCorrect": false
+    },
+    {
+      "questionIndex": 1,
+      "text": "Reference types are always faster",
+      "isCorrect": false
+    },
+    {
+      "questionIndex": 1,
+      "text": "Value types cannot be modified after creation",
+      "isCorrect": false
+    },
+    {
+      "questionIndex": 2,
+      "text": "Ability of objects to take on many forms",
+      "isCorrect": true
+    },
+    {
+      "questionIndex": 2,
+      "text": "A type of inheritance only",
+      "isCorrect": false
+    },
+    {
+      "questionIndex": 3,
+      "text": "Process of organizing data to reduce redundancy",
+      "isCorrect": true
+    },
+    {
+      "questionIndex": 3,
+      "text": "Creating database indexes",
+      "isCorrect": false
+    },
+    {
+      "questionIndex": 3,
+      "text": "Backing up database data",
+      "isCorrect": false
+    },
+    {
+      "questionIndex": 3,
+      "text": "Encrypting database content",
+      "isCorrect": false
+    },
+    {
+      "questionIndex": 4,
+      "text": "SELECT * FROM TableA INNER JOIN TableB ON TableA.id = TableB.id",
+      "isCorrect": true
+    },
+    {
+      "questionIndex": 4,
+      "text": "SELECT * FROM TableA, TableB",
+      "isCorrect": false
+    },
+    {
+      "questionIndex": 4,
+      "text": "JOIN TableA WITH TableB",
+      "isCorrect": false
+    },
+    {
+      "questionIndex": 4,
+      "text": "MERGE TableA AND TableB",
+      "isCorrect": false
+    },
+    {
+      "questionIndex": 5,
+      "text": "Atomicity, Consistency, Isolation, Durability",
+      "isCorrect": true
+    },
+    {
+      "questionIndex": 5,
+      "text": "Add, Create, Insert, Delete",
+      "isCorrect": false
+    },
+    {
+      "questionIndex": 6,
+      "text": "Model-View-Controller architectural pattern",
+      "isCorrect": true
+    },
+    {
+      "questionIndex": 6,
+      "text": "Multiple Virtual Connections",
+      "isCorrect": false
+    },
+    {
+      "questionIndex": 6,
+      "text": "Main Variable Controller",
+      "isCorrect": false
+    },
+    {
+      "questionIndex": 6,
+      "text": "Memory View Cache",
+      "isCorrect": false
+    },
+    {
+      "questionIndex": 7,
+      "text": "Stateless, resource-based, uses HTTP verbs",
+      "isCorrect": true
+    },
+    {
+      "questionIndex": 7,
+      "text": "Stateful, action-based, uses RPC calls",
+      "isCorrect": false
+    },
+    {
+      "questionIndex": 8,
+      "text": "Authentication verifies identity, authorization verifies permissions",
+      "isCorrect": true
+    },
+    {
+      "questionIndex": 8,
+      "text": "They are the same thing",
+      "isCorrect": false
+    },
+    {
+      "questionIndex": 8,
+      "text": "Authorization happens before authentication",
+      "isCorrect": false
+    },
+    {
+      "questionIndex": 8,
+      "text": "Authentication is only used in web applications",
+      "isCorrect": false
+    },
+    {
+      "questionIndex": 9,
+      "text": "Divide and conquer search in sorted array",
+      "isCorrect": true
+    },
+    {
+      "questionIndex": 9,
+      "text": "Linear search from the beginning",
+      "isCorrect": false
+    },
+    {
+      "questionIndex": 10,
+      "text": "Mechanism to derive new classes from existing ones",
+      "isCorrect": true
+    },
+    {
+      "questionIndex": 10,
+      "text": "A way to hide implementation details",
+      "isCorrect": false
+    },
+    {
+      "questionIndex": 11,
+      "text": "A field that links to the primary key of another table",
+      "isCorrect": true
+    },
+    {
+      "questionIndex": 11,
+      "text": "A unique identifier in a table",
+      "isCorrect": false
+    },
+    {
+      "questionIndex": 11,
+      "text": "A type of index",
+      "isCorrect": false
+    },
+    {
+      "questionIndex": 11,
+      "text": "A database constraint",
+      "isCorrect": false
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "users": [
+    {
+      "userName": "ahmed.mohammed",
+      "firstName": "Ahmed",
+      "lastName": "Mohammed",
+      "email": "ahmed.mohammed@example.com",
+      "emailConfirmed": true,
+      "phoneNumber": "+966512345678",
+      "discriminator": "Instructor"
+    },
+    {
+      "userName": "fatima.ali",
+      "firstName": "Fatima",
+      "lastName": "Ali",
+      "email": "fatima.ali@example.com",
+      "emailConfirmed": true,
+      "phoneNumber": "+966512345679",
+      "discriminator": "Instructor"
+    },
+    {
+      "userName": "sara.hassan",
+      "firstName": "Sara",
+      "lastName": "Hassan",
+      "email": "sara.hassan@example.com",
+      "emailConfirmed": true,
+      "phoneNumber": "+966512345680",
+      "discriminator": "Instructor"
+    },
+    {
+      "userName": "mohammed.ibrahim",
+      "firstName": "Mohammed",
+      "lastName": "Ibrahim",
+      "email": "mohammed.ibrahim@example.com",
+      "emailConfirmed": true,
+      "phoneNumber": "+966512345681",
+      "discriminator": "Student",
+      "major": "Computer Science",
+      "enrollmentDate": "2024-09-01T00:00:00Z"
+    },
+    {
+      "userName": "noor.abdullah",
+      "firstName": "Noor",
+      "lastName": "Abdullah",
+      "email": "noor.abdullah@example.com",
+      "emailConfirmed": true,
+      "phoneNumber": "+966512345682",
+      "discriminator": "Student",
+      "major": "Information Technology",
+      "enrollmentDate": "2024-09-02T00:00:00Z"
+    },
+    {
+      "userName": "layla.saeed",
+      "firstName": "Layla",
+      "lastName": "Saeed",
+      "email": "layla.saeed@example.com",
+      "emailConfirmed": true,
+      "phoneNumber": "+966512345683",
+      "discriminator": "Student",
+      "major": "Software Engineering",
+      "enrollmentDate": "2024-09-03T00:00:00Z"
+    },
+    {
+      "userName": "omar.khalid",
+      "firstName": "Omar",
+      "lastName": "Khalid",
+      "email": "omar.khalid@example.com",
+      "emailConfirmed": true,
+      "phoneNumber": "+966512345684",
+      "discriminator": "Student",
+      "major": "Cybersecurity",
+      "enrollmentDate": "2024-09-04T00:00:00Z"
+    }
+  ]
+}

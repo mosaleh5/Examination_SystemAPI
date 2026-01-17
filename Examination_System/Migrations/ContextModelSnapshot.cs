@@ -51,7 +51,7 @@ namespace Examination_System.Migrations
 
                     b.HasIndex("QuestionId");
 
-                    b.ToTable("Choices", (string)null);
+                    b.ToTable("Choices");
                 });
 
             modelBuilder.Entity("Examination_System.Models.Course", b =>
@@ -88,7 +88,7 @@ namespace Examination_System.Migrations
 
                     b.HasIndex("InstructorId");
 
-                    b.ToTable("Courses", (string)null);
+                    b.ToTable("Courses");
                 });
 
             modelBuilder.Entity("Examination_System.Models.CourseEnrollment", b =>
@@ -121,7 +121,7 @@ namespace Examination_System.Migrations
 
                     b.HasIndex("StudentId");
 
-                    b.ToTable("CourseEnrollments", (string)null);
+                    b.ToTable("CourseEnrollments");
                 });
 
             modelBuilder.Entity("Examination_System.Models.Exam", b =>
@@ -186,7 +186,7 @@ namespace Examination_System.Migrations
 
                     b.HasIndex("InstructorId");
 
-                    b.ToTable("Exams", (string)null);
+                    b.ToTable("Exams");
                 });
 
             modelBuilder.Entity("Examination_System.Models.ExamAssignment", b =>
@@ -225,7 +225,7 @@ namespace Examination_System.Migrations
 
                     b.HasIndex("StudentId", "ExamId");
 
-                    b.ToTable("ExamAssignments", (string)null);
+                    b.ToTable("ExamAssignments");
                 });
 
             modelBuilder.Entity("Examination_System.Models.ExamAttempt", b =>
@@ -276,7 +276,7 @@ namespace Examination_System.Migrations
 
                     b.HasIndex("StudentId", "ExamId");
 
-                    b.ToTable("ExamAttempts", (string)null);
+                    b.ToTable("ExamAttempts");
                 });
 
             modelBuilder.Entity("Examination_System.Models.ExamQuestion", b =>
@@ -309,7 +309,7 @@ namespace Examination_System.Migrations
                     b.HasIndex("ExamId", "QuestionId")
                         .IsUnique();
 
-                    b.ToTable("ExamQuestions", (string)null);
+                    b.ToTable("ExamQuestions");
                 });
 
             modelBuilder.Entity("Examination_System.Models.Instructor", b =>
@@ -360,6 +360,9 @@ namespace Examination_System.Migrations
                     b.Property<int>("Level")
                         .HasColumnType("int");
 
+                    b.Property<int>("Mark")
+                        .HasColumnType("int");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(500)
@@ -368,16 +371,13 @@ namespace Examination_System.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("mark")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.HasIndex("CourseId");
 
                     b.HasIndex("InstructorId");
 
-                    b.ToTable("Questions", (string)null);
+                    b.ToTable("Questions");
                 });
 
             modelBuilder.Entity("Examination_System.Models.Student", b =>
@@ -452,7 +452,7 @@ namespace Examination_System.Migrations
                         .IsUnique()
                         .HasDatabaseName("IX_StudentAnswers_AttemptId_QuestionId");
 
-                    b.ToTable("StudentAnswers", (string)null);
+                    b.ToTable("StudentAnswers");
                 });
 
             modelBuilder.Entity("Examination_System.Models.User", b =>

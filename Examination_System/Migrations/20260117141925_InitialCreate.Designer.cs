@@ -12,15 +12,15 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Examination_System.Migrations
 {
     [DbContext(typeof(Context))]
-    [Migration("20260110001916_initCreate")]
-    partial class initCreate
+    [Migration("20260117141925_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.18")
+                .HasAnnotation("ProductVersion", "9.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -363,6 +363,9 @@ namespace Examination_System.Migrations
                     b.Property<int>("Level")
                         .HasColumnType("int");
 
+                    b.Property<int>("Mark")
+                        .HasColumnType("int");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(500)
@@ -370,9 +373,6 @@ namespace Examination_System.Migrations
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
-
-                    b.Property<int>("mark")
-                        .HasColumnType("int");
 
                     b.HasKey("Id");
 

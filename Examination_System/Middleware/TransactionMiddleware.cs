@@ -1,4 +1,5 @@
 ﻿using Examination_System.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace Examination_System.Middleware
 {
@@ -10,22 +11,25 @@ namespace Examination_System.Middleware
         {
             _context = context;
         }
-
         public async Task InvokeAsync(HttpContext httpContext, RequestDelegate next)
         {
-            
-            
-            await using var transaction = await _context.Database.BeginTransactionAsync();
-            try
+            var strategy = _context.Database.CreateExecutionStrategy();
+
+            await strategy.ExecuteAsync(async () =>
             {
-                await next(httpContext);
-                await transaction.CommitAsync();
-            }
-            catch
-            {
-                await transaction.RollbackAsync();
-                throw;
-            }
+                await using var transaction = await _context.Database.BeginTransactionAsync();
+                try
+                {
+                    await next(httpContext);
+ 
+                    await transaction.CommitAsync();
+                }
+                catch (Exception)
+                {
+                    await transaction.RollbackAsync();
+                    throw; 
+                }
+            });
         }
     }
 }

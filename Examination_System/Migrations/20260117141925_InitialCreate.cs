@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Examination_System.Migrations
 {
     /// <inheritdoc />
-    public partial class init : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -298,12 +298,10 @@ namespace Examination_System.Migrations
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Title = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
-                    mark = table.Column<int>(type: "int", nullable: false),
+                    Mark = table.Column<int>(type: "int", nullable: false),
                     Level = table.Column<int>(type: "int", nullable: false),
                     InstructorId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CourseId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    CourseId1 = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    InstructorId1 = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
@@ -318,21 +316,11 @@ namespace Examination_System.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Questions_Courses_CourseId1",
-                        column: x => x.CourseId1,
-                        principalTable: "Courses",
-                        principalColumn: "Id");
-                    table.ForeignKey(
                         name: "FK_Questions_Instructors_InstructorId",
                         column: x => x.InstructorId,
                         principalTable: "Instructors",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Questions_Instructors_InstructorId1",
-                        column: x => x.InstructorId1,
-                        principalTable: "Instructors",
-                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -593,19 +581,9 @@ namespace Examination_System.Migrations
                 column: "CourseId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Questions_CourseId1",
-                table: "Questions",
-                column: "CourseId1");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Questions_InstructorId",
                 table: "Questions",
                 column: "InstructorId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Questions_InstructorId1",
-                table: "Questions",
-                column: "InstructorId1");
 
             migrationBuilder.CreateIndex(
                 name: "IX_StudentAnswers_AttemptId_QuestionId",

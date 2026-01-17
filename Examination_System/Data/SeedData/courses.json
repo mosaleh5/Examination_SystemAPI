@@ -1,0 +1,67 @@
+{
+  "courses": [
+    {
+      "name": "Introduction to Programming",
+      "description": "Learn the fundamentals of programming using C#",
+      "hours": "40",
+      "instructorIndex": 0
+    },
+    {
+      "name": "Database Management",
+      "description": "Learn SQL and database design principles",
+      "hours": "35",
+      "instructorIndex": 1
+    },
+    {
+      "name": "Web Development",
+      "description": "Build modern web applications with ASP.NET Core",
+      "hours": "45",
+      "instructorIndex": 2
+    },
+    {
+      "name": "Data Structures and Algorithms",
+      "description": "Master fundamental data structures and algorithms",
+      "hours": "50",
+      "instructorIndex": 0
+    },
+    {
+      "name": "Software Engineering",
+      "description": "Learn software development lifecycle and best practices",
+      "hours": "38",
+      "instructorIndex": 1
+    }
+  ]
+}{
+  "courses": [
+    {
+      "name": "Introduction to Programming",
+      "description": "Learn the fundamentals of programming using C#",
+      "hours": "40",
+      "instructorIndex": 0
+    },
+    {
+      "name": "Database Management",
+      "description": "Learn SQL and database design principles",
+      "hours": "35",
+      "instructorIndex": 1
+    },
+    {
+      "name": "Web Development",
+      "description": "Build modern web applications with ASP.NET Core",
+      "hours": "45",
+      "instructorIndex": 2
+    },
+    {
+      "name": "Data Structures and Algorithms",
+      "description": "Master fundamental data structures and algorithms",
+      "hours": "50",
+      "instructorIndex": 0
+    },
+    {
+      "name": "Software Engineering",
+      "description": "Learn software development lifecycle and best practices",
+      "hours": "38",
+      "instructorIndex": 1
+    }
+  ]
+}

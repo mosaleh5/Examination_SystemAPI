@@ -1,0 +1,28 @@
+{
+  "examQuestions": [
+    {
+      "examIndex": 0,
+      "questionIndices": [0, 1, 2]
+    },
+    {
+      "examIndex": 1,
+      "questionIndices": [3, 4, 5, 11]
+    },
+    {
+      "examIndex": 2,
+      "questionIndices": [6, 7, 8]
+    },
+    {
+      "examIndex": 3,
+      "questionIndices": [9, 0, 10]
+    },
+    {
+      "examIndex": 4,
+      "questionIndices": [7, 5, 10]
+    },
+    {
+      "examIndex": 5,
+      "questionIndices": [2, 9, 10]
+    }
+  ]
+}

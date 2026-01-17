@@ -1,0 +1,88 @@
+{
+  "questions": [
+    {
+      "title": "What is a variable in programming?",
+      "mark": 5,
+      "level": 0,
+      "instructorIndex": 0,
+      "courseIndex": 0
+    },
+    {
+      "title": "Explain the difference between value types and reference types in C#.",
+      "mark": 10,
+      "level": 1,
+      "instructorIndex": 0,
+      "courseIndex": 0
+    },
+    {
+      "title": "What is polymorphism and how is it implemented?",
+      "mark": 15,
+      "level": 2,
+      "instructorIndex": 0,
+      "courseIndex": 0
+    },
+    {
+      "title": "What is normalization in databases?",
+      "mark": 5,
+      "level": 0,
+      "instructorIndex": 0,
+      "courseIndex": 0
+    },
+    {
+      "title": "Write a SQL query to perform an INNER JOIN between two tables.",
+      "mark": 15,
+      "level": 2,
+      "instructorIndex": 0,
+      "courseIndex": 0
+    },
+    {
+      "title": "Explain ACID properties in database transactions.",
+      "mark": 10,
+      "level": 1,
+      "instructorIndex": 0,
+      "courseIndex": 0
+    },
+    {
+      "title": "What is the MVC pattern?",
+      "mark": 5,
+      "level": 0,
+      "instructorIndex": 0,
+      "courseIndex": 0
+    },
+    {
+      "title": "Explain RESTful API design principles.",
+      "mark": 10,
+      "level": 1,
+      "instructorIndex": 0,
+      "courseIndex": 0
+    },
+    {
+      "title": "What is the difference between authentication and authorization?",
+      "mark": 10,
+      "level": 1,
+      "instructorIndex": 0,
+      "courseIndex": 0
+    },
+    {
+      "title": "Implement a binary search algorithm.",
+      "mark": 15,
+      "level": 2,
+      "instructorIndex": 0,
+      "courseIndex": 0
+    },
+    {
+      "title": "Explain the concept of inheritance in OOP.",
+      "mark": 10,
+      "level": 1,
+      "instructorIndex": 0,
+      "courseIndex": 0
+    },
+    {
+      "title": "What is a foreign key?",
+      "mark": 5,
+      "level": 0,
+      "instructorIndex": 0,
+      "courseIndex": 0
+    }
+  ]
+}
