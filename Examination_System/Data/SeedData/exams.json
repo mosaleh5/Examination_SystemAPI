@@ -1,0 +1,64 @@
+{
+  "exams": [
+    {
+      "title": "Programming Midterm Exam",
+      "date": "2025-01-15T10:00:00Z",
+      "durationInMinutes": 90,
+      "fullmark": 100,
+      "examType": 1,
+      "questionsCount": 20,
+      "courseIndex": 0,
+      "instructorIndex": 0
+    },
+    {
+      "title": "Database Final Exam",
+      "date": "2025-02-20T14:00:00Z",
+      "durationInMinutes": 120,
+      "fullmark": 100,
+      "examType": 1,
+      "questionsCount": 25,
+      "courseIndex": 1,
+      "instructorIndex": 1
+    },
+    {
+      "title": "Web Development Quiz 1",
+      "date": "2025-01-10T09:00:00Z",
+      "durationInMinutes": 30,
+      "fullmark": 20,
+      "examType": 0,
+      "questionsCount": 10,
+      "courseIndex": 2,
+      "instructorIndex": 2
+    },
+    {
+      "title": "Data Structures Midterm",
+      "date": "2025-01-25T11:00:00Z",
+      "durationInMinutes": 90,
+      "fullmark": 100,
+      "examType": 1,
+      "questionsCount": 18,
+      "courseIndex": 3,
+      "instructorIndex": 0
+    },
+    {
+      "title": "Software Engineering Final",
+      "date": "2025-02-28T13:00:00Z",
+      "durationInMinutes": 120,
+      "fullmark": 100,
+      "examType": 1,
+      "questionsCount": 22,
+      "courseIndex": 4,
+      "instructorIndex": 1
+    },
+    {
+      "title": "Programming Final Exam",
+      "date": "2025-02-10T10:00:00Z",
+      "durationInMinutes": 120,
+      "fullmark": 100,
+      "examType": 1,
+      "questionsCount": 30,
+      "courseIndex": 0,
+      "instructorIndex": 0
+    }
+  ]
+}

@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Examination_System.Models;
 using Examination_System.Data.SeedData;
+using Microsoft.EntityFrameworkCore;
+
 
 using Examination_System.Middleware;
 
@@ -16,6 +18,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddApplicationServices(builder.Configuration);
 builder.Services.AddIdentityServices(builder.Configuration);
 builder.Services.AddScoped<TransactionMiddleware>();
+builder.Services.AddScoped<JsonSeedingService>();
 //builder.Services.AddScoped<GlobalExceptionHandlerMiddleware>();
 
 var app = builder.Build();
@@ -33,16 +36,16 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var context = scope.ServiceProvider.GetRequiredService<Context>();
-        var logger = scope.ServiceProvider.GetRequiredService<ILogger<DatabaseSeeder>>();
-        await context.Database.MigrateAsync();//update database to latest migration
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<JsonSeedingService>>();
+        await context.Database.MigrateAsync();
 
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
-        // Fix: Use IdentityRole<Guid> to match Context.cs
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
         logger.LogInformation("Starting database seeding...");
         await UserDataSeeding.UserSeedingAsync(userManager, roleManager);
-        logger.LogInformation("User seeding completed");
-        await DatabaseSeeder.SeedAsync(context, logger);
+        var jsonSeedingService = scope.ServiceProvider.GetRequiredService<JsonSeedingService>();
+        await jsonSeedingService.SeedFromJsonAsync(context, userManager, roleManager, logger);
+
         logger.LogInformation("Database seeding completed");
     }
     catch (Exception ex)

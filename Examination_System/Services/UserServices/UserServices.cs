@@ -88,7 +88,6 @@ namespace Examination_System.Services.UserServices
                 return Result<UserDto>.ValidaitonFailure(validationResult);
             }
 
-            await using var transaction = await _unitOfWork.BeginTransactionAsync();
 
             var user = new User
             {
@@ -102,7 +101,7 @@ namespace Examination_System.Services.UserServices
             var result = await _userManager.CreateAsync(user, registerDto.Password);
             if (!result.Succeeded)
             {
-                await transaction.RollbackAsync();
+              
                 return Result<UserDto>.Failure(
                     ErrorCode.BadRequest,
                     string.Join(", ", result.Errors.Select(e => e.Description)));
@@ -122,13 +121,13 @@ namespace Examination_System.Services.UserServices
 
             if (rowsAffected == null || rowsAffected < 1)
             {
-                await transaction.RollbackAsync();
+               
                 return Result<UserDto>.Failure(
                     ErrorCode.DatabaseError,
                     "Failed to create instructor record");
             }
 
-            await transaction.CommitAsync();
+           
 
             var roles = await _userManager.GetRolesAsync(user);
             var userDto = new UserDto

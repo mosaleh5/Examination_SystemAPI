@@ -1,4 +1,4 @@
-using Examination_System.Models;
+/*using Examination_System.Models;
 using Microsoft.EntityFrameworkCore;
 using static Examination_System.Models.Question;
 
@@ -136,7 +136,7 @@ namespace Examination_System.Data
             return;
         }
 
-     /*   var users = SeedData.GetUsers();
+     *//*   var users = SeedData.GetUsers();
         _context.Users.AddRange(users);
         await _context.SaveChangesAsync();
         _logger.LogInformation($"Seeded {users.Count} users");
@@ -159,7 +159,7 @@ namespace Examination_System.Data
         var exams = SeedData.GetExams(courses, instructors);
         _context.Exams.AddRange(exams);
         await _context.SaveChangesAsync();
-        _logger.LogInformation($"Seeded {exams.Count} exams");*/
+        _logger.LogInformation($"Seeded {exams.Count} exams");*//*
 
         var questions = SeedingData.GetQuestions();
         _context.Questions.AddRange(questions);
@@ -171,7 +171,7 @@ namespace Examination_System.Data
         await _context.SaveChangesAsync();
         _logger.LogInformation($"Seeded {choices.Count} choices");
 
-    /*    var examQuestions = SeedData.GetExamQuestions(exams, questions);
+    *//*    var examQuestions = SeedData.GetExamQuestions(exams, questions);
         _context.ExamQuestions.AddRange(examQuestions);
         await _context.SaveChangesAsync();
         _logger.LogInformation($"Seeded {examQuestions.Count} exam questions");
@@ -184,7 +184,7 @@ namespace Examination_System.Data
         var examAssignments = SeedData.GetExamAssignments(students, exams);
         _context.ExamAssignments.AddRange(examAssignments);
         await _context.SaveChangesAsync();
-        _logger.LogInformation($"Seeded {examAssignments.Count} exam assignments");*/
+        _logger.LogInformation($"Seeded {examAssignments.Count} exam assignments");*//*
 
         _logger.LogInformation("Database seeding completed successfully!");
     }
@@ -195,4 +195,4 @@ namespace Examination_System.Data
     }
 }
     }
-}
+}*/
