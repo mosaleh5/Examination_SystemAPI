@@ -30,7 +30,6 @@
 
   <ItemGroup>
     <Folder Include="Migrations\" />
-    <Folder Include="Services\BackgroundServices\" />
   </ItemGroup>
 
 </Project>
