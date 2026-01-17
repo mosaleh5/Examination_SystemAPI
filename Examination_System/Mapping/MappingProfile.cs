@@ -1,4 +1,4 @@
-using AutoMapper;
+/*using AutoMapper;
 using Examination_System.DTOs.Question;
 using Examination_System.DTOs.Exam;
 using Examination_System.ViewModels.Question;
@@ -23,7 +23,7 @@ namespace Examination_System.Mapping
             // Choice mappings - QuestionId doesn't exist in ChoiceDto, so ignore it
             CreateMap<ChoiceDto, ChoiceToReturnViewModel>()
                 .ForMember(dest => dest.QuestionId, opt => opt.Ignore());
-            
+
             // Exam mappings
             CreateMap<CreateExamViewModel, CreateExamDto>();
             CreateMap<CreateAutomaticExamViewModel, CreateAutomaticExamDto>();
@@ -35,13 +35,14 @@ namespace Examination_System.Mapping
             // ExamAttempt mappings - Entity to DTO
             CreateMap<ExamAttempt, ExamAttemptDto>();
             CreateMap<StudentAnswer, StudentAnswerDto>();
-            
+
             // ExamAttempt mappings - DTO to ViewModel
             CreateMap<ExamAttemptDto, ExamAttemptResponseForStudentViewModel>();
             CreateMap<StudentAnswerDto, AttemptAnswerResponseForStudentViewModel>();
-            
+
             // SubmitAnswer mappings
             CreateMap<SubmitAnswerForStudentViewModel, SubmitAnswerDto>();
+            CreateMap<Exam, ExamToAttemptDto>();
         }
     }
-}
+}*/

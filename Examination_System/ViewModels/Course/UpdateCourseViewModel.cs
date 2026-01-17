@@ -15,7 +15,7 @@ namespace Examination_System.ViewModels.Course
         [RegularExpression(@"^\d+$", ErrorMessage = "Hours must be a valid number")]
         public string Hours { get; set; } = string.Empty;
 
-        [Range(1, int.MaxValue, ErrorMessage = "Invalid instructor ID")]
-        public string? InstructorId { get; set; }
+        //[Range(1, int.MaxValue, ErrorMessage = "Invalid instructor ID")]
+        public Guid? InstructorId { get; set; }
     }
 }

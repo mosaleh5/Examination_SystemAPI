@@ -2,7 +2,7 @@ using AutoMapper;
 using Examination_System.DTOs.Auth;
 using Examination_System.ViewModels.Auth;
 
-namespace Examination_System.Mapping
+namespace Examination_System.MappingProfiles
 {
     public class AuthMappingProfile : Profile
     {

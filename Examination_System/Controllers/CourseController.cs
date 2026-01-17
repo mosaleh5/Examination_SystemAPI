@@ -13,163 +13,106 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Examination_System.Controllers
 {
-    [Authorize(Roles = "Instructor , Admin")]
+    [Authorize(Roles = "Instructor,Admin")]
     [ValidateUserAuthentication]
     public class CourseController : BaseController
     {
         private readonly ICourseServices _courseServices;
         private readonly ICurrentUserServices _currentUserServices;
-        private readonly IMapper _mapper;
 
         public CourseController(
             ICourseServices courseServices,
             ICurrentUserServices currentUserServices,
-            IMapper mapper)
+            IMapper mapper) : base(mapper)
         {
             _courseServices = courseServices;
             _currentUserServices = currentUserServices;
-            _mapper = mapper;
         }
 
         [HttpGet]
-        [ProducesResponseType(typeof(ResponseViewModel<IEnumerable<CourseDtoToReturn>>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ResponseViewModel<object>), StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<ResponseViewModel<IEnumerable<CourseDtoToReturn>>>> GetAllForInstructor()
         {
             var result = await _courseServices.GetAllForInstructorAsync(_currentUserServices.UserId);
-
-            return result.IsSuccess 
-                ? Ok(ResponseViewModel<IEnumerable<CourseDtoToReturn>>.Success(result.Data))
-                : BadRequest(ResponseViewModel<IEnumerable<CourseDtoToReturn>>.Failure(result.Error, result.ErrorMessage));
+            return ToResponse<CourseDtoToReturn, CourseDtoToReturn>(result);
         }
 
         [HttpGet("{courseId}")]
-        [ProducesResponseType(typeof(ResponseViewModel<CourseDetailsDto>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ResponseViewModel<object>), StatusCodes.Status404NotFound)]
-        [ProducesResponseType(typeof(ResponseViewModel<object>), StatusCodes.Status401Unauthorized)]
         public async Task<ActionResult<ResponseViewModel<CourseResponseViewModel>>> GetById(Guid courseId)
         {
             if (_currentUserServices.UserId == null)
                 return Unauthorized(ResponseViewModel<CourseResponseViewModel>.Failure(
-                    ErrorCode.Unauthorized,
-                    "User not authenticated"));
+                    ErrorCode.Unauthorized, "User not authenticated"));
 
             var result = await _courseServices.GetByIdAsync(courseId, _currentUserServices.UserId);
-            var Data = _mapper.Map<CourseResponseViewModel>(result.Data);
-            
-            return result.IsSuccess 
-                ? Ok(ResponseViewModel<CourseResponseViewModel>.Success(Data))
-                : BadRequest(ResponseViewModel<CourseResponseViewModel>.Failure(result.Error, result.ErrorMessage));
+            return ToResponse<CourseDtoToReturn, CourseResponseViewModel>(result);
         }
 
         [HttpPost]
-        [ProducesResponseType(typeof(ResponseViewModel<CourseResponseViewModel>), StatusCodes.Status201Created)]
-        [ProducesResponseType(typeof(ResponseViewModel<CourseResponseViewModel>), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ResponseViewModel<CourseResponseViewModel>), StatusCodes.Status401Unauthorized)]
         public async Task<ActionResult<ResponseViewModel<CourseResponseViewModel>>> Create([FromBody] CreateCourseViewModel createCourseViewModel)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ResponseViewModel<CourseResponseViewModel>.Failure(
-                    ErrorCode.ValidationError,
-                    GetValidationErrors()));
+                return ValidationError<CourseResponseViewModel>();
 
             var createCourseDto = _mapper.Map<CreateCourseDto>(createCourseViewModel);
             createCourseDto.InstructorId = _currentUserServices.UserId;
 
             var result = await _courseServices.CreateAsync(createCourseDto);
-            var Data = _mapper.Map<CourseResponseViewModel>(result.Data);
-
-
-            return result.IsSuccess 
-                ? CreatedAtAction(
-                    nameof(GetById),
-                    new { courseId = result.Data.Id },
-                    ResponseViewModel<CourseDtoToReturn>.Success(result.Data, "Course created successfully"))
-                : BadRequest(ResponseViewModel<CourseDtoToReturn>.Failure(
-                    result.Error, 
-                    "An error occurred when creating course\n" + result.ErrorMessage));
+            return ToResponse<CourseDtoToReturn, CourseResponseViewModel>(result, "Course created successfully");
         }
 
         [HttpPatch("{courseId}/students")]
         [Authorize(Roles = "Instructor,Admin")]
-        [ProducesResponseType(typeof(ResponseViewModel<Result>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ResponseViewModel<object>), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ResponseViewModel<object>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ResponseViewModel<object>), StatusCodes.Status404NotFound)]
         public async Task<ActionResult<ResponseViewModel<Result>>> AssignStudentToCourse(Guid courseId, Guid studentId)
         {
+
             if (!ModelState.IsValid)
-                return BadRequest(ResponseViewModel<Result>.Failure(
-                    ErrorCode.ValidationError,
-                    GetValidationErrors()));
+                return ValidationError<Result>();
 
-            var request = new EnrollStudentRequest { CourseId = courseId, StudentId = studentId };
-            
-            // Check if instructor has permission
-            var authResult = await _courseServices.IsInstructorOfCourseAsync(courseId, _currentUserServices.UserId);
-            if (!authResult)
+            var idCheckResult = CheckIds<Result>(courseId, studentId);
+            if (idCheckResult != null)
+                return idCheckResult;
+
+            var CourseEnrollmentDto = new CourseEnrollementDto
             {
-                return Unauthorized(ResponseViewModel<Result>.Failure(
-                    ErrorCode.Unauthorized,
-                    "You are not allowed to assign students to this course"));
-            }
+                CourseId = courseId,
+                StudentId = studentId,
+                InstructorId = _currentUserServices.UserId
 
-            var result = await _courseServices.EnrollStudentInCourseAsync(courseId, studentId, _currentUserServices.UserId);
-
-            return result.IsSuccess 
-                ? Ok(ResponseViewModel<Result>.Success(result, $"Student with ID {studentId} enrolled in course {courseId} successfully"))
-                : BadRequest(ResponseViewModel<Result>.Failure(
-                    result.Error, 
-                    "An error occurred while enrolling the student\n" + result.ErrorMessage));
+            };
+            var result = await _courseServices.EnrollStudentInCourseAsync(CourseEnrollmentDto);
+            return ToResponse(result, $"Student with ID {studentId} enrolled in course {courseId} successfully" , "An errror Aqure ");
         }
 
         [HttpPut("{courseId}")]
-        [ProducesResponseType(typeof(ResponseViewModel<CourseResponseViewModel>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ResponseViewModel<CourseResponseViewModel>), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ResponseViewModel<CourseResponseViewModel>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ResponseViewModel<CourseResponseViewModel>), StatusCodes.Status404NotFound)]
         public async Task<ActionResult<ResponseViewModel<CourseResponseViewModel>>> UpdateCourse(
             Guid courseId,
             [FromBody] UpdateCourseViewModel updateCourseViewModel)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ResponseViewModel<CourseResponseViewModel>.Failure(
-                    ErrorCode.ValidationError,
-                    GetValidationErrors()));
+                return ValidationError<CourseResponseViewModel>();
+
+            if (CheckId<CourseResponseViewModel>(courseId) is { } badResult)
+                return badResult;
 
             if (courseId != updateCourseViewModel.ID)
                 return BadRequest(ResponseViewModel<CourseResponseViewModel>.Failure(
-                    ErrorCode.BadRequest,
-                    "Course ID mismatch"));
+                    ErrorCode.BadRequest, "Course ID mismatch"));
 
             var updateCourseDto = _mapper.Map<UpdateCourseDto>(updateCourseViewModel);
-
             var result = await _courseServices.UpdateAsync(updateCourseDto, _currentUserServices.UserId);
-            var Data = _mapper.Map<CourseResponseViewModel>(result.Data);
-
-            return result.IsSuccess 
-                ? Ok(ResponseViewModel<CourseResponseViewModel>.Success(Data, "Course updated successfully"))
-                : BadRequest(ResponseViewModel<CourseResponseViewModel>.Failure(result.Error, result.ErrorMessage));
+            return ToResponse<CourseDtoToReturn, CourseResponseViewModel>(result, "Course updated successfully", "An Error happen when update course");
         }
 
         [HttpDelete("{courseId}")]
-        [ProducesResponseType(typeof(ResponseViewModel<Result>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ResponseViewModel<object>), StatusCodes.Status404NotFound)]
-        [ProducesResponseType(typeof(ResponseViewModel<object>), StatusCodes.Status401Unauthorized)]
         public async Task<ActionResult<ResponseViewModel<Result>>> DeleteCourse(Guid courseId)
         {
-            if (courseId == null)
-                return BadRequest(ResponseViewModel<Result>.Failure(
-                    ErrorCode.BadRequest,
-                    "Invalid course ID"));
+            if (CheckId<Result>(courseId) is { } badResult)
+                return badResult;
 
             var result = await _courseServices.DeleteAsync(courseId, _currentUserServices.UserId);
-
-            return result.IsSuccess 
-                ? Ok(ResponseViewModel<Result>.Success(result, $"Course with ID {courseId} deleted successfully"))
-                : BadRequest(ResponseViewModel<Result>.Failure(
-                    result.Error, 
-                    "An error occurred when deleting course\n" + result.ErrorMessage));
+            return ToResponse(result, $"Course with ID {courseId} deleted successfully" , "An Error happen when Delete course");
         }
+
+       
     }
 }

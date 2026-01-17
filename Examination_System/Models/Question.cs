@@ -12,7 +12,7 @@ namespace Examination_System.Models
         [MaxLength(500)]
         public string Title { get; set; }
         [Required]
-        public int mark { get; set; }
+        public int Mark { get; set; }
         [Required]
         [ValidateEnum]
         public QuestionLevel Level { get; set; }

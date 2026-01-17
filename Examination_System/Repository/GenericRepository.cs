@@ -121,7 +121,11 @@ namespace Examination_System.Repository
             if (entity == null)
                 return false;
 
-            var result = await ExecuteUpdateAsync(id, t => t.IsDeleted, true);
+            var result = await ExecuteUpdateAsync<T>(t => t.Id == id,
+                setters => setters
+                .SetProperty(s=>s.IsDeleted , true)
+                .SetProperty(s=>s.UpdatedAt , DateTime.UtcNow))
+                ;       
             return result > 0;
         }
 

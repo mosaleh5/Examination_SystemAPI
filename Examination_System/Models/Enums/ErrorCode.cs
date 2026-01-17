@@ -19,6 +19,8 @@
         InvalidInput = 505,
         ExamsNotFound = 506,
         ExamNotFound = 507,
-        ActivateExam = 508
+        ActivateExam = 508,
+        FieldToRemoveQuestion = 509,
+        QuestionNotDeleted = 510
     }
 }

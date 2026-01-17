@@ -5,6 +5,8 @@ using Examination_System.DTOs.Course;
 using Examination_System.Models;
 using Examination_System.Models.Enums;
 using Examination_System.Repository.UnitOfWork;
+using Examination_System.Services.CourseServices.Repository;
+using Examination_System.Services.CourseServices.Validator;
 using Examination_System.Specifications.SpecsForEntity;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
@@ -15,44 +17,47 @@ namespace Examination_System.Services.CourseServices
     {
         private readonly IValidator<CreateCourseDto> _createCourseValidator;
         private readonly IValidator<UpdateCourseDto> _updateCourseValidator;
+        private readonly ICourseRepository _courseRepository;
+        private readonly IValidator<CourseEnrollementDto> _courseEnrollmentDtoValidator;
+        private readonly CourseValidator _courseValidator;
 
         public CourseServices(
-            IUnitOfWork unitOfWork, 
+            IUnitOfWork unitOfWork,
             IMapper mapper,
             IValidator<CreateCourseDto> createCourseValidator,
-            IValidator<UpdateCourseDto> updateCourseValidator) 
+            IValidator<UpdateCourseDto> updateCourseValidator,
+            ICourseRepository courseRepository,
+            IValidator<CourseEnrollementDto> courseEnrollmentDtoValidator,
+            CourseValidator courseValidator
+            )
             : base(unitOfWork, mapper)
         {
             _createCourseValidator = createCourseValidator;
             _updateCourseValidator = updateCourseValidator;
+            _courseRepository = courseRepository;
+            _courseEnrollmentDtoValidator = courseEnrollmentDtoValidator;
+            _courseValidator = courseValidator; 
         }
 
         public async Task<Result<IEnumerable<CourseDtoToReturn>>> GetAllForInstructorAsync(Guid instructorId)
         {
-            if (instructorId == null)
-            {
-                return Result<IEnumerable<CourseDtoToReturn>>.Failure(
-                    ErrorCode.ValidationError,
-                    "Instructor ID is required");
-            }
+            if (instructorId == Guid.Empty)
+                return Result<IEnumerable<CourseDtoToReturn>>
+                    .Failure(ErrorCode.ValidationError, "Instructor ID is required");
 
-            var courseSpec = new CourseSpecifications(c => c.InstructorId == instructorId);
-            var courses = _unitOfWork.Repository<Course>().GetAllWithSpecificationAsync(courseSpec);
-            
-            var courseDetailsDto = await courses
+            var courses = _courseRepository.GetByInstructor(instructorId);
+
+            var result = await courses
                 .ProjectTo<CourseDtoToReturn>(_mapper.ConfigurationProvider)
                 .ToListAsync();
 
-            if (!courseDetailsDto.Any())
-            {
-                return Result<IEnumerable<CourseDtoToReturn>>.Failure(
+            return result.Any()
+                ? Result<IEnumerable<CourseDtoToReturn>>.Success(result)
+                : Result<IEnumerable<CourseDtoToReturn>>.Failure(
                     ErrorCode.NotFound,
                     $"No courses found for instructor {instructorId}");
-            }
-
-            var result = Result<IEnumerable<CourseDtoToReturn>>.Success(courseDetailsDto);
-            return result;
         }
+
 
         public async Task<Result<CourseDtoToReturn>> CreateAsync(CreateCourseDto createDto)
         {
@@ -81,122 +86,50 @@ namespace Examination_System.Services.CourseServices
 
         public async Task<Result<CourseDtoToReturn>> GetByIdAsync(Guid courseId, Guid instructorId)
         {
-            if (courseId == null)
-            {
-                return Result<CourseDtoToReturn>.Failure(
-                    ErrorCode.ValidationError,
-                    "Valid course ID is required");
-            }
+            if (courseId == Guid.Empty)
+                return Result<CourseDtoToReturn>.Failure(ErrorCode.ValidationError, "Course ID is required");
 
-            if (instructorId == null)
-            {
-                return Result<CourseDtoToReturn>.Failure(
-                    ErrorCode.ValidationError,
-                    "Instructor ID is required");
-            }
-            if (! await IsInstructorOfCourseAsync(courseId , instructorId))
-            {
+            if (instructorId == Guid.Empty)
+                return Result<CourseDtoToReturn>.Failure(ErrorCode.ValidationError, "Instructor ID is required");
+
+            if (!await _courseRepository.IsInstructorAsync(courseId, instructorId))
                 return Result<CourseDtoToReturn>.Failure(
                     ErrorCode.Forbidden,
                     "You don't have permission to access this course");
-            }
-            var spec = new CourseSpecifications(c => c.Id == courseId);
-            var courseDetails = await _unitOfWork.Repository<Course>()
-                .GetByIdWithSpecification(spec)
-                .ProjectTo<CourseDtoToReturn>(_mapper.ConfigurationProvider).FirstOrDefaultAsync();
 
-            if (courseDetails == null)
-            {
+            var course = await _courseRepository.GetByIdAsync(courseId);
+            if (course == null)
                 return Result<CourseDtoToReturn>.Failure(
                     ErrorCode.NotFound,
                     $"Course with ID {courseId} not found");
-            }
 
-         
-
-            var result = Result<CourseDtoToReturn>.Success(courseDetails);
-            return result;
+            return Result<CourseDtoToReturn>.Success(
+                _mapper.Map<CourseDtoToReturn>(course));
         }
 
-        public async Task<bool> IsInstructorOfCourseAsync(Guid courseId, Guid instructorId)
+
+
+        public async Task<Result> EnrollStudentInCourseAsync(CourseEnrollementDto courseEnrollementDto)
         {
+            var validationResult = await _courseEnrollmentDtoValidator.ValidateAsync(courseEnrollementDto);
+            if (!validationResult.IsValid)
+            {
+                return Result.ValidaitonFailure(validationResult);
+            }
+
+            var ValidateCourseAndGet = await _courseValidator.ValidateEnrollenmentCourse(courseEnrollementDto);
+            if(!ValidateCourseAndGet.IsSuccess)
+                return ValidateCourseAndGet;
           
-            var isInstructor = await _unitOfWork.Repository<Course>().GetAll()
-                .AnyAsync(c => c.Id == courseId && c.InstructorId == instructorId);
-            return isInstructor;
-        }
-
-        public async Task<Result> EnrollStudentInCourseAsync(Guid courseId, Guid studentId, Guid instructorId)
-        {
-            if (courseId == null)
+            // Enroll student
+            var enrollment = new CourseEnrollment
             {
-                return Result<CourseDtoToReturn>.Failure(
-                    ErrorCode.ValidationError,
-                    "Valid course ID is required");
-            }
-
-            if (instructorId == null)
-            {
-                return Result<CourseDtoToReturn>.Failure(
-                    ErrorCode.ValidationError,
-                    "Instructor ID is required");
-            }
-
-            if (studentId == null)
-            {
-                return Result<CourseDtoToReturn>.Failure(
-                    ErrorCode.ValidationError,
-                    "Instructor ID is required");
-            }
-            if (!await IsInstructorOfCourseAsync(courseId, instructorId))
-            {
-                return Result<CourseDtoToReturn>.Failure(
-                    ErrorCode.Forbidden,
-                    "You don't have permission to access this course");
-            }
-
-            // Check if course exists
-            if (!await _unitOfWork.Repository<Course>().IsExistsAsync(courseId))
-            {
-                return Result.Failure(
-                    ErrorCode.NotFound,
-                    $"Course with ID {courseId} not found");
-            }
-
-            // Check if instructor owns the course
-            var isInstructor = await _unitOfWork.Repository<Course>().GetAll()
-                .AnyAsync(c => c.Id == courseId && c.InstructorId == instructorId);
-
-            if (!isInstructor)
-            {
-                return Result.Failure(
-                    ErrorCode.Forbidden,
-                    "You don't have permission to enroll students in this course");
-            }
-
-            if (!await _unitOfWork.Repository<Student>().IsExistsAsync(studentId))
-            {
-                return Result.Failure(
-                    ErrorCode.NotFound,
-                    $"Student with ID {studentId} not found");
-            }
-
-            if (await IsStudentAlreadyEnrolledAsync(courseId, studentId))
-            {
-                return Result.Failure(
-                    ErrorCode.Conflict,
-                    $"Student {studentId} is already enrolled in course {courseId}");
-            }
-
-            var enrollmentCourse = new CourseEnrollment
-            {
-                CourseId = courseId,
-                StudentId = studentId,
+                CourseId = courseEnrollementDto.CourseId,
+                StudentId = courseEnrollementDto.StudentId,
                 EnrollmentDate = DateTime.UtcNow
             };
 
-            await _unitOfWork.Repository<CourseEnrollment>().Add(enrollmentCourse);
-            
+            await _unitOfWork.Repository<CourseEnrollment>().Add(enrollment);
             var rowsAffected = await _unitOfWork.SaveChangesAsync();
             if (rowsAffected < 1)
             {
@@ -204,14 +137,7 @@ namespace Examination_System.Services.CourseServices
                     ErrorCode.DatabaseError,
                     "Failed to enroll student. Database error occurred.");
             }
-
             return Result.Success();
-        }
-
-        private async Task<bool> IsStudentAlreadyEnrolledAsync(Guid courseId, Guid studentId)
-        {
-            return await _unitOfWork.Repository<CourseEnrollment>().GetAll()
-                .AnyAsync(e => e.CourseId == courseId && e.StudentId == studentId);
         }
 
         public async Task<Result<CourseDtoToReturn>> UpdateAsync(UpdateCourseDto updateCourseDto, Guid userId)
@@ -223,9 +149,7 @@ namespace Examination_System.Services.CourseServices
             }
 
             // Check if course exists
-            var existingCourse = await _unitOfWork.Repository<Course>()
-                .GetAll()
-                .FirstOrDefaultAsync(c => c.Id == updateCourseDto.ID);
+            var existingCourse = await _courseRepository.GetByIdAsync(updateCourseDto.ID);
 
             if (existingCourse == null)
             {
@@ -244,15 +168,7 @@ namespace Examination_System.Services.CourseServices
 
             var course = _mapper.Map<Course>(updateCourseDto);
             await _unitOfWork.Repository<Course>().UpdatePartialAsync(course);
-            
-            var rowsAffected = await _unitOfWork.SaveChangesAsync();
-            if (rowsAffected < 1)
-            {
-                return Result<CourseDtoToReturn>.Failure(
-                    ErrorCode.DatabaseError,
-                    "Failed to update course. Database error occurred.");
-            }
-
+           
             var courseToReturn = _mapper.Map<Course, CourseDtoToReturn>(course);
             var result = Result<CourseDtoToReturn>.Success(courseToReturn);
             return result;
@@ -260,73 +176,19 @@ namespace Examination_System.Services.CourseServices
 
         public async Task<Result> DeleteAsync(Guid courseId, Guid instructorId)
         {
-            if (courseId == null)
-            {
-                return Result<CourseDtoToReturn>.Failure(
-                    ErrorCode.ValidationError,
-                    "Valid course ID is required");
-            }
-
-            if (instructorId == null)
-            {
-                return Result<CourseDtoToReturn>.Failure(
-                    ErrorCode.ValidationError,
-                    "Instructor ID is required");
-            }
-            if (!await IsInstructorOfCourseAsync(courseId, instructorId))
-            {
-                return Result<CourseDtoToReturn>.Failure(
-                    ErrorCode.Forbidden,
-                    "You don't have permission to access this course");
-            }
-
-            var course = await _unitOfWork.Repository<Course>()
-                .GetAll()
-                .FirstOrDefaultAsync(c => c.Id == courseId);
-
-            if (course == null)
-            {
-                return Result.Failure(
-                    ErrorCode.NotFound,
-                    $"Course with ID {courseId} not found");
-            }
-
-            
-            if (course.InstructorId != instructorId)
-            {
-                return Result.Failure(
-                    ErrorCode.Forbidden,
-                    "You are not authorized to delete this course");
-            }
-
-         
-            var hasEnrollments = await _unitOfWork.Repository<CourseEnrollment>()
-                .GetAll()
-                .AnyAsync(ce => ce.CourseId == courseId);
-
-            if (hasEnrollments)
-            {
-                return Result.Failure(
-                    ErrorCode.Conflict,
-                    $"Cannot delete course {courseId} because it has enrolled students");
-            }
-
-            await _unitOfWork.Repository<Course>().DeleteAsync(courseId);
-            
-            var rowsAffected = await _unitOfWork.CompleteAsync();
-            if (rowsAffected < 1)
+          var validationResult = await _courseValidator.ValidateDeleteCourse(courseId, instructorId);
+            if (!validationResult.IsSuccess)
+                return validationResult;
+           var resutl = await _unitOfWork.Repository<Course>().DeleteAsync(courseId);
+            if (!resutl)
             {
                 return Result.Failure(
                     ErrorCode.DatabaseError,
                     "Failed to delete course. Database error occurred.");
             }
-
             return Result.Success();
         }
 
-        public Task<bool> IsInstructorOfCourseAsync(Guid courseId, Guid? instructorId)
-        {
-            throw new NotImplementedException();
-        }
+      
     }
 }

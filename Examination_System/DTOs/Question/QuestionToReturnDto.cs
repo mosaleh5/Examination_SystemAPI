@@ -12,8 +12,8 @@ namespace Examination_System.DTOs.Question
         public string Title { get; set; } = string.Empty;
         public QuestionLevel Level { get; set; }
         public int Mark { get; set; }
-        public Guid CourseId { get; set; }  // Changed from int
-        public Guid InstructorId { get; set; }  // Changed from string
+        public Guid CourseId { get; set; }  
+        public Guid InstructorId { get; set; } 
         public ICollection<ChoiceDto> Choices { get; set; } = new List<ChoiceDto>();
 
       

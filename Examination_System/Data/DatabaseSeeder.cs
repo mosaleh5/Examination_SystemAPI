@@ -46,18 +46,18 @@ namespace Examination_System.Data
                 // Create questions with actual instructor and course IDs
                 var questions = new List<Question>
         {
-            new Question { Title = "What is a variable in programming?", mark = 5, Level = QuestionLevel.Simple, InstructorId = firstInstructor.Id, CourseId = firstCourse.Id, IsDeleted = false, CreatedAt = DateTime.UtcNow },
-            new Question { Title = "Explain the difference between value types and reference types in C#.", mark = 10, Level = QuestionLevel.Medium, InstructorId = firstInstructor.Id, CourseId = firstCourse.Id, IsDeleted = false, CreatedAt = DateTime.UtcNow },
-            new Question { Title = "What is polymorphism and how is it implemented?", mark = 15, Level = QuestionLevel.Hard, InstructorId = firstInstructor.Id, CourseId = firstCourse.Id, IsDeleted = false, CreatedAt = DateTime.UtcNow },
-            new Question { Title = "What is normalization in databases?", mark = 5, Level = QuestionLevel.Simple, InstructorId = firstInstructor.Id, CourseId = firstCourse.Id, IsDeleted = false, CreatedAt = DateTime.UtcNow },
-            new Question { Title = "Write a SQL query to perform an INNER JOIN between two tables.", mark = 15, Level = QuestionLevel.Hard, InstructorId = firstInstructor.Id, CourseId = firstCourse.Id, IsDeleted = false, CreatedAt = DateTime.UtcNow },
-            new Question { Title = "Explain ACID properties in database transactions.", mark = 10, Level = QuestionLevel.Medium, InstructorId = firstInstructor.Id, CourseId = firstCourse.Id, IsDeleted = false, CreatedAt = DateTime.UtcNow },
-            new Question { Title = "What is the MVC pattern?", mark = 5, Level = QuestionLevel.Simple, InstructorId = firstInstructor.Id, CourseId = firstCourse.Id, IsDeleted = false, CreatedAt = DateTime.UtcNow },
-            new Question { Title = "Explain RESTful API design principles.", mark = 10, Level = QuestionLevel.Medium, InstructorId = firstInstructor.Id, CourseId = firstCourse.Id, IsDeleted = false, CreatedAt = DateTime.UtcNow },
-            new Question { Title = "What is the difference between authentication and authorization?", mark = 10, Level = QuestionLevel.Medium, InstructorId = firstInstructor.Id, CourseId = firstCourse.Id, IsDeleted = false, CreatedAt = DateTime.UtcNow },
-            new Question { Title = "Implement a binary search algorithm.", mark = 15, Level = QuestionLevel.Hard, InstructorId = firstInstructor.Id, CourseId = firstCourse.Id, IsDeleted = false, CreatedAt = DateTime.UtcNow },
-            new Question { Title = "Explain the concept of inheritance in OOP.", mark = 10, Level = QuestionLevel.Medium, InstructorId = firstInstructor.Id, CourseId = firstCourse.Id, IsDeleted = false, CreatedAt = DateTime.UtcNow },
-            new Question { Title = "What is a foreign key?", mark = 5, Level = QuestionLevel.Simple, InstructorId = firstInstructor.Id, CourseId = firstCourse.Id, IsDeleted = false, CreatedAt = DateTime.UtcNow }
+            new Question { Title = "What is a variable in programming?", Mark = 5, Level = QuestionLevel.Simple, InstructorId = firstInstructor.Id, CourseId = firstCourse.Id, IsDeleted = false, CreatedAt = DateTime.UtcNow },
+            new Question { Title = "Explain the difference between value types and reference types in C#.", Mark = 10, Level = QuestionLevel.Medium, InstructorId = firstInstructor.Id, CourseId = firstCourse.Id, IsDeleted = false, CreatedAt = DateTime.UtcNow },
+            new Question { Title = "What is polymorphism and how is it implemented?", Mark = 15, Level = QuestionLevel.Hard, InstructorId = firstInstructor.Id, CourseId = firstCourse.Id, IsDeleted = false, CreatedAt = DateTime.UtcNow },
+            new Question { Title = "What is normalization in databases?", Mark = 5, Level = QuestionLevel.Simple, InstructorId = firstInstructor.Id, CourseId = firstCourse.Id, IsDeleted = false, CreatedAt = DateTime.UtcNow },
+            new Question { Title = "Write a SQL query to perform an INNER JOIN between two tables.", Mark = 15, Level = QuestionLevel.Hard, InstructorId = firstInstructor.Id, CourseId = firstCourse.Id, IsDeleted = false, CreatedAt = DateTime.UtcNow },
+            new Question { Title = "Explain ACID properties in database transactions.", Mark = 10, Level = QuestionLevel.Medium, InstructorId = firstInstructor.Id, CourseId = firstCourse.Id, IsDeleted = false, CreatedAt = DateTime.UtcNow },
+            new Question { Title = "What is the MVC pattern?", Mark = 5, Level = QuestionLevel.Simple, InstructorId = firstInstructor.Id, CourseId = firstCourse.Id, IsDeleted = false, CreatedAt = DateTime.UtcNow },
+            new Question { Title = "Explain RESTful API design principles.", Mark = 10, Level = QuestionLevel.Medium, InstructorId = firstInstructor.Id, CourseId = firstCourse.Id, IsDeleted = false, CreatedAt = DateTime.UtcNow },
+            new Question { Title = "What is the difference between authentication and authorization?", Mark = 10, Level = QuestionLevel.Medium, InstructorId = firstInstructor.Id, CourseId = firstCourse.Id, IsDeleted = false, CreatedAt = DateTime.UtcNow },
+            new Question { Title = "Implement a binary search algorithm.", Mark = 15, Level = QuestionLevel.Hard, InstructorId = firstInstructor.Id, CourseId = firstCourse.Id, IsDeleted = false, CreatedAt = DateTime.UtcNow },
+            new Question { Title = "Explain the concept of inheritance in OOP.", Mark = 10, Level = QuestionLevel.Medium, InstructorId = firstInstructor.Id, CourseId = firstCourse.Id, IsDeleted = false, CreatedAt = DateTime.UtcNow },
+            new Question { Title = "What is a foreign key?", Mark = 5, Level = QuestionLevel.Simple, InstructorId = firstInstructor.Id, CourseId = firstCourse.Id, IsDeleted = false, CreatedAt = DateTime.UtcNow }
         };
 
                 _context.Questions.AddRange(questions);

@@ -7,12 +7,9 @@ namespace Examination_System.ViewModels.Choice
     public class ChoiceViewModel
     {
 
-
-        [Required]
-        public string Text { get; set; }
-        [Required]
-
-        public bool IsCorrect { get; set; }     
+        public Guid Id { get; set; }  // Changed from int
+        public string Text { get; set; } = string.Empty;
+        public bool IsCorrect { get; set; }
 
     }
 }

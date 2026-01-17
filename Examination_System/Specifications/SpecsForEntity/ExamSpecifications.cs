@@ -7,14 +7,15 @@ namespace Examination_System.Specifications.SpecsForEntity
     {
         public ExamSpecifications(Expression<Func<Exam, bool>> Criteria) : base(Criteria)
         {
-            // Basic includes
+            // Basic includes - expression-based
             AddInclude(e => e.Course);
             AddInclude(e => e.Instructor);
+            AddInclude(e => e.ExamQuestions);  
             
             // Nested includes using string-based navigation
+            AddInclude("ExamQuestions.Question");
             AddInclude("ExamQuestions.Question.Choices");
             AddInclude("Instructor.User");
-           
         }
     }
 }

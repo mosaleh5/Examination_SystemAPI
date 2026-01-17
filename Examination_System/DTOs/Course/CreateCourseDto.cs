@@ -18,6 +18,6 @@ namespace Examination_System.DTOs.Course
 
         //[Required(ErrorMessage = "Instructor ID is required")]
         //[Range(1, int.MaxValue, ErrorMessage = "Invalid instructor ID")]
-        public Guid InstructorId { get; set; } 
+        public Guid ?InstructorId { get; set; } 
     }
 }

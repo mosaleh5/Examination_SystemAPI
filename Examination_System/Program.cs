@@ -14,11 +14,13 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddApplicationServices(builder.Configuration);
-builder.Services.IdentityService(builder.Configuration);
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme);
+builder.Services.AddIdentityServices(builder.Configuration);
+builder.Services.AddScoped<TransactionMiddleware>();
+//builder.Services.AddScoped<GlobalExceptionHandlerMiddleware>();
 
 var app = builder.Build();
 app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
+app.UseMiddleware<TransactionMiddleware>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

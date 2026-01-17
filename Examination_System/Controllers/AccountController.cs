@@ -4,20 +4,20 @@ using Microsoft.AspNetCore.Mvc;
 using Examination_System.Common;
 using Examination_System.ViewModels;
 using Examination_System.Models.Enums;
+using AutoMapper;
 namespace Examination_System.Controllers
 {
     public class AccountController : BaseController
     {
         private readonly IUserServices _userService;
         
-        public AccountController(IUserServices userService)
+        public AccountController(IUserServices userService, IMapper mapper)
+            : base(mapper)
         {
             _userService = userService;
         }
 
         [HttpPost]
-        [ProducesResponseType(typeof(ResponseViewModel<UserDto>), 200)]
-        [ProducesResponseType(typeof(ResponseViewModel<UserDto>), 401)]
         public async Task<ActionResult<ResponseViewModel<UserDto>>> Login([FromBody] LoginDto loginDto)
         {
             if (!ModelState.IsValid)
@@ -33,8 +33,6 @@ namespace Examination_System.Controllers
         }
 
         [HttpPost]
-        [ProducesResponseType(typeof(ResponseViewModel<UserDto>), 201)]
-        [ProducesResponseType(typeof(ResponseViewModel<UserDto>), 400)]
         public async Task<ActionResult<ResponseViewModel<UserDto>>> RegisterStudent([FromBody] StudentRegisterDto registerDto)
         {
             if (!ModelState.IsValid)
@@ -50,8 +48,6 @@ namespace Examination_System.Controllers
         }
 
         [HttpPost]
-        [ProducesResponseType(typeof(ResponseViewModel<UserDto>), 201)]
-        [ProducesResponseType(typeof(ResponseViewModel<UserDto>), 400)]
         public async Task<ActionResult<ResponseViewModel<UserDto>>> RegisterInstructor([FromBody] InstructorRegisterDto registerDto)
         {
             if (!ModelState.IsValid)

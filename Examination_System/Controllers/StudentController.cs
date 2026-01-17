@@ -17,21 +17,19 @@ namespace Examination_System.Controllers
     {
         private readonly IStudentServices _studentServices;
         private readonly ICurrentUserServices _currentUserServices;
-        private readonly IMapper _mapper;
+       
 
         public StudentController(
             IStudentServices studentServices,
             ICurrentUserServices currentUserServices,
-            IMapper mapper)
+            IMapper mapper):base(mapper)    
         {
             _studentServices = studentServices;
             _currentUserServices = currentUserServices;
-            _mapper = mapper;
+         
         }
 
         [HttpGet("my-courses")]
-        [ProducesResponseType(typeof(ResponseViewModel<IEnumerable<CourseEnrollmentDto>>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ResponseViewModel<object>), StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<ResponseViewModel<IEnumerable<CourseEnrollmentDto>>>> GetMyCourses()
         {
             if (_currentUserServices.UserId == null)
@@ -49,8 +47,6 @@ namespace Examination_System.Controllers
         }
 
         [HttpGet("my-exams")]
-        [ProducesResponseType(typeof(ResponseViewModel<IEnumerable<ExamAssignmentDto>>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ResponseViewModel<object>), StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<ResponseViewModel<IEnumerable<ExamAssignmentDto>>>> GetMyExams()
         {
             if (_currentUserServices.UserId == null)
@@ -65,28 +61,21 @@ namespace Examination_System.Controllers
                 : BadRequest(ResponseViewModel<IEnumerable<ExamAssignmentDto>>.Failure(
                     result.Error,
                     result.ErrorMessage));
-            /*      }
+        }
 
-                  [HttpGet("profile")]
-                  [ProducesResponseType(typeof(ResponseViewModel<StudentDetailsDto>), StatusCodes.Status200OK)]
-                  public async Task<ActionResult<ResponseViewModel<StudentDetailsDto>>> GetMyProfile()
-                  {
-                      // _currentUserServices.UserId is now a Guid string
-                      if (!Guid.TryParse(_currentUserServices.UserId, out var studentId))
-                      {
-                          return BadRequest(ResponseViewModel<StudentDetailsDto>.Failure(
-                              ErrorCode.ValidationError,
-                              "Invalid student ID"));
-                      }
+        [HttpGet("profile")]
+        [ProducesResponseType(typeof(ResponseViewModel<StudentDetailsDto>), StatusCodes.Status200OK)]
+        public async Task<ActionResult<ResponseViewModel<StudentDetailsDto>>> GetMyProfile()
+        {
+           
 
-                      var result = await _studentServices.GetStudentDetailsAsync(studentId);
+            var result = await _studentServices.GetStudentDetailsAsync(_currentUserServices.UserId);
 
-                      return result.IsSuccess
-                          ? Ok(ResponseViewModel<StudentDetailsDto>.Success(result.Data))
-                          : BadRequest(ResponseViewModel<StudentDetailsDto>.Failure(
-                              result.Error,
-                              result.ErrorMessage));
-                  }*/
+            return result.IsSuccess
+                ? Ok(ResponseViewModel<StudentDetailsDto>.Success(result.Data))
+                : BadRequest(ResponseViewModel<StudentDetailsDto>.Failure(
+                    result.Error,
+                    result.ErrorMessage));
         }
     }
 }
