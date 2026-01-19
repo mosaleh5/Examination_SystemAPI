@@ -1,4 +1,4 @@
-/*using Examination_System.Models;
+using Examination_System.Models;
 using Examination_System.Models.Enums;
 using Microsoft.AspNetCore.Identity;
 using static Examination_System.Models.Question;
@@ -7,7 +7,7 @@ namespace Examination_System.Data
 {
     public static class SeedingData
     {
-        public static List<User> GetUsers()
+/*        public static List<User> GetUsers()
         {
             return
             [
@@ -399,7 +399,7 @@ namespace Examination_System.Data
                 new CourseEnrollment { StudentId = students[3].Id, CourseId = courses[2].Id, EnrollmentDate = new DateTime(2024, 9, 4, 0, 0, 0, DateTimeKind.Utc), IsDeleted = false, CreatedAt = DateTime.UtcNow },
                 new CourseEnrollment { StudentId = students[3].Id, CourseId = courses[3].Id, EnrollmentDate = new DateTime(2024, 9, 4, 0, 0, 0, DateTimeKind.Utc), IsDeleted = false, CreatedAt = DateTime.UtcNow }
             ];
-        }
+        }*/
 
         public static async Task SeedAdminUser(UserManager<User> userManager, RoleManager<IdentityRole<Guid>> roleManager)
         {
@@ -429,4 +429,3 @@ namespace Examination_System.Data
         }
     }
 }
-*/
