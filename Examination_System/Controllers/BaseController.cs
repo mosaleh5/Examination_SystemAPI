@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 namespace Examination_System.Controllers
 {
     [ApiController]
-    [Route("api/[controller]/[Action]")]
+    [Route("api/[controller]s")]
     public class BaseController : ControllerBase
     {
         protected readonly IMapper _mapper;

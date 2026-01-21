@@ -17,7 +17,7 @@ namespace Examination_System.Controllers
             _userService = userService;
         }
 
-        [HttpPost]
+        [HttpPost("Login")]
         public async Task<ActionResult<ResponseViewModel<UserDto>>> Login([FromBody] LoginDto loginDto)
         {
             if (!ModelState.IsValid)
@@ -32,7 +32,7 @@ namespace Examination_System.Controllers
                 : Unauthorized(ResponseViewModel<UserDto>.Failure(result.Error, result.ErrorMessage));
         }
 
-        [HttpPost]
+        [HttpPost("Register/Student")]
         public async Task<ActionResult<ResponseViewModel<UserDto>>> RegisterStudent([FromBody] StudentRegisterDto registerDto)
         {
             if (!ModelState.IsValid)
@@ -47,7 +47,7 @@ namespace Examination_System.Controllers
                 : BadRequest(ResponseViewModel<UserDto>.Failure(result.Error, "Registration failed: " + result.ErrorMessage));
         }
 
-        [HttpPost]
+        [HttpPost("Register/Instructor")]
         public async Task<ActionResult<ResponseViewModel<UserDto>>> RegisterInstructor([FromBody] InstructorRegisterDto registerDto)
         {
             if (!ModelState.IsValid)
