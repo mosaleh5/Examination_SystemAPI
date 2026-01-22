@@ -77,7 +77,7 @@ namespace Examination_System.Controllers
             return ToResponse<ExamToReturnDto, ExamResponseViewModel>(result);
         }
 
-        [HttpGet("{examId}")]
+        [HttpGet("{examId:guid}")]
         public async Task<ActionResult<ResponseViewModel<ExamDetailedResponseViewModel>>> GetExamsForInstructorById(Guid examId)
         {
             if (CheckId<ExamDetailedResponseViewModel>(examId) is { } badResult)return badResult;
@@ -91,7 +91,7 @@ namespace Examination_System.Controllers
             return ToResponse<ExamToReturnDto, ExamDetailedResponseViewModel>(result);
 
         }
-        [HttpPut("Activate/{examId}")]
+        [HttpPut("Activate/{examId:guid}")]
         public async Task<ActionResult<ResponseViewModel<Result>>> ActivateExam(Guid examId)
         {
             if (CheckId<Result>(examId) is { } badResult)return badResult;
@@ -105,7 +105,7 @@ namespace Examination_System.Controllers
             return ToResponse(result, "Exam activated successfully", "An error occurred when activating exam");
         }
 
-        [HttpPost("manual/{examId}/questions")]
+        [HttpPost("manual/{examId:guid}/questions")]
         public async Task<ActionResult<ResponseViewModel<Result>>> AddQuestionsToExam(
             Guid examId,
             [FromBody] List<Guid> questionIds)
@@ -128,7 +128,7 @@ namespace Examination_System.Controllers
 
         }
 
-        [HttpPut("manual/{examId}/questions")]
+        [HttpPut("manual/{examId:guid}/questions")]
         public async Task<ActionResult<ResponseViewModel<Result>>> ReplaceExamQuestions(
             Guid examId,
             [FromBody] List<Guid> questionIds)
@@ -150,7 +150,7 @@ namespace Examination_System.Controllers
                                 "An error occurred when replacing exam questions");
         }
 
-        [HttpDelete("manual/{examId}/questions/{questionId}")]
+        [HttpDelete("manual/{examId:guid}/questions/{questionId:guid}")]
         public async Task<ActionResult<ResponseViewModel<Result>>> RemoveQuestionFromExam(
             Guid examId,
             Guid questionId)
@@ -167,7 +167,7 @@ namespace Examination_System.Controllers
             return ToResponse(result, "Question removed from exam successfully", "An error occurred when removing question from exam");
         }
 
-        [HttpPost("{examId}/students")]
+        [HttpPost("{examId:guid}/students")]
         public async Task<ActionResult<ResponseViewModel<Result>>> AssignStudentToExam(
             Guid examId,
             [FromBody] Guid studentId)

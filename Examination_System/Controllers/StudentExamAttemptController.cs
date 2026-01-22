@@ -31,7 +31,7 @@ namespace Examination_System.Controllers
         }
 
         [Authorize(Roles = "Student")]
-        [HttpGet("start/{examId}")]
+        [HttpGet("start/{examId:guid}")]
         public async Task<ActionResult<ResponseViewModel<ExamToAttemptDetailedResponseForStudentViewModel>>> StartExam(Guid examId)
         {
             if (CheckId<ExamToAttemptDetailedResponseForStudentViewModel>(examId) is { } badResult) return badResult;
@@ -43,7 +43,7 @@ namespace Examination_System.Controllers
 
 
         [Authorize(Roles = "Student")]
-        [HttpPost("submit/{attemptId}")]
+        [HttpPost("submit/{attemptId:guid}")]
         public async Task<ActionResult<ResponseViewModel<ExamAttemptResponseForStudentViewModel>>> SubmitExam(
             Guid attemptId,
             [FromBody] IList<SubmitAnswerForStudentViewModel> answers)

@@ -64,7 +64,7 @@ namespace Examination_System.Services.ExamServices.Validators
             {
                 return Result<Exam>.Failure(
                     ErrorCode.NotFound,
-                    $"Exam with ID {examId} not found");
+                    $"Exam with ID {examId:guid} not found");
             }
 
             if (exam.InstructorId != instructorId)
@@ -113,7 +113,7 @@ namespace Examination_System.Services.ExamServices.Validators
             {
                 return Result.Failure(
                     ErrorCode.Conflict,
-                    $"Student {studentId} is already assigned to exam {examId}");
+                    $"Student {studentId} is already assigned to exam {examId:guid}");
             }
             return Result.Success();
         }

@@ -144,7 +144,7 @@ namespace Examination_System.Services.ExamServices.Managers
             {
                 return Result.Failure(
                     ErrorCode.NotFound,
-                    $"Question {questionId} is not part of exam {examId}");
+                    $"Question {questionId:guid} is not part of exam {examId:guid}");
             }
 
            var result =  await _unitOfWork.Repository<ExamQuestion>().DeleteAsync(examQuestion.Id);

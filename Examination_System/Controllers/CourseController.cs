@@ -56,7 +56,7 @@ namespace Examination_System.Controllers
             return ToResponse<CourseDtoToReturn, CourseResponseViewModel>(result, "Course created successfully");
         }
 
-        [HttpPatch("{courseId}/students")]
+        [HttpPatch("{courseId:guid}/students")]
         [Authorize(Roles = "Instructor,Admin")]
         public async Task<ActionResult<ResponseViewModel<Result>>> AssignStudentToCourse(Guid courseId, Guid studentId)
         {

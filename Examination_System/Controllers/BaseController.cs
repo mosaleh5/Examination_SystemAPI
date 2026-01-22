@@ -8,7 +8,7 @@ using AutoMapper;
 namespace Examination_System.Controllers
 {
     [ApiController]
-    [Route("api/[controller]s")]
+    [Route("api/[controller]/[Action]")]
     public class BaseController : ControllerBase
     {
         protected readonly IMapper _mapper;

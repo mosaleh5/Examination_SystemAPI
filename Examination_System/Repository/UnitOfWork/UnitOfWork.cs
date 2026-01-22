@@ -21,15 +21,10 @@ namespace Examination_System.Repository.UnitOfWork
         {
             return _context.Database.BeginTransactionAsync(ct);
         }
-
-       
-
+     
         public async Task<int?> CompleteAsync() 
-            =>await _context.SaveChangesAsync();
-
-      
+            =>await _context.SaveChangesAsync();     
         
-
         public GenericRepository<T> Repository<T>() where T :BaseModelGuid
         {
           if(!_repositories.ContainsKey(typeof(T).Name))
