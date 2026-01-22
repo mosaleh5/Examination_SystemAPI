@@ -119,8 +119,7 @@ namespace Examination_System.Controllers
 
         public async Task<ActionResult<ResponseViewModel<Result>>> Delete(Guid questionId)
         {
-            if (CheckId<Result>(questionId) is { } badResult)
-                return badResult;
+            if (CheckId<Result>(questionId) is { } badResult) return badResult;
 
             var result = await _questionServices.DeleteAsync(questionId, _currentUser.UserId);
             return ToResponse(result, "Question deleted successfully", null);

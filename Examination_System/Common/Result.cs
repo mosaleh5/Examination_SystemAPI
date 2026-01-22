@@ -31,7 +31,8 @@ namespace Examination_System.Common
                  validationResult.Errors.Select(e => $"{e.PropertyName}: {e.ErrorMessage}"));
 
             return Result.Failure(
-                ErrorCode.ValidationError, "Validation Failed: \n" +
+                ErrorCode.ValidationError, "Validation Failed: " +
+                "\n" +
                 errorMessage);
         }
     }
@@ -61,7 +62,8 @@ namespace Examination_System.Common
                  validationResult.Errors.Select(e => $"{e.PropertyName}: {e.ErrorMessage}"));
 
             return Result<T>.Failure(
-                ErrorCode.ValidationError, "Validation Failed: \n" +
+                ErrorCode.ValidationError, "Validation Failed: " +
+                "\n" +
                 errorMessage);
         }
 

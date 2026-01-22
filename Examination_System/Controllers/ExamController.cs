@@ -20,18 +20,18 @@ namespace Examination_System.Controllers
         private readonly IExamServices _examServices;
         private readonly ICourseServices _courseServices;
         private readonly ICurrentUserServices _currentUserServices;
-        
+
 
         public ExamController(
             IExamServices examServices,
             ICourseServices courseServices,
             ICurrentUserServices currentUserServices,
-            IMapper mapper): base(mapper)
+            IMapper mapper) : base(mapper)
         {
             _examServices = examServices;
             _courseServices = courseServices;
             _currentUserServices = currentUserServices;
-          
+
         }
 
         [HttpPost("manual")]
@@ -47,7 +47,7 @@ namespace Examination_System.Controllers
 
             var result = await _examServices.CreateExam(createExamDto);
             return ToResponse<ExamToReturnDto, ExamResponseViewModel>(result);
-          
+
         }
 
         [HttpPost("automatic")]
@@ -62,33 +62,27 @@ namespace Examination_System.Controllers
             createAutomaticExamDto.CreatedAt = DateTime.UtcNow;
 
             var result = await _examServices.CreateAutomaticExam(createAutomaticExamDto);
-            return ToResponse<ExamToReturnDto, ExamDetailedResponseViewModel>(result, "Automatic exam created successfully" 
-                , "An error occurred when creating automatic exam\n");
-            
+            return ToResponse<ExamToReturnDto, ExamDetailedResponseViewModel>(result,
+                "Automatic exam created successfully",
+                "An error occurred when creating automatic exam ");
+
         }
 
         [HttpGet]
         public async Task<ActionResult<ResponseViewModel<IEnumerable<ExamResponseViewModel>>>> GetAllExamsForInstructor()
         {
             if (_currentUserServices.UserId == null)
-                return ValidationError<IEnumerable<ExamResponseViewModel>>();   
+                return ValidationError<IEnumerable<ExamResponseViewModel>>();
 
             var result = await _examServices.GetAllExamsForInstructor(_currentUserServices.UserId);
 
-            if (!result.IsSuccess)
-                return BadRequest(ResponseViewModel<IEnumerable<ExamResponseViewModel>>.Failure(
-                    result.Error,
-                    result.ErrorMessage));
-
-            var examViewModels = _mapper.Map<IEnumerable<ExamResponseViewModel>>(result.Data);
-            return Ok(ResponseViewModel<IEnumerable<ExamResponseViewModel>>.Success(examViewModels));
+            return ToResponse<ExamToReturnDto, ExamResponseViewModel>(result);
         }
 
         [HttpGet("{examId}")]
         public async Task<ActionResult<ResponseViewModel<ExamDetailedResponseViewModel>>> GetExamsForInstructorById(Guid examId)
         {
-            if (CheckId<ExamDetailedResponseViewModel>(examId) is { } badResult)
-                return badResult;
+            if (CheckId<ExamDetailedResponseViewModel>(examId) is { } badResult)return badResult;
 
             var GetExamByIdDto = new GetExamByIdDto
             {
@@ -97,13 +91,12 @@ namespace Examination_System.Controllers
             };
             var result = await _examServices.GetExamsForInstructorById(GetExamByIdDto);
             return ToResponse<ExamToReturnDto, ExamDetailedResponseViewModel>(result);
-         
+
         }
         [HttpPut("Activate/{examId}")]
         public async Task<ActionResult<ResponseViewModel<Result>>> ActivateExam(Guid examId)
         {
-            if (CheckId<Result>(examId) is { } badResult)
-                return badResult;
+            if (CheckId<Result>(examId) is { } badResult)return badResult;
             var activateExamDto = new ActivateExamDto
             {
                 ExamId = examId,
@@ -111,7 +104,7 @@ namespace Examination_System.Controllers
             };
 
             var result = await _examServices.ActivateExamAsync(activateExamDto);
-            return ToResponse(result, "Exam activated successfully" , "An error occurred when activating exam");   
+            return ToResponse(result, "Exam activated successfully", "An error occurred when activating exam");
         }
 
         [HttpPost("manual/{examId}/questions")]
@@ -122,8 +115,7 @@ namespace Examination_System.Controllers
             if (!ModelState.IsValid)
                 return ValidationError<Result>();
 
-            if (CheckId<Result>(examId) is { } badResult)
-                return badResult;
+            if (CheckId<Result>(examId) is { } badResult) return badResult;
             var addQuestionsDto = new AddQuestionsToExamDto
             {
                 ExamId = examId,
@@ -134,7 +126,7 @@ namespace Examination_System.Controllers
             var result = await _examServices.AddQuestionsToExamAsync(addQuestionsDto);
             return ToResponse(result, $"{questionIds.Count} question(s) added to exam successfully"
                 , "An error occurred when adding questions to exam");
-            
+
         }
 
         [HttpPut("manual/{examId}/questions")]
@@ -145,8 +137,7 @@ namespace Examination_System.Controllers
             if (!ModelState.IsValid)
                 return ValidationError<Result>();
 
-            if (CheckId<Result>(examId) is { } badResult)
-                return badResult;
+            if (CheckId<Result>(examId) is { } badResult) return badResult;
 
             var replaceQuestionsDto = new ReplaceExamQuestionsDto
             {
@@ -157,7 +148,7 @@ namespace Examination_System.Controllers
 
             var result = await _examServices.ReplaceExamQuestionsAsync(replaceQuestionsDto);
             return ToResponse(result, $"Exam questions replaced successfully with {questionIds.Count} question(s)",
-                                "An error occurred when replacing exam questions");   
+                                "An error occurred when replacing exam questions");
         }
 
         [HttpDelete("manual/{examId}/questions/{questionId}")]
@@ -165,6 +156,7 @@ namespace Examination_System.Controllers
             Guid examId,
             Guid questionId)
         {
+            if (CheckIds<Result>(examId, questionId) is { } resultCheck) return resultCheck;
             var removeQuestionDto = new RemoveQuestionFromExamDto
             {
                 ExamId = examId,
@@ -172,11 +164,10 @@ namespace Examination_System.Controllers
                 InstructorId = _currentUserServices.UserId
             };
 
-            if (CheckId<Result>(examId) is { } badResult)
-                return badResult;
+           
 
             var result = await _examServices.RemoveQuestionFromExamAsync(removeQuestionDto);
-            return ToResponse(result, "Question removed from exam successfully", "An error occurred when removing question from exam"); 
+            return ToResponse(result, "Question removed from exam successfully", "An error occurred when removing question from exam");
         }
 
         [HttpPost("{examId}/students")]
@@ -187,8 +178,7 @@ namespace Examination_System.Controllers
             if (!ModelState.IsValid)
                 return ValidationError<Result>();
 
-            if (CheckId<Result>(examId) is { } badResult)
-                return badResult;
+            if (CheckId<Result>(examId) is { } badResult) return badResult;
 
             var assignStudentDto = new AssignStudentToExamDto
             {
@@ -199,7 +189,7 @@ namespace Examination_System.Controllers
 
             var result = await _examServices.EnrollStudentToExamAsync(assignStudentDto);
             return ToResponse(result, "Student enrolled in exam successfully", "An error occurred when enrolling student to exam");
-     }
-        
+        }
+
     }
 }

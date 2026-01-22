@@ -18,7 +18,7 @@ namespace Examination_System.Controllers
             _mapper = mapper;
         }
 
-      
+
 
         protected string GetValidationErrors()
         {
@@ -27,11 +27,11 @@ namespace Examination_System.Controllers
                 .Select(e => e.ErrorMessage)
                 .Where(msg => !string.IsNullOrEmpty(msg));
 
-            return string.Join("; ", errors);
+            return string.Join("\n ", errors);
         }
 
         #region Private Helper Methods
-        protected ActionResult<ResponseViewModel<Result>> ToResponse(Result result, string? successMessage = null , string? errorMessage = null) 
+        protected ActionResult<ResponseViewModel<Result>> ToResponse(Result result, string? successMessage = null, string? errorMessage = null)
         {
             if (!result.IsSuccess)
             {
@@ -44,14 +44,14 @@ namespace Examination_System.Controllers
         /// </summary>
         protected ActionResult<ResponseViewModel<TViewModel>>? CheckId<TViewModel>(
             Guid? id,
-            string? errorMessage = "Invalid Id")
+            string? errorMessage = "Id Can not be null or Empty")
         {
 
             if (id == null || id == Guid.Empty)
-                return BadRequest(ResponseViewModel<TViewModel>.Failure(ErrorCode.NotFound, errorMessage));
+                return BadRequest(ResponseViewModel<TViewModel>.Failure(ErrorCode.BadRequest, errorMessage));
             return null;
         }
-        protected ActionResult<ResponseViewModel<T>> CheckIds<T>(params Guid[] ids)
+        protected ActionResult<ResponseViewModel<T>>? CheckIds<T>(params Guid[] ids)
         {
             foreach (var id in ids)
             {
@@ -63,11 +63,11 @@ namespace Examination_System.Controllers
         protected ActionResult<ResponseViewModel<TViewModel>> ToResponse<TDto, TViewModel>(
             Result<TDto> result,
             string? successMessage = null
-            ,string ? errorMessage = null)
+            , string? errorMessage = null)
             where TDto : class
         {
             if (!result.IsSuccess)
-                return ToErrorResponse<TViewModel>(result , errorMessage);
+                return ToErrorResponse<TViewModel>(result, errorMessage);
 
             var viewModel = _mapper.Map<TViewModel>(result.Data);
             return Ok(ResponseViewModel<TViewModel>.Success(viewModel, successMessage));
@@ -84,8 +84,16 @@ namespace Examination_System.Controllers
             return Ok(ResponseViewModel<IEnumerable<TViewModel>>.Success(viewModels));
         }
 
-        protected ActionResult<ResponseViewModel<T>> ToErrorResponse<T>(Result result , string ? errormessage)
-            => BadRequest(ResponseViewModel<T>.Failure(result.Error, errormessage +"/n" +result.ErrorMessage));
+        protected ActionResult<ResponseViewModel<T>> ToErrorResponse<T>(Result result, string? errormessage)
+        {
+            var messages = new[] { errormessage, result.ErrorMessage }
+                         .Where(m => !string.IsNullOrWhiteSpace(m));
+
+            string finalMessage = string.Join("\n", messages);
+
+            return BadRequest(ResponseViewModel<T>.Failure(result.Error, finalMessage));
+        }
+        //=> BadRequest(ResponseViewModel<T>.Failure(result.Error, errormessage + "\n" +result.ErrorMessage));
 
         protected ActionResult<ResponseViewModel<T>> ValidationError<T>()
             => BadRequest(ResponseViewModel<T>.Failure(ErrorCode.ValidationError, GetValidationErrors()));

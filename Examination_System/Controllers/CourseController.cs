@@ -68,9 +68,7 @@ namespace Examination_System.Controllers
             if (!ModelState.IsValid)
                 return ValidationError<Result>();
 
-            var idCheckResult = CheckIds<Result>(courseId, studentId);
-            if (idCheckResult != null)
-                return idCheckResult;
+            if (CheckIds<Result>(courseId, studentId) is { } resultCheck) return resultCheck;
 
             var CourseEnrollmentDto = new CourseEnrollementDto
             {
@@ -91,12 +89,11 @@ namespace Examination_System.Controllers
             if (!ModelState.IsValid)
                 return ValidationError<CourseResponseViewModel>();
 
-            if (CheckId<CourseResponseViewModel>(courseId) is { } badResult)
-                return badResult;
+            if (CheckId<CourseResponseViewModel>(courseId) is { } badResult) return badResult;
 
-            if (courseId != updateCourseViewModel.ID)
+           /* if (courseId != updateCourseViewModel.ID)
                 return BadRequest(ResponseViewModel<CourseResponseViewModel>.Failure(
-                    ErrorCode.BadRequest, "Course ID mismatch"));
+                    ErrorCode.BadRequest, "Course ID mismatch"));*/
 
             var updateCourseDto = _mapper.Map<UpdateCourseDto>(updateCourseViewModel);
             var result = await _courseServices.UpdateAsync(updateCourseDto, _currentUserServices.UserId);
@@ -106,8 +103,7 @@ namespace Examination_System.Controllers
         [HttpDelete("{courseId}")]
         public async Task<ActionResult<ResponseViewModel<Result>>> DeleteCourse(Guid courseId)
         {
-            if (CheckId<Result>(courseId) is { } badResult)
-                return badResult;
+            if (CheckId<Result>(courseId) is { } badResult)return badResult;
 
             var result = await _courseServices.DeleteAsync(courseId, _currentUserServices.UserId);
             return ToResponse(result, $"Course with ID {courseId} deleted successfully" , "An Error happen when Delete course");

@@ -32,50 +32,22 @@ namespace Examination_System.Controllers
         [HttpGet("my-courses")]
         public async Task<ActionResult<ResponseViewModel<IEnumerable<CourseEnrollmentDto>>>> GetMyCourses()
         {
-            if (_currentUserServices.UserId == null)
-                return Unauthorized(ResponseViewModel<IEnumerable<CourseEnrollmentDto>>.Failure(
-                    ErrorCode.Unauthorized,
-                    "User not authenticated"));
-
             var result = await _studentServices.GetEnrolledCoursesAsync(_currentUserServices.UserId);
-
-            return result.IsSuccess
-                ? Ok(ResponseViewModel<IEnumerable<CourseEnrollmentDto>>.Success(result.Data))
-                : BadRequest(ResponseViewModel<IEnumerable<CourseEnrollmentDto>>.Failure(
-                    result.Error,
-                    result.ErrorMessage));
+            return ToResponse<CourseEnrollmentDto, CourseEnrollmentDto>(result);
         }
 
         [HttpGet("my-exams")]
         public async Task<ActionResult<ResponseViewModel<IEnumerable<ExamAssignmentDto>>>> GetMyExams()
-        {
-            if (_currentUserServices.UserId == null)
-                return Unauthorized(ResponseViewModel<IEnumerable<ExamAssignmentDto>>.Failure(
-                    ErrorCode.Unauthorized,
-                    "User not authenticated"));
-
+        {    
             var result = await _studentServices.GetAssignedExamsAsync(_currentUserServices.UserId);
-
-            return result.IsSuccess
-                ? Ok(ResponseViewModel<IEnumerable<ExamAssignmentDto>>.Success(result.Data))
-                : BadRequest(ResponseViewModel<IEnumerable<ExamAssignmentDto>>.Failure(
-                    result.Error,
-                    result.ErrorMessage));
+            return ToResponse<ExamAssignmentDto, ExamAssignmentDto>(result);
         }
 
         [HttpGet("profile")]
-        [ProducesResponseType(typeof(ResponseViewModel<StudentDetailsDto>), StatusCodes.Status200OK)]
         public async Task<ActionResult<ResponseViewModel<StudentDetailsDto>>> GetMyProfile()
         {
-           
-
             var result = await _studentServices.GetStudentDetailsAsync(_currentUserServices.UserId);
-
-            return result.IsSuccess
-                ? Ok(ResponseViewModel<StudentDetailsDto>.Success(result.Data))
-                : BadRequest(ResponseViewModel<StudentDetailsDto>.Failure(
-                    result.Error,
-                    result.ErrorMessage));
+            return ToResponse<StudentDetailsDto, StudentDetailsDto>(result);
         }
     }
 }

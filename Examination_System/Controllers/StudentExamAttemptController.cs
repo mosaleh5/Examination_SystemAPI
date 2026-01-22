@@ -23,28 +23,28 @@ namespace Examination_System.Controllers
         public StudentExamAttemptController(
             IExamAttemptServices examAttemptServices,
             ICurrentUserServices currentUserServices,
-            IMapper mapper):base(mapper)
+            IMapper mapper) : base(mapper)
         {
             _examAttemptServices = examAttemptServices;
             _currentUserServices = currentUserServices;
-          
+
         }
 
         [Authorize(Roles = "Student")]
         [HttpGet("start/{examId}")]
-      public async Task<ActionResult<ResponseViewModel<ExamToAttemptDetailedResponseForStudentViewModel>>> StartExam(Guid examId)
+        public async Task<ActionResult<ResponseViewModel<ExamToAttemptDetailedResponseForStudentViewModel>>> StartExam(Guid examId)
         {
-            if (CheckId<ExamToAttemptDetailedResponseForStudentViewModel>(examId) is { } badResult)
-                return badResult;
+            if (CheckId<ExamToAttemptDetailedResponseForStudentViewModel>(examId) is { } badResult) return badResult;
+            
             var result = await _examAttemptServices.StartExamAsync(examId, _currentUserServices.UserId);
-            return ToResponse<ExamToAttemptDto ,ExamToAttemptDetailedResponseForStudentViewModel >(result, "Exam started successfully");
-        
+          
+            return ToResponse<ExamToAttemptDto, ExamToAttemptDetailedResponseForStudentViewModel>(result, "Exam started successfully");
         }
 
 
         [Authorize(Roles = "Student")]
         [HttpPost("submit/{attemptId}")]
-       public async Task<ActionResult<ResponseViewModel<ExamAttemptResponseForStudentViewModel>>> SubmitExam(
+        public async Task<ActionResult<ResponseViewModel<ExamAttemptResponseForStudentViewModel>>> SubmitExam(
             Guid attemptId,
             [FromBody] IList<SubmitAnswerForStudentViewModel> answers)
         {
@@ -60,26 +60,25 @@ namespace Examination_System.Controllers
 
             var result = await _examAttemptServices.SubmitExamAsync(attemptId, submitAnswerDtos);
             return ToResponse<ExamAttemptDto, ExamAttemptResponseForStudentViewModel>(result, "Exam submitted successfully");
-         
+
         }
 
 
         [Authorize(Roles = "Instructor")]
         [HttpGet("instructor/studentattempts")]
         public async Task<ActionResult<ResponseViewModel<IEnumerable<ExamAttemptResponseForStudentViewModel>>>> GetAllStudentAttempts()
-        {     
+        {
 
             var result = await _examAttemptServices.GetStudentAttemptsForInstructorAsync(_currentUserServices.UserId);
             return ToResponse<IEnumerable<ExamAttemptDto>, IEnumerable<ExamAttemptResponseForStudentViewModel>>(result);
-           
+
         }
 
         [Authorize(Roles = "Instructor")]
         [HttpGet("{studentId}")]
         public async Task<ActionResult<ResponseViewModel<IEnumerable<ExamAttemptResponseForStudentViewModel>>>> GetSpecificStudentAttempts(Guid studentId)
         {
-            if (CheckId<IEnumerable<ExamAttemptResponseForStudentViewModel>>(studentId) is { } badResult)
-                return badResult;
+            if (CheckId<IEnumerable<ExamAttemptResponseForStudentViewModel>>(studentId) is { } badResult) return badResult;
 
             if (studentId == Guid.Empty)
             {
@@ -89,15 +88,15 @@ namespace Examination_System.Controllers
             }
 
             var result = await _examAttemptServices.GetStudentAttemptsAsync(_currentUserServices.UserId, studentId);
-            return ToResponse<ExamAttemptDto, ExamAttemptResponseForStudentViewModel>(result);   
+            return ToResponse<ExamAttemptDto, ExamAttemptResponseForStudentViewModel>(result);
         }
 
         [Authorize(Roles = "Student")]
         [HttpGet("student/myattempts")]
         public async Task<ActionResult<ResponseViewModel<IEnumerable<ExamAttemptResponseForStudentViewModel>>>> GetMyAttempts()
         {
-             var result = await _examAttemptServices.GetStudentAttemptsForStudentAsync(_currentUserServices.UserId);
-            return ToResponse<IEnumerable<ExamAttemptDto>, IEnumerable<ExamAttemptResponseForStudentViewModel>>(result);  
+            var result = await _examAttemptServices.GetStudentAttemptsForStudentAsync(_currentUserServices.UserId);
+            return ToResponse<IEnumerable<ExamAttemptDto>, IEnumerable<ExamAttemptResponseForStudentViewModel>>(result);
         }
     }
 }
