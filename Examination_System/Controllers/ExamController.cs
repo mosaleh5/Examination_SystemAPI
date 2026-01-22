@@ -72,10 +72,8 @@ namespace Examination_System.Controllers
 
         [HttpGet]
         public async Task<ActionResult<ResponseViewModel<IEnumerable<ExamResponseViewModel>>>> GetAllExamsForInstructor()
-        {
-            
+        {  
             var result = await _examServices.GetAllExamsForInstructor(_currentUserServices.UserId);
-
             return ToResponse<ExamToReturnDto, ExamResponseViewModel>(result);
         }
 
@@ -116,6 +114,7 @@ namespace Examination_System.Controllers
                 return ValidationError<Result>();
 
             if (CheckId<Result>(examId) is { } badResult) return badResult;
+
             var addQuestionsDto = new AddQuestionsToExamDto
             {
                 ExamId = examId,

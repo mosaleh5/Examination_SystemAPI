@@ -37,8 +37,7 @@ namespace Examination_System.Controllers
         /// Gets a question by ID
         /// </summary>
         [HttpGet("{questionId:guid}")]
-        [ProducesResponseType(typeof(ResponseViewModel<QuestionToReturnViewModel>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ResponseViewModel<QuestionToReturnViewModel>), StatusCodes.Status404NotFound)]
+
         public async Task<ActionResult<ResponseViewModel<QuestionToReturnViewModel>>> GetById(Guid questionId)
         {
             var result = await _questionServices.GetByIdAsync(questionId, _currentUser.UserId);
@@ -49,7 +48,7 @@ namespace Examination_System.Controllers
         /// Gets all questions for the current instructor
         /// </summary>
         [HttpGet]
-        [ProducesResponseType(typeof(ResponseViewModel<IEnumerable<QuestionToReturnViewModel>>), StatusCodes.Status200OK)]
+      
         public async Task<ActionResult<ResponseViewModel<IEnumerable<QuestionToReturnViewModel>>>> GetAll()
         {
             var result = await _questionServices.GetByInstructorAsync(_currentUser.UserId);
@@ -59,8 +58,7 @@ namespace Examination_System.Controllers
         /// <summary>
         /// Gets all questions for the current instructor in a specific course
         /// </summary>
-        [HttpGet("course/{courseId:guid}")]
-        [ProducesResponseType(typeof(ResponseViewModel<IEnumerable<QuestionToReturnViewModel>>), StatusCodes.Status200OK)]
+        [HttpGet("course/{courseId:guid}")] 
         public async Task<ActionResult<ResponseViewModel<IEnumerable<QuestionToReturnViewModel>>>> GetByCourse(Guid courseId)
         {
             var result = await _questionServices.GetByInstructorAndCourseAsync(_currentUser.UserId, courseId);
@@ -70,9 +68,7 @@ namespace Examination_System.Controllers
         /// <summary>
         /// Creates a new question
         /// </summary>
-        [HttpPost]
-        [ProducesResponseType(typeof(ResponseViewModel<QuestionToReturnViewModel>), StatusCodes.Status201Created)]
-        [ProducesResponseType(typeof(ResponseViewModel<QuestionToReturnViewModel>), StatusCodes.Status400BadRequest)]
+        [HttpPost] 
         public async Task<ActionResult<ResponseViewModel<QuestionToReturnViewModel>>> Create(
             [FromBody] CreateQuestionViewModel model)
         {
@@ -84,15 +80,12 @@ namespace Examination_System.Controllers
 
             var result = await _questionServices.CreateAsync(dto);
             return ToResponse<QuestionToReturnDto, QuestionToReturnViewModel>(result, "Question created successfully");
-         }
+        }
 
         /// <summary>
         /// Updates an existing question
         /// </summary>
         [HttpPut("{questionId:guid}")]
-        [ProducesResponseType(typeof(ResponseViewModel<QuestionToReturnViewModel>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ResponseViewModel<QuestionToReturnViewModel>), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ResponseViewModel<QuestionToReturnViewModel>), StatusCodes.Status404NotFound)]
         public async Task<ActionResult<ResponseViewModel<QuestionToReturnViewModel>>> Update(
             Guid questionId,
             [FromBody] UpdateQuestionViewModel model)
@@ -100,10 +93,7 @@ namespace Examination_System.Controllers
             if (!ModelState.IsValid)
                 return ValidationError<QuestionToReturnViewModel>();
 
-            if (questionId != model.Id || questionId == Guid.Empty)
-                return BadRequest(ResponseViewModel<QuestionToReturnViewModel>.Failure(
-                    ErrorCode.BadRequest,
-                    "Question ID in URL does not match ID in body"));
+            if (CheckId<QuestionToReturnViewModel>(questionId) is { } badResult) return badResult;
 
             var dto = _mapper.Map<UpdateQuestionDto>(model);
             dto.InstructorId = _currentUser.UserId;
@@ -123,7 +113,7 @@ namespace Examination_System.Controllers
 
             var result = await _questionServices.DeleteAsync(questionId, _currentUser.UserId);
             return ToResponse(result, "Question deleted successfully", null);
-         
+
         }
 
     }

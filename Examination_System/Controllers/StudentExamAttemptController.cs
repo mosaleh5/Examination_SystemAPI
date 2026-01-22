@@ -49,11 +49,7 @@ namespace Examination_System.Controllers
             [FromBody] IList<SubmitAnswerForStudentViewModel> answers)
         {
             if (!ModelState.IsValid)
-            {
-                return BadRequest(ResponseViewModel<ExamAttemptResponseForStudentViewModel>.Failure(
-                    ErrorCode.ValidationError,
-                    GetValidationErrors()));
-            }
+                return ValidationError<ExamAttemptResponseForStudentViewModel>();
 
             var submitAnswerDtos = _mapper.Map<List<SubmitAnswerDto>>(answers);
             submitAnswerDtos.ForEach(a => a.AttemptId = attemptId);
@@ -68,10 +64,9 @@ namespace Examination_System.Controllers
         [HttpGet("instructor/studentattempts")]
         public async Task<ActionResult<ResponseViewModel<IEnumerable<ExamAttemptResponseForStudentViewModel>>>> GetAllStudentAttempts()
         {
-
             var result = await _examAttemptServices.GetStudentAttemptsForInstructorAsync(_currentUserServices.UserId);
-            return ToResponse<IEnumerable<ExamAttemptDto>, IEnumerable<ExamAttemptResponseForStudentViewModel>>(result);
 
+            return ToResponse<IEnumerable<ExamAttemptDto>, IEnumerable<ExamAttemptResponseForStudentViewModel>>(result);
         }
 
         [Authorize(Roles = "Instructor")]
@@ -80,14 +75,8 @@ namespace Examination_System.Controllers
         {
             if (CheckId<IEnumerable<ExamAttemptResponseForStudentViewModel>>(studentId) is { } badResult) return badResult;
 
-            if (studentId == Guid.Empty)
-            {
-                return BadRequest(ResponseViewModel<IEnumerable<ExamAttemptResponseForStudentViewModel>>.Failure(
-                    ErrorCode.ValidationError,
-                    "Student ID is required"));
-            }
-
             var result = await _examAttemptServices.GetStudentAttemptsAsync(_currentUserServices.UserId, studentId);
+
             return ToResponse<ExamAttemptDto, ExamAttemptResponseForStudentViewModel>(result);
         }
 
@@ -96,6 +85,7 @@ namespace Examination_System.Controllers
         public async Task<ActionResult<ResponseViewModel<IEnumerable<ExamAttemptResponseForStudentViewModel>>>> GetMyAttempts()
         {
             var result = await _examAttemptServices.GetStudentAttemptsForStudentAsync(_currentUserServices.UserId);
+
             return ToResponse<IEnumerable<ExamAttemptDto>, IEnumerable<ExamAttemptResponseForStudentViewModel>>(result);
         }
     }
