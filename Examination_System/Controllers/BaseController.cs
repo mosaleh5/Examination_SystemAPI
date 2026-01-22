@@ -3,7 +3,7 @@ using Examination_System.ViewModels;
 using Examination_System.Models.Enums;
 using Microsoft.AspNetCore.Mvc;
 using AutoMapper;
-using Microsoft.AspNetCore.Http.HttpResults;
+
 
 namespace Examination_System.Controllers
 {
@@ -17,8 +17,6 @@ namespace Examination_System.Controllers
         {
             _mapper = mapper;
         }
-
-
 
         protected string GetValidationErrors()
         {

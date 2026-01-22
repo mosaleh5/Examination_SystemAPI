@@ -75,7 +75,7 @@ namespace Examination_System.Controllers
         }
 
         [Authorize(Roles = "Instructor")]
-        [HttpGet("{studentId}")]
+        [HttpGet("instructors/students/{studentId:guid}/exam-attempts")]
         public async Task<ActionResult<ResponseViewModel<IEnumerable<ExamAttemptResponseForStudentViewModel>>>> GetSpecificStudentAttempts(Guid studentId)
         {
             if (CheckId<IEnumerable<ExamAttemptResponseForStudentViewModel>>(studentId) is { } badResult) return badResult;
@@ -92,7 +92,7 @@ namespace Examination_System.Controllers
         }
 
         [Authorize(Roles = "Student")]
-        [HttpGet("student/myattempts")]
+        [HttpGet("student/my-attempts")]
         public async Task<ActionResult<ResponseViewModel<IEnumerable<ExamAttemptResponseForStudentViewModel>>>> GetMyAttempts()
         {
             var result = await _examAttemptServices.GetStudentAttemptsForStudentAsync(_currentUserServices.UserId);

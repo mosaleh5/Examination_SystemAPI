@@ -6,6 +6,7 @@ using Examination_System.Models.Enums;
 using Examination_System.Services.CourseServices;
 using Examination_System.Services.CurrentUserServices;
 using Examination_System.Services.ExamServices;
+using Examination_System.Validation;
 using Examination_System.ViewModels;
 using Examination_System.ViewModels.AttemptExam;
 using Examination_System.ViewModels.Exam;
@@ -15,6 +16,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Examination_System.Controllers
 {
     [Authorize(Roles = "Instructor")]
+    [ValidateUserAuthentication]
     public class ExamController : BaseController
     {
         private readonly IExamServices _examServices;
@@ -71,9 +73,7 @@ namespace Examination_System.Controllers
         [HttpGet]
         public async Task<ActionResult<ResponseViewModel<IEnumerable<ExamResponseViewModel>>>> GetAllExamsForInstructor()
         {
-            if (_currentUserServices.UserId == null)
-                return ValidationError<IEnumerable<ExamResponseViewModel>>();
-
+            
             var result = await _examServices.GetAllExamsForInstructor(_currentUserServices.UserId);
 
             return ToResponse<ExamToReturnDto, ExamResponseViewModel>(result);
@@ -163,8 +163,6 @@ namespace Examination_System.Controllers
                 QuestionId = questionId,
                 InstructorId = _currentUserServices.UserId
             };
-
-           
 
             var result = await _examServices.RemoveQuestionFromExamAsync(removeQuestionDto);
             return ToResponse(result, "Question removed from exam successfully", "An error occurred when removing question from exam");

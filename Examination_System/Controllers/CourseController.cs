@@ -36,13 +36,9 @@ namespace Examination_System.Controllers
             return ToResponse<CourseDtoToReturn, CourseDtoToReturn>(result);
         }
 
-        [HttpGet("{courseId}")]
+        [HttpGet("{courseId:guid}")]
         public async Task<ActionResult<ResponseViewModel<CourseResponseViewModel>>> GetById(Guid courseId)
         {
-            if (_currentUserServices.UserId == null)
-                return Unauthorized(ResponseViewModel<CourseResponseViewModel>.Failure(
-                    ErrorCode.Unauthorized, "User not authenticated"));
-
             var result = await _courseServices.GetByIdAsync(courseId, _currentUserServices.UserId);
             return ToResponse<CourseDtoToReturn, CourseResponseViewModel>(result);
         }
@@ -75,13 +71,12 @@ namespace Examination_System.Controllers
                 CourseId = courseId,
                 StudentId = studentId,
                 InstructorId = _currentUserServices.UserId
-
             };
             var result = await _courseServices.EnrollStudentInCourseAsync(CourseEnrollmentDto);
-            return ToResponse(result, $"Student with ID {studentId} enrolled in course {courseId} successfully" , "An errror Aqure ");
+            return ToResponse(result, $"Student with ID {studentId} enrolled in course {courseId} successfully" , "An errror occurred ");
         }
 
-        [HttpPut("{courseId}")]
+        [HttpPut("{courseId:guid}")]
         public async Task<ActionResult<ResponseViewModel<CourseResponseViewModel>>> UpdateCourse(
             Guid courseId,
             [FromBody] UpdateCourseViewModel updateCourseViewModel)
@@ -97,10 +92,10 @@ namespace Examination_System.Controllers
 
             var updateCourseDto = _mapper.Map<UpdateCourseDto>(updateCourseViewModel);
             var result = await _courseServices.UpdateAsync(updateCourseDto, _currentUserServices.UserId);
-            return ToResponse<CourseDtoToReturn, CourseResponseViewModel>(result, "Course updated successfully", "An Error happen when update course");
+            return ToResponse<CourseDtoToReturn, CourseResponseViewModel>(result, "Course updated successfully", "An error occurred while updating the course.");
         }
 
-        [HttpDelete("{courseId}")]
+        [HttpDelete("{courseId:guid}")]
         public async Task<ActionResult<ResponseViewModel<Result>>> DeleteCourse(Guid courseId)
         {
             if (CheckId<Result>(courseId) is { } badResult)return badResult;
