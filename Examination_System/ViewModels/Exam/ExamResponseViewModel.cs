@@ -6,10 +6,10 @@ namespace Examination_System.ViewModels.Exam
 {
     public class ExamResponseViewModel
     {
-        public Guid Id { get; set; }  // Changed from int
+        public Guid Id { get; set; }  
         public string Title { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
-        public Guid CourseId { get; set; }  // Changed from int
+        public Guid CourseId { get; set; }  
         public string CourseName { get; set; } = string.Empty;
         public int DurationInMinutes { get; set; }
         public int QuestionsCount { get; set; }

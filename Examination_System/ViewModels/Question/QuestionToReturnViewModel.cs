@@ -9,11 +9,11 @@ namespace Examination_System.ViewModels.Question
 {
     public class QuestionToReturnViewModel
     {
-        public Guid Id { get; set; }  // Changed from int
+        public Guid Id { get; set; }  
         public string Title { get; set; }
         public QuestionLevel Level { get; set; }
         public int Mark { get; set; }
-        public Guid CourseId { get; set; }  // Changed from int
+        public Guid CourseId { get; set; }  
         public ICollection<ChoiceToReturnViewModel> Choices { get; set; } = new List<ChoiceToReturnViewModel>();
 
 

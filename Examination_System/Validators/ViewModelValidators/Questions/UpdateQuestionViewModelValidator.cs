@@ -12,7 +12,7 @@ namespace Examination_System.Validators.ViewModelValidators.Questions
                 .NotNull().WithMessage("Invalid question ID");
 
             RuleFor(x => x.Text)
-                .NotEmpty().WithMessage("Question title is required")
+                
                 .MaximumLength(500).WithMessage("Title cannot exceed 500 characters");
 
             RuleFor(x => x.Mark)
@@ -23,11 +23,9 @@ namespace Examination_System.Validators.ViewModelValidators.Questions
                          .WithMessage("Invalid question difficulty. Must be Simple (1), Medium (2), or Hard (3)");
 
 
-            RuleFor(x => x.CourseId)
-                .NotNull().WithMessage("Course ID is required");
 
             RuleFor(x => x.Choices)
-                .NotEmpty().WithMessage("At least two choices are required")
+              
                 .Must(choices => choices != null && choices.Count >= 2)
                 .WithMessage("At least two choices are required")
                 .Must(choices => choices != null && choices.Count(c => c.IsCorrect) == 1)

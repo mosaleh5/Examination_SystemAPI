@@ -5,8 +5,8 @@ namespace Examination_System.ViewModels.AttemptExam
 {
     public class ExamAttemptResponseForStudentViewModel
     {
-        public Guid Id { get; set; }  // Changed from int
-        public Guid ExamId { get; set; }  // Changed from int
+        public Guid Id { get; set; }  
+        public Guid ExamId { get; set; }  
         public Guid StudentId { get; set; }  // Changed from string
         public string StudentName { get; set; } = string.Empty;
         public string ExamTitle { get; set; } = string.Empty;

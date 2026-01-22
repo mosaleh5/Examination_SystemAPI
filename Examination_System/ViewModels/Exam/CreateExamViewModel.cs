@@ -13,7 +13,7 @@ namespace Examination_System.ViewModels.Exam
         public string Description { get; set; } = string.Empty;
 
       
-        public Guid CourseId { get; set; }  // Changed from int
+        public Guid CourseId { get; set; }  
 
         [Required(ErrorMessage = "Duration is required")]
         [Range(1, int.MaxValue, ErrorMessage = "Duration must be at least 1 minute.")]

@@ -13,7 +13,7 @@ namespace Examination_System.DTOs.Exam
         public string Description { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Course ID is required")]
-        public Guid CourseId { get; set; }  // Changed from int
+        public Guid CourseId { get; set; }  
 
         [Required(ErrorMessage = "Instructor ID is required")]
         public Guid InstructorId { get; set; }  // Changed from string
