@@ -1,7 +1,7 @@
 using Examination_System.DTOs.Auth;
 using FluentValidation;
 
-namespace Examination_System.Validation.Auth
+namespace Examination_System.Validators.DTOsValidators.Auth
 {
     public class InstructorRegisterDtoValidator : AbstractValidator<InstructorRegisterDto>
     {

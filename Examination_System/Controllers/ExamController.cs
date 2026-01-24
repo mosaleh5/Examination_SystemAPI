@@ -1,12 +1,13 @@
 ﻿using AutoMapper;
+using Examination_System.Attributes;
 using Examination_System.Common;
 using Examination_System.DTOs.Exam;
+using Examination_System.Filters;
 using Examination_System.Models;
 using Examination_System.Models.Enums;
 using Examination_System.Services.CourseServices;
 using Examination_System.Services.CurrentUserServices;
 using Examination_System.Services.ExamServices;
-using Examination_System.Validation;
 using Examination_System.ViewModels;
 using Examination_System.ViewModels.AttemptExam;
 using Examination_System.ViewModels.Exam;
@@ -16,7 +17,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Examination_System.Controllers
 {
     [Authorize(Roles = "Instructor")]
-    [ValidateUserAuthentication]
+    [ValidateUserAuthFilterAttribute]
     public class ExamController : BaseController
     {
         private readonly IExamServices _examServices;
@@ -41,8 +42,7 @@ namespace Examination_System.Controllers
         public async Task<ActionResult<ResponseViewModel<ExamResponseViewModel>>> CreateExam(
             [FromBody] CreateExamViewModel createExamViewModel)
         {
-            if (!ModelState.IsValid)
-                return ValidationError<ExamResponseViewModel>();
+          
 
             var createExamDto = _mapper.Map<CreateExamDto>(createExamViewModel);
             createExamDto.InstructorId = _currentUserServices.UserId;
@@ -61,10 +61,7 @@ namespace Examination_System.Controllers
         [HttpPost("automatic")]
         public async Task<ActionResult<ResponseViewModel<ExamDetailedResponseViewModel>>> CreateAutomaticExam(
             [FromBody] CreateAutomaticExamViewModel createAutomaticExamViewModel)
-        {
-            if (!ModelState.IsValid)
-                return ValidationError<ExamDetailedResponseViewModel>();
-
+        {      
             var createAutomaticExamDto = _mapper.Map<CreateAutomaticExamDto>(createAutomaticExamViewModel);
             createAutomaticExamDto.InstructorId = _currentUserServices.UserId;
             createAutomaticExamDto.CreatedAt = DateTime.UtcNow;
@@ -93,8 +90,7 @@ namespace Examination_System.Controllers
         [HttpGet("{examId:guid}")]
         public async Task<ActionResult<ResponseViewModel<ExamDetailedResponseViewModel>>> GetExamsForInstructorById(Guid examId)
         {
-            if (CheckId<ExamDetailedResponseViewModel>(examId) is { } badResult)return badResult;
-
+           
             var GetExamByIdDto = new GetExamByIdDto
             {
                 ExamId = examId,
@@ -107,7 +103,7 @@ namespace Examination_System.Controllers
         [HttpPut("Activate/{examId:guid}")]
         public async Task<ActionResult<ResponseViewModel<Result>>> ActivateExam(Guid examId)
         {
-            if (CheckId<Result>(examId) is { } badResult)return badResult;
+         
             var activateExamDto = new ActivateExamDto
             {
                 ExamId = examId,
@@ -123,11 +119,7 @@ namespace Examination_System.Controllers
             Guid examId,
             [FromBody] List<Guid> questionIds)
         {
-            if (!ModelState.IsValid)
-                return ValidationError<Result>();
-
-            if (CheckId<Result>(examId) is { } badResult) return badResult;
-
+          
             var addQuestionsDto = new AddQuestionsToExamDto
             {
                 ExamId = examId,
@@ -146,11 +138,6 @@ namespace Examination_System.Controllers
             Guid examId,
             [FromBody] List<Guid> questionIds)
         {
-            if (!ModelState.IsValid)
-                return ValidationError<Result>();
-
-            if (CheckId<Result>(examId) is { } badResult) return badResult;
-
             var replaceQuestionsDto = new ReplaceExamQuestionsDto
             {
                 ExamId = examId,
@@ -168,7 +155,6 @@ namespace Examination_System.Controllers
             Guid examId,
             Guid questionId)
         {
-            if (CheckIds<Result>(examId, questionId) is { } resultCheck) return resultCheck;
             var removeQuestionDto = new RemoveQuestionFromExamDto
             {
                 ExamId = examId,
@@ -185,11 +171,6 @@ namespace Examination_System.Controllers
             Guid examId,
             [FromBody] Guid studentId)
         {
-            if (!ModelState.IsValid)
-                return ValidationError<Result>();
-
-            if (CheckId<Result>(examId) is { } badResult) return badResult;
-
             var assignStudentDto = new AssignStudentToExamDto
             {
                 ExamId = examId,

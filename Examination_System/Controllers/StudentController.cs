@@ -1,10 +1,11 @@
 using AutoMapper;
+using Examination_System.Attributes;
 using Examination_System.Common;
 using Examination_System.DTOs.Student;
+using Examination_System.Filters;
 using Examination_System.Models.Enums;
 using Examination_System.Services.CurrentUserServices;
 using Examination_System.Services.StudentService;
-using Examination_System.Validation;
 using Examination_System.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,7 +13,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Examination_System.Controllers
 {
     [Authorize(Roles = "Student")]
-    [ValidateUserAuthentication]
+    [ValidateUserAuthFilterAttribute]
     public class StudentController : BaseController
     {
         private readonly IStudentServices _studentServices;

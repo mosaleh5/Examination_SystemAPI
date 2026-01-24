@@ -1,4 +1,4 @@
-﻿using Examination_System.Validation;
+﻿using Examination_System.Attributes;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Runtime.CompilerServices;

@@ -1,5 +1,5 @@
 ﻿using Examination_System.DTOs.ExamAttempt;
-using Examination_System.Validation;
+using Examination_System.Attributes;
 using System.ComponentModel.DataAnnotations;
 using static Examination_System.Models.Question;
 

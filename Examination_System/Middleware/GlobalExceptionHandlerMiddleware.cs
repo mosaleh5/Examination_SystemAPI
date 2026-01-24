@@ -52,17 +52,10 @@ namespace Examination_System.Middleware
             context.Response.StatusCode = statusCode;
 
             // Create response using the errorCode from switch
-            var response = new ResponseViewModel<object>
-            {
-                Data = null,
-                IsSuccess = false,
-                Message = _env.IsDevelopment() 
-                    ? exception.Message 
-                    : "An unexpected error occurred. Please try again later.",
-                ErrorCode = errorCode, // ✅ Use errorCode from switch
-               // Timestamp = DateTime.UtcNow,
-               // TraceId = Activity.Current?.Id ?? context.TraceIdentifier
-            };
+            var response = ResponseViewModel<object>.Failure(errorCode, _env.IsDevelopment()
+                    ? exception.Message
+                    : "An unexpected error occurred. Please try again later.");
+        
 
             var options = new JsonSerializerOptions
             {

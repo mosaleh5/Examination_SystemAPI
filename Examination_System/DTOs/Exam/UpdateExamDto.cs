@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using Examination_System.Validation;
+using Examination_System.Attributes;
 
 namespace Examination_System.DTOs.Exam
 {

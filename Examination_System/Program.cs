@@ -1,23 +1,30 @@
 using Examination_System.Data;
+using Examination_System.Data.SeedData;
 using Examination_System.Extensions;
-using Microsoft.EntityFrameworkCore;
+using Examination_System.Filters.ValidationFilters;
+using Examination_System.Middleware;
+using Examination_System.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
-using Examination_System.Models;
-using Examination_System.Data.SeedData;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-
-
-using Examination_System.Middleware;
+using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers()
-    .AddJsonOptions(options =>
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add<UnifiedValidationFilter>();  
+
+}).AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
     });
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    options.SuppressModelStateInvalidFilter = true;
+});
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddApplicationServices(builder.Configuration);

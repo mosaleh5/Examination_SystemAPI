@@ -19,12 +19,7 @@ namespace Examination_System.Controllers
 
         [HttpPost("Login")]
         public async Task<ActionResult<ResponseViewModel<UserDto>>> Login([FromBody] LoginDto loginDto)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ResponseViewModel<UserDto>.Failure(
-                    ErrorCode.ValidationError,
-                    GetValidationErrors()));
-
+        {  
             var result = await _userService.LoginAsync(loginDto);
             
             return result.IsSuccess 
@@ -35,11 +30,6 @@ namespace Examination_System.Controllers
         [HttpPost("Register/Student")]
         public async Task<ActionResult<ResponseViewModel<UserDto>>> RegisterStudent([FromBody] StudentRegisterDto registerDto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ResponseViewModel<UserDto>.Failure(
-                    ErrorCode.ValidationError,
-                    GetValidationErrors()));
-
             var result = await _userService.RegisterStudentAsync(registerDto);
             
             return result.IsSuccess 
@@ -50,11 +40,6 @@ namespace Examination_System.Controllers
         [HttpPost("Register/Instructor")]
         public async Task<ActionResult<ResponseViewModel<UserDto>>> RegisterInstructor([FromBody] InstructorRegisterDto registerDto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ResponseViewModel<UserDto>.Failure(
-                    ErrorCode.ValidationError,
-                    GetValidationErrors()));
-
             var result = await _userService.RegisterInstructorAsync(registerDto);
             
             return result.IsSuccess 

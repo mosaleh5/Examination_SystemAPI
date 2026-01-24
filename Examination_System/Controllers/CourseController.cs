@@ -1,10 +1,11 @@
 ﻿using AutoMapper;
+using Examination_System.Attributes;
 using Examination_System.Common;
 using Examination_System.DTOs.Course;
+using Examination_System.Filters;
 using Examination_System.Models.Enums;
 using Examination_System.Services.CourseServices;
 using Examination_System.Services.CurrentUserServices;
-using Examination_System.Validation;
 using Examination_System.Validators.ViewModelValidators.Course;
 using Examination_System.ViewModels;
 using Examination_System.ViewModels.Course;
@@ -14,7 +15,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Examination_System.Controllers
 {
     [Authorize(Roles = "Instructor,Admin")]
-    [ValidateUserAuthentication]
+    [ValidateUserAuthFilterAttribute]
     public class CourseController : BaseController
     {
         private readonly ICourseServices _courseServices;
@@ -46,12 +47,8 @@ namespace Examination_System.Controllers
         [HttpPost]
         public async Task<ActionResult<ResponseViewModel<CourseResponseViewModel>>> Create([FromBody] CreateCourseViewModel createCourseViewModel)
         {
-            if (!ModelState.IsValid)
-                return ValidationError<CourseResponseViewModel>();
-
             var createCourseDto = _mapper.Map<CreateCourseDto>(createCourseViewModel);
             createCourseDto.InstructorId = _currentUserServices.UserId;
-
             var result = await _courseServices.CreateAsync(createCourseDto);
             return ToResponse<CourseDtoToReturn, CourseResponseViewModel>(result, "Course created successfully");
         }
@@ -61,11 +58,6 @@ namespace Examination_System.Controllers
         public async Task<ActionResult<ResponseViewModel<Result>>> AssignStudentToCourse(Guid courseId, Guid studentId)
         {
 
-            if (!ModelState.IsValid)
-                return ValidationError<Result>();
-
-            if (CheckIds<Result>(courseId, studentId) is { } resultCheck) return resultCheck;
-
             var CourseEnrollmentDto = new CourseEnrollementDto
             {
                 CourseId = courseId,
@@ -73,7 +65,7 @@ namespace Examination_System.Controllers
                 InstructorId = _currentUserServices.UserId
             };
             var result = await _courseServices.EnrollStudentInCourseAsync(CourseEnrollmentDto);
-            return ToResponse(result, $"Student with ID {studentId} enrolled in course {courseId} successfully" , "An errror occurred ");
+            return ToResponse(result, $"Student with ID {studentId} enrolled in course {courseId} successfully", "An errror occurred ");
         }
 
         [HttpPut("{courseId:guid}")]
@@ -81,14 +73,10 @@ namespace Examination_System.Controllers
             Guid courseId,
             [FromBody] UpdateCourseViewModel updateCourseViewModel)
         {
-            if (!ModelState.IsValid)
-                return ValidationError<CourseResponseViewModel>();
 
-            if (CheckId<CourseResponseViewModel>(courseId) is { } badResult) return badResult;
-
-           /* if (courseId != updateCourseViewModel.ID)
-                return BadRequest(ResponseViewModel<CourseResponseViewModel>.Failure(
-                    ErrorCode.BadRequest, "Course ID mismatch"));*/
+            /* if (courseId != updateCourseViewModel.ID)
+                 return BadRequest(ResponseViewModel<CourseResponseViewModel>.Failure(
+                     ErrorCode.BadRequest, "Course ID mismatch"));*/
 
             var updateCourseDto = _mapper.Map<UpdateCourseDto>(updateCourseViewModel);
             var result = await _courseServices.UpdateAsync(updateCourseDto, _currentUserServices.UserId);
@@ -98,12 +86,10 @@ namespace Examination_System.Controllers
         [HttpDelete("{courseId:guid}")]
         public async Task<ActionResult<ResponseViewModel<Result>>> DeleteCourse(Guid courseId)
         {
-            if (CheckId<Result>(courseId) is { } badResult)return badResult;
-
             var result = await _courseServices.DeleteAsync(courseId, _currentUserServices.UserId);
-            return ToResponse(result, $"Course with ID {courseId} deleted successfully" , "An Error happen when Delete course");
+            return ToResponse(result, $"Course with ID {courseId} deleted successfully", "An Error happen when Delete course");
         }
 
-       
+
     }
 }

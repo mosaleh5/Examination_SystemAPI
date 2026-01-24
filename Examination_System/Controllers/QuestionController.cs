@@ -1,11 +1,12 @@
 ﻿using AutoMapper;
+using Examination_System.Attributes;
 using Examination_System.Common;
 using Examination_System.DTOs.Question;
+using Examination_System.Filters;
 using Examination_System.Models;
 using Examination_System.Models.Enums;
 using Examination_System.Services.CurrentUserServices;
 using Examination_System.Services.QuestionServices;
-using Examination_System.Validation;
 using Examination_System.ViewModels;
 using Examination_System.ViewModels.Question;
 using Microsoft.AspNetCore.Authorization;
@@ -17,7 +18,7 @@ namespace Examination_System.Controllers
     /// Controller for managing questions
     /// </summary>
     [Authorize(Roles = "Instructor,Admin")]
-    [ValidateUserAuthentication]
+    [ValidateUserAuthFilterAttribute]
     public class QuestionController : BaseController
     {
         private readonly IQuestionServices _questionServices;
@@ -72,9 +73,6 @@ namespace Examination_System.Controllers
         public async Task<ActionResult<ResponseViewModel<QuestionToReturnViewModel>>> Create(
             [FromBody] CreateQuestionViewModel model)
         {
-            if (!ModelState.IsValid)
-                return ValidationError<QuestionToReturnViewModel>();
-
             var dto = _mapper.Map<CreateQuestionDto>(model);
             dto.InstructorId = _currentUser.UserId;
 
@@ -90,11 +88,6 @@ namespace Examination_System.Controllers
             Guid questionId,
             [FromBody] UpdateQuestionViewModel model)
         {
-            if (!ModelState.IsValid)
-                return ValidationError<QuestionToReturnViewModel>();
-
-            if (CheckId<QuestionToReturnViewModel>(questionId) is { } badResult) return badResult;
-
             var dto = _mapper.Map<UpdateQuestionDto>(model);
             dto.InstructorId = _currentUser.UserId;
 
@@ -109,8 +102,6 @@ namespace Examination_System.Controllers
 
         public async Task<ActionResult<ResponseViewModel<Result>>> Delete(Guid questionId)
         {
-            if (CheckId<Result>(questionId) is { } badResult) return badResult;
-
             var result = await _questionServices.DeleteAsync(questionId, _currentUser.UserId);
             return ToResponse(result, "Question deleted successfully", null);
 

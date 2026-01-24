@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Examination_System.Validation
+namespace Examination_System.Attributes
 {
     [AttributeUsage(AttributeTargets.Property)]
     public class ValidateEnumAttribute : ValidationAttribute

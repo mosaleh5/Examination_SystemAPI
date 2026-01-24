@@ -1,5 +1,5 @@
 ﻿using Examination_System.Models.Enums;
-using Examination_System.Validation;
+using Examination_System.Attributes;
 using System.ComponentModel.DataAnnotations;
 
 namespace Examination_System.ViewModels.Exam

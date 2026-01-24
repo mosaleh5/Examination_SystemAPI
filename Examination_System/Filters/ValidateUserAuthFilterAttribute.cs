@@ -3,10 +3,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
-namespace Examination_System.Validation
+namespace Examination_System.Filters
 {
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, AllowMultiple = false)]
-    public class ValidateUserAuthenticationAttribute : ActionFilterAttribute
+    public class ValidateUserAuthFilterAttribute : ActionFilterAttribute
     {
         public override void OnActionExecuting(ActionExecutingContext context)
         {
@@ -25,7 +25,7 @@ namespace Examination_System.Validation
             {
                 context.Result = new UnauthorizedObjectResult(new { message = "User is not authenticated." });
                 return;
-            }
+            } 
 
             base.OnActionExecuting(context);
         }

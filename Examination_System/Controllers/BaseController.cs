@@ -42,27 +42,7 @@ namespace Examination_System.Controllers
             }
             return Ok(ResponseViewModel<Result>.Success(result, successMessage));
         }
-        /// <summary>
-        /// Validates a Guid identifier. Returns a BadRequest if the id is null or empty; otherwise, returns null.
-        /// </summary>
-        protected ActionResult<ResponseViewModel<TViewModel>>? CheckId<TViewModel>(
-            Guid? id,
-            string? errorMessage = "Id Can not be null or Empty")
-        {
-
-            if (id == null || id == Guid.Empty)
-                return BadRequest(ResponseViewModel<TViewModel>.Failure(ErrorCode.BadRequest, errorMessage));
-            return null;
-        }
-        protected ActionResult<ResponseViewModel<T>>? CheckIds<T>(params Guid[] ids)
-        {
-            foreach (var id in ids)
-            {
-                if (CheckId<T>(id) is { } badResult)
-                    return badResult;
-            }
-            return null;
-        }
+     
         protected ActionResult<ResponseViewModel<TViewModel>> ToResponse<TDto, TViewModel>(
             Result<TDto> result,
             string? successMessage = null,
