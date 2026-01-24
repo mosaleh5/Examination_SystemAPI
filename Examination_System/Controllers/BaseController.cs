@@ -2,6 +2,8 @@
 using Examination_System.ViewModels;
 using Examination_System.Models.Enums;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.Http;
 using AutoMapper;
 
 
@@ -11,11 +13,14 @@ namespace Examination_System.Controllers
     [Route("api/[controller]/[Action]")]
     public class BaseController : ControllerBase
     {
-        protected readonly IMapper _mapper;
+        protected readonly IMapper _mapper = null!;
+        protected readonly LinkGenerator? _linkGenerator;
 
-        protected BaseController(IMapper mapper)
+        public BaseController(IMapper mapper, LinkGenerator? linkGenerator = null)
         {
             _mapper = mapper;
+            _linkGenerator = linkGenerator;
+
         }
 
         protected string GetValidationErrors()
@@ -60,26 +65,31 @@ namespace Examination_System.Controllers
         }
         protected ActionResult<ResponseViewModel<TViewModel>> ToResponse<TDto, TViewModel>(
             Result<TDto> result,
-            string? successMessage = null
-            , string? errorMessage = null)
+            string? successMessage = null,
+            string? errorMessage = null,
+            List<LinkViewModel>? links = null
+            )
             where TDto : class
         {
             if (!result.IsSuccess)
                 return ToErrorResponse<TViewModel>(result, errorMessage);
 
-            var viewModel = _mapper.Map<TViewModel>(result.Data);
-            return Ok(ResponseViewModel<TViewModel>.Success(viewModel, successMessage));
+            var viewModel = _mapper.Map<TViewModel>(result.Data!);
+            return Ok(ResponseViewModel<TViewModel>.Success(viewModel, successMessage, links));
         }
 
         protected ActionResult<ResponseViewModel<IEnumerable<TViewModel>>> ToResponse<TDto, TViewModel>(
-            Result<IEnumerable<TDto>> result)
+            Result<IEnumerable<TDto>> result,
+            string? successMessage = null,
+            string? errorMessage = null,
+            List<LinkViewModel>? links = null)
             where TDto : class
         {
             if (!result.IsSuccess)
-                return BadRequest(ResponseViewModel<IEnumerable<TViewModel>>.Failure(result.Error, result.ErrorMessage));
+                return BadRequest(ResponseViewModel<IEnumerable<TViewModel>>.Failure(result.Error, errorMessage));
 
-            var viewModels = _mapper.Map<IEnumerable<TViewModel>>(result.Data);
-            return Ok(ResponseViewModel<IEnumerable<TViewModel>>.Success(viewModels));
+            var viewModels = _mapper.Map<IEnumerable<TViewModel>>(result.Data!);
+            return Ok(ResponseViewModel<IEnumerable<TViewModel>>.Success(viewModels, successMessage, links));
         }
 
         protected ActionResult<ResponseViewModel<T>> ToErrorResponse<T>(Result result, string? errormessage)
@@ -97,6 +107,35 @@ namespace Examination_System.Controllers
             => BadRequest(ResponseViewModel<T>.Failure(ErrorCode.ValidationError, GetValidationErrors()));
 
         #endregion
+
+        protected LinkViewModel? SelfLink()
+        {
+            var action = RouteData.Values["action"]?.ToString() ?? string.Empty;
+            var controller = RouteData.Values["controller"]?.ToString() ?? string.Empty;
+
+            var selfHref = _linkGenerator.GetUriByAction(
+                httpContext: HttpContext,
+                action: action,
+                controller: controller,
+                values: RouteData.Values
+            );
+
+            return new LinkViewModel("self", selfHref, Request.Method) ;
+        }
+
+        protected LinkViewModel? CreateLink(string nameOfAction, object? values, string rel, string method)
+        {           
+            var controller = RouteData.Values["controller"]?.ToString() ?? string.Empty;
+
+            var href = _linkGenerator.GetUriByAction(
+                httpContext: HttpContext,
+                action: nameOfAction,
+                controller: controller,
+                values: values
+            );
+
+            return href != null ? new LinkViewModel(rel, href, method) : null;
+        }
 
     }
 }

@@ -28,7 +28,8 @@ namespace Examination_System.Controllers
             IExamServices examServices,
             ICourseServices courseServices,
             ICurrentUserServices currentUserServices,
-            IMapper mapper) : base(mapper)
+            IMapper mapper ,
+            LinkGenerator linkGenerator) : base(mapper ,linkGenerator)
         {
             _examServices = examServices;
             _courseServices = courseServices;
@@ -48,7 +49,12 @@ namespace Examination_System.Controllers
             createExamDto.CreatedAt = DateTime.UtcNow;
 
             var result = await _examServices.CreateExam(createExamDto);
-            return ToResponse<ExamToReturnDto, ExamResponseViewModel>(result);
+            var _links = new List<LinkViewModel>()
+            {
+                SelfLink(),
+                CreateLink(nameof(AddQuestionsToExam) , new {examId = result.Data.Id} , "add-Question" , "Post"),
+            };
+            return ToResponse<ExamToReturnDto, ExamResponseViewModel>(result, "exam created succfully" , "An error Happen", _links);
 
         }
 
@@ -64,9 +70,16 @@ namespace Examination_System.Controllers
             createAutomaticExamDto.CreatedAt = DateTime.UtcNow;
 
             var result = await _examServices.CreateAutomaticExam(createAutomaticExamDto);
+            var _links = new List<LinkViewModel>()
+            {
+                SelfLink(),
+                CreateLink(nameof(AddQuestionsToExam) , new {examId = result.Data.Id} , "add-Question" , "Post"),
+                CreateLink(nameof(ActivateExam) , new {examId = result.Data.Id} , "Activate-Exam" , "Putch"),
+            };
             return ToResponse<ExamToReturnDto, ExamDetailedResponseViewModel>(result,
                 "Automatic exam created successfully",
-                "An error occurred when creating automatic exam ");
+                "An error occurred when creating automatic exam ",
+                _links);
 
         }
 

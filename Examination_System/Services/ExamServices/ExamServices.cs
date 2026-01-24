@@ -66,11 +66,11 @@ namespace Examination_System.Services.ExamServices
 
             var courseValidation = await _authValidator.ValidateCourseExistsAsync(createExamDto.CourseId);
             if (!courseValidation.IsSuccess)
-                return Result<ExamToReturnDto>.Failure(courseValidation.Error, courseValidation.ErrorMessage);
+                return Result<ExamToReturnDto>.Failure(courseValidation.Error, courseValidation.ErrorMessage ?? "Unknown error");
 
             var instructorValidation = await _authValidator.ValidateInstructorOfCourseAsync(createExamDto.CourseId, createExamDto.InstructorId);
             if (!instructorValidation.IsSuccess)
-                return Result<ExamToReturnDto>.Failure(instructorValidation.Error, instructorValidation.ErrorMessage);
+                return Result<ExamToReturnDto>.Failure(instructorValidation.Error, instructorValidation.ErrorMessage ?? "Unknown error");
 
             var exam = _mapper.Map<Exam>(createExamDto);
             await _examRepository.CreateExamAsync(exam);
@@ -91,11 +91,11 @@ namespace Examination_System.Services.ExamServices
 
             var courseValidation = await _authValidator.ValidateCourseExistsAsync(createAutomaticExamDto.CourseId);
             if (!courseValidation.IsSuccess)
-                return Result<ExamToReturnDto>.Failure(courseValidation.Error, courseValidation.ErrorMessage);
+                return Result<ExamToReturnDto>.Failure(courseValidation.Error, courseValidation.ErrorMessage ?? "Unknown error");
 
             var instructorValidation = await _authValidator.ValidateInstructorOfCourseAsync(createAutomaticExamDto.CourseId, createAutomaticExamDto.InstructorId);
             if (!instructorValidation.IsSuccess)
-                return Result<ExamToReturnDto>.Failure(instructorValidation.Error, instructorValidation.ErrorMessage);
+                return Result<ExamToReturnDto>.Failure(instructorValidation.Error, instructorValidation.ErrorMessage ?? "Unknown error");
 
             var exam = _mapper.Map<Exam>(createAutomaticExamDto);
             await _examRepository.CreateExamAsync(exam);
@@ -106,7 +106,7 @@ namespace Examination_System.Services.ExamServices
 
             var questionsResult = await _questionManager.SelectBalancedQuestionsAsync(createAutomaticExamDto.CourseId, createAutomaticExamDto.QuestionsCount);
             if (!questionsResult.IsSuccess)
-                return Result<ExamToReturnDto>.Failure(questionsResult.Error, questionsResult.ErrorMessage);
+                return Result<ExamToReturnDto>.Failure(questionsResult.Error, questionsResult.ErrorMessage ?? "Unknown error");
 
             var selectedQuestions = questionsResult.Data!;
             return await AddQuestionsAndFinalizeExamAsync(exam, selectedQuestions, createAutomaticExamDto.InstructorId);
@@ -228,7 +228,7 @@ namespace Examination_System.Services.ExamServices
 
             var examResult = await _authValidator.ValidateAndGetExamAsync(activateExamDto.ExamId, activateExamDto.InstructorId);
             if (!examResult.IsSuccess)
-                return Result.Failure(examResult.Error, examResult.ErrorMessage);
+                return Result.Failure(examResult.Error, examResult.ErrorMessage ?? "Unknown error");
 
             var exam = examResult.Data!;
             if (exam.IsActive)
@@ -246,7 +246,7 @@ namespace Examination_System.Services.ExamServices
 
             var examResult = await _authValidator.ValidateAndGetExamAsync(addQuestionsDto.ExamId, addQuestionsDto.InstructorId);
             if (!examResult.IsSuccess)
-                return Result.Failure(examResult.Error, examResult.ErrorMessage);
+                return Result.Failure(examResult.Error, examResult.ErrorMessage ?? "Unknown error");
 
             var exam = examResult.Data!;
             var activeValidation = _authValidator.ValidateExamNotActive(exam);
@@ -275,7 +275,7 @@ namespace Examination_System.Services.ExamServices
 
             var examResult = await _authValidator.ValidateAndGetExamAsync(replaceQuestionsDto.ExamId, replaceQuestionsDto.InstructorId);
             if (!examResult.IsSuccess)
-                return Result.Failure(examResult.Error, examResult.ErrorMessage);
+                return Result.Failure(examResult.Error, examResult.ErrorMessage ?? "Unknown error");
 
             var exam = examResult.Data!;
             var activeValidation = _authValidator.ValidateExamNotActive(exam);
@@ -304,7 +304,7 @@ namespace Examination_System.Services.ExamServices
 
             var examResult = await _authValidator.ValidateAndGetExamAsync(removeQuestionDto.ExamId, removeQuestionDto.InstructorId);
             if (!examResult.IsSuccess)
-                return Result.Failure(examResult.Error, examResult.ErrorMessage);
+                return Result.Failure(examResult.Error, examResult.ErrorMessage ?? "Unknown error");
 
             var exam = examResult.Data!;
             var activeValidation = _authValidator.ValidateExamNotActive(exam);

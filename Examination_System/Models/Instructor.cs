@@ -14,11 +14,11 @@ namespace Examination_System.Models
         public string Specialization { get; set; } = string.Empty;
         
         // Navigation property
-        public User User { get; set; }
+        public User User { get; set; } = null!;
         
         // Relations
-        public ICollection<Course> Courses { get; set; }
-        public ICollection<Exam> Exams { get; set; }
-        public ICollection<Question> Questions { get; set; }
+        public ICollection<Course> Courses { get; set; } = new List<Course>();
+        public ICollection<Exam> Exams { get; set; } = new List<Exam>();
+        public ICollection<Question> Questions { get; set; } = new List<Question>();
     }
 }

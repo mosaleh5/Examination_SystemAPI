@@ -12,7 +12,7 @@ namespace Examination_System.Models
 
         public bool IsCorrect { get; set; }
         [ForeignKey(nameof(QuestionId))]
-        public Question Question { get; set; }
+        public Question Question { get; set; } = null!;
         public Guid QuestionId { get; set; }
       
 

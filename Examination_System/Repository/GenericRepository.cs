@@ -22,7 +22,7 @@ namespace Examination_System.Repository
         public async Task<T> GetByIdAsync(Guid id)
         {
             var res = await _dbSet.Where(c => c.Id.Equals(id) && !c.IsDeleted).FirstOrDefaultAsync();
-            return res;
+            return res!;
         }
 
         public IQueryable<T> GetAll()
@@ -67,7 +67,7 @@ namespace Examination_System.Repository
 
         public async Task<T> GetById(Guid id)
         {
-            return await _dbSet.Where(c => c.Id.Equals(id) && !c.IsDeleted).FirstOrDefaultAsync();
+            return await _dbSet.Where(c => c.Id.Equals(id) && !c.IsDeleted).FirstOrDefaultAsync()!;
         }
 
         public IQueryable<T> GetByCriteria(Expression<Func<T, bool>> predicate)

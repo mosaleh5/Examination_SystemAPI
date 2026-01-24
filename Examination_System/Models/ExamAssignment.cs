@@ -9,10 +9,10 @@ namespace Examination_System.Models
     public class ExamAssignment : BaseModelGuid
     {
         public Guid ExamId { get; set; }
-        public Exam Exam { get; set; }
+        public Exam Exam { get; set; } = null!;
         
         public Guid StudentId { get; set; }  // Changed from StudentId
-        public Student Student { get; set; }
+        public Student Student { get; set; } = null!;
         
         public DateTime AssignedDate { get; set; }
         public DateTime? SubmittedDate { get; set; } = null;

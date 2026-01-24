@@ -7,7 +7,7 @@ namespace Examination_System.Services
     public class GenericServices<T> : IGenericServices<T> where T : BaseModelGuid
     {
         protected readonly IUnitOfWork _unitOfWork;
-        protected readonly IMapper _mapper;
+        protected readonly IMapper _mapper = null!;
 
         public GenericServices(IUnitOfWork unitOfWork)
         {

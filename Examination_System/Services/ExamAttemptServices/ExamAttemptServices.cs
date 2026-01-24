@@ -77,7 +77,7 @@ namespace Examination_System.Services.ExamAttemptServices
             var validationResult = await _availabilityValidator.ValidateAsync(exam, studentId);
             if (!validationResult.IsSuccess)
             {
-                return Result<ExamToAttemptDto>.Failure(validationResult.Error, validationResult.ErrorMessage);
+                return Result<ExamToAttemptDto>.Failure(validationResult.Error, validationResult.ErrorMessage ?? "Unknown error");
             }
 
             var attempt = await CreateAttemptAsync(exam.Id, studentId);
@@ -120,7 +120,7 @@ namespace Examination_System.Services.ExamAttemptServices
             var validationResult = _submissionValidator.Validate(attempt, answers);
             if (!validationResult.IsSuccess)
             {
-                return Result<ExamAttemptDto>.Failure(validationResult.Error, validationResult.ErrorMessage);
+                return Result<ExamAttemptDto>.Failure(validationResult.Error, validationResult.ErrorMessage ?? "Unknown error");
             }
 
             var questions = await _attemptRepository.GetQuestionsByIdsAsync(

@@ -37,7 +37,7 @@ namespace Examination_System.Services.ExamAttemptServices.Validators
                     string.Format(ErrorMessages.InvalidAnswerCount, attempt.Exam.QuestionsCount, answers.Count));
             }
 
-            return Result<object>.Success(null);
+            return Result<object>.Success(null!);
         }
     }
 }
